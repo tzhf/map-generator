@@ -2,7 +2,7 @@ const SV = new google.maps.StreetViewService();
 
 export function SVreq(loc, settings) {
 	return new Promise(async (resolve, reject) => {
-		await SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), 100, (res, status) => {
+		await SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), 1000, (res, status) => {
 			if (status != google.maps.StreetViewStatus.OK) return reject();
 			if (settings.rejectUnofficial && !res.copyright.includes(" Google")) return reject();
 			if (settings.rejectUnofficial && res.links.length == 0) return reject();

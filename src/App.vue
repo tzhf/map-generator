@@ -227,7 +227,7 @@ const style = () => {
 const highlighted = () => {
 	return {
 		fillColor: getRandomColor(),
-		fillOpacity: 0.5,
+		fillOpacity: 0.6,
 	};
 };
 
