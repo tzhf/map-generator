@@ -76,20 +76,21 @@
 </template>
 
 <script setup>
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
 import { onMounted, ref, reactive, computed } from "vue";
 import Button from "@/components/Elements/Button.vue";
 import Checkbox from "@/components/Elements/Checkbox.vue";
 import Spinner from "@/components/Elements/Spinner.vue";
+import Logo from "@/components/Elements/Logo.vue";
 
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import marker from "@/assets/images/marker-icon.png";
+import markerShadow from "@/assets/images/marker-shadow.png";
+
+import { getCountryCode } from "get-country-code";
+import { SVreq } from "@/utils/SVreq";
 import borders from "get-country-code/data";
 import borders_coverage from "@/utils/borders_coverage.json";
-
-import { SVreq } from "@/utils/SVreq";
-import { getCountryCode } from "get-country-code";
-import Logo from "./components/Elements/Logo.vue";
 
 let map;
 let geojson;
@@ -116,6 +117,13 @@ const settings = reactive({
 	toDate: new Date().getFullYear() + "-" + (new Date().getMonth() + 1),
 });
 
+const myIcon = L.icon({
+	iconUrl: marker,
+	iconAnchor: [12, 41],
+	shadowUrl: markerShadow,
+	shadowAnchor: [12, 41],
+});
+
 onMounted(() => {
 	map = L.map("map", {
 		attributionControl: false,
@@ -130,6 +138,13 @@ onMounted(() => {
 		onEachFeature: onEachFeature,
 	}).addTo(map);
 	layerGroup = L.layerGroup().addTo(map);
+
+	// Fix hard reload issue
+	const mapDiv = document.getElementById("map");
+	const resizeObserver = new ResizeObserver(() => {
+		map.invalidateSize();
+	});
+	resizeObserver.observe(mapDiv);
 });
 
 const switchLayer = (e) => {
@@ -267,7 +282,7 @@ const generate = async (country) => {
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
 						country.found.push(res.value);
-						L.marker([res.value.lat, res.value.lng])
+						L.marker([res.value.lat, res.value.lng], { icon: myIcon })
 							.on("click", () => {
 								window.open(
 									`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}&heading=${res.value.heading}&pitch=${res.value.pitch}`,
