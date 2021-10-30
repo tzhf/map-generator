@@ -10,7 +10,6 @@
 		</span>
 		<span class="radio__label">
 			{{ label }}
-			<small v-if="optText"><br />{{ optText }}</small>
 		</span>
 	</label>
 </template>
@@ -18,7 +17,6 @@
 <script setup>
 defineProps({
 	label: String,
-	optText: String,
 	checked: Boolean,
 });
 </script>

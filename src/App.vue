@@ -50,10 +50,13 @@
 				</div>
 			</div>
 			<div class="mtb-1">
-				<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" optText="0 by default. -90° for tarmac/+90° for sky" />
-				<label v-if="settings.adjustPitch" class="flex wrap indent">
-					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
-				</label>
+				<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
+				<div v-if="settings.adjustPitch" class="indent">
+					<label class="flex wrap">
+						Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
+					</label>
+					<small>0 by default. -90° for tarmac/+90° for sky</small>
+				</div>
 			</div>
 			<div class="mtb-1">
 				<div>
@@ -63,7 +66,7 @@
 				</div>
 				<small>
 					Radius in which to search for a panorama.<br />
-					Keep it between 100-1000m for best results. You might want to increase it only for big/poorly covered territories.
+					Keep it between 100-1000m for best results. Increase it only for big/poorly covered territories.
 				</small>
 			</div>
 			<hr />
@@ -129,8 +132,8 @@ const settings = reactive({
 	rejectUnofficial: true,
 	adjustHeading: true,
 	headingDeviation: 0,
-	adjustPitch: false,
-	pitchDeviation: 15,
+	adjustPitch: true,
+	pitchDeviation: 10,
 	rejectByYear: false,
 	fromDate: "2009-01",
 	toDate: dateToday,
@@ -220,7 +223,9 @@ const generate = async (country) => {
 						L.marker([res.value.lat, res.value.lng], { icon: myIcon })
 							.on("click", () => {
 								window.open(
-									`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}&heading=${res.value.heading}&pitch=${res.value.pitch}`,
+									`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}
+									${res.value.heading ? "&heading=" + res.value.heading : ""}
+									${res.value.pitch ? "&pitch=" + res.value.pitch : ""}`,
 									"_blank"
 								);
 							})
