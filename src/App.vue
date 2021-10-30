@@ -206,7 +206,7 @@ const highlightFeature = (e) => {
 	if (index == -1) {
 		layer.setStyle(highlighted());
 	}
-	select.value = layer.feature.properties.name;
+	select.value = `${layer.feature.properties.name} ${layer.found ? "(" + layer.found.length + ")" : "(0)"}`;
 };
 
 const resetHighlight = (e) => {
