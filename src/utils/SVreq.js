@@ -4,15 +4,14 @@ export function SVreq(loc, settings) {
 	return new Promise(async (resolve, reject) => {
 		await SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
 			if (status != google.maps.StreetViewStatus.OK) return reject();
-			if (settings.rejectUnofficial && !res.copyright.includes(" Google")) return reject();
-			if (settings.rejectUnofficial && res.links.length == 0) return reject();
+			if (settings.rejectUnofficial) {
+				if (!res.copyright.includes(" Google") || !res.links.length) return reject();
+			}
 			if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return reject();
-			if (settings.adjustHeading && res.copyright.includes(" Google")) {
-				loc.heading = parseInt(res.links[0]?.heading) + randomInRange(-settings.headingDeviation, settings.headingDeviation);
+			if (settings.adjustHeading && res.links.length) {
+				loc.heading = parseInt(res.links[0].heading) + randomInRange(-settings.headingDeviation, settings.headingDeviation);
 			}
-			if (settings.adjustPitch) {
-				loc.pitch = settings.pitchDeviation;
-			}
+			if (settings.adjustPitch) loc.pitch = settings.pitchDeviation;
 			loc.lat = res.location.latLng.lat();
 			loc.lng = res.location.latLng.lng();
 			resolve(loc);
