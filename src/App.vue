@@ -91,7 +91,6 @@ import Logo from "@/components/Elements/Logo.vue";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import marker from "@/assets/images/marker-icon.png";
-import markerShadow from "@/assets/images/marker-shadow.png";
 
 import { getCountryCode } from "get-country-code";
 import { SVreq } from "@/utils/SVreq";
@@ -129,8 +128,6 @@ const settings = reactive({
 const myIcon = L.icon({
 	iconUrl: marker,
 	iconAnchor: [12, 41],
-	shadowUrl: markerShadow,
-	shadowAnchor: [12, 41],
 });
 
 onMounted(() => {
