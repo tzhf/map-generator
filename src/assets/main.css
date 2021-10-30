@@ -135,8 +135,8 @@ input::-webkit-inner-spin-button {
 .switch {
 	position: relative;
 	display: inline-block;
-	width: 2.5rem;
-	height: 1.5rem;
+	width: 2rem;
+	height: 1.2rem;
 	margin: 0 1rem;
 }
 .switch input {
@@ -158,16 +158,16 @@ input::-webkit-inner-spin-button {
 .slider:before {
 	position: absolute;
 	content: "";
-	height: 1rem;
-	width: 1rem;
-	left: 0.3rem;
-	bottom: 0.29rem;
+	height: 0.75rem;
+	width: 0.75rem;
+	left: 0.25rem;
+	bottom: 0.25rem;
 	background-color: white;
 	-webkit-transition: 0.3s;
 	transition: 0.3s;
 }
 input:checked + .slider:before {
-	-webkit-transform: translateX(1rem);
-	-ms-transform: translateX(1rem);
-	transform: translateX(1rem);
+	-webkit-transform: translateX(0.75rem);
+	-ms-transform: translateX(0.75rem);
+	transform: translateX(0.75rem);
 }

@@ -29,12 +29,12 @@
 
 		<div v-if="!state.started" class="flex gap">
 			<Button @click="selectAll" class="bg-success" text="Select all" />
-			<Button @click="removeAll" class="bg-danger" v-if="selected.length" text="Remove all" />
+			<Button @click="deselectAll" class="bg-danger" v-if="selected.length" text="Deselect all" />
 		</div>
+		<Button @click="clearMarkers" class="bg-warning" text="Clear markers" optText="(for performance, this won't erase your generated locations)" />
 	</div>
 
 	<div class="overlay right bottom flex-col gap">
-		<Button @click="clearMarkers" class="bg-warning" text="Clear markers" optText="(for performance, this won't erase your generated locations)" />
 		<div class="settings" v-if="!state.started">
 			<h4 class="center">Settings</h4>
 			<div class="mtb-1">
@@ -66,7 +66,13 @@
 			</div>
 		</div>
 
-		<Button v-if="selected.length" @click="handleClickStart" :class="state.started ? 'bg-danger' : 'bg-success'" :text="state.started ? 'Pause' : 'Start'" />
+		<Button
+			v-if="canBeStarted"
+			@click="handleClickStart"
+			:class="state.started ? 'bg-danger' : 'bg-success'"
+			:text="state.started ? 'Pause' : 'Start'"
+			title="Space bar/Enter"
+		/>
 
 		<div class="flex gap" v-if="!state.started && hasResults">
 			<Button @click="copyToClipboard" class="bg-success" text="Copy to clipboard" />
@@ -98,7 +104,8 @@ let layerGroup;
 
 const select = ref("Select a country");
 const selected = ref([]);
-const hasResults = computed(() => selected.value.some((country) => country.found?.length > 0));
+const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded));
+const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
 
 const state = reactive({
 	started: false,
@@ -168,6 +175,7 @@ const selectCountry = (e) => {
 	const country = e.target;
 	const index = selected.value.findIndex((x) => x.feature.properties.name === country.feature.properties.name);
 	if (index == -1) {
+		if (!country.found) country.found = [];
 		if (!country.nbNeeded) country.nbNeeded = 100;
 		country.setStyle(highlighted());
 		selected.value.push(country);
@@ -175,6 +183,20 @@ const selectCountry = (e) => {
 		selected.value.splice(index, 1);
 		geojson.resetStyle(e.target);
 	}
+};
+
+const selectAll = () => {
+	selected.value = geojson.getLayers().map((country) => {
+		if (!country.found) country.found = [];
+		if (!country.nbNeeded) country.nbNeeded = 100;
+		return country;
+	});
+	geojson.setStyle(highlighted);
+};
+
+const deselectAll = () => {
+	selected.value.length = 0;
+	geojson.setStyle(style);
 };
 
 const highlightFeature = (e) => {
@@ -194,19 +216,6 @@ const resetHighlight = (e) => {
 		layer.setStyle(removeHighlight());
 	}
 	select.value = "Select a country";
-};
-
-const selectAll = () => {
-	selected.value = geojson.getLayers().map((e) => {
-		e.nbNeeded = 100;
-		return e;
-	});
-	geojson.setStyle(highlighted);
-};
-
-const removeAll = () => {
-	selected.value.length = 0;
-	geojson.setStyle(style);
 };
 
 const style = () => {
@@ -251,7 +260,6 @@ document.onkeydown = () => {
 
 const start = async () => {
 	for (let country of selected.value) {
-		if (!country.found) country.found = [];
 		await generate(country);
 	}
 	state.started = false;
