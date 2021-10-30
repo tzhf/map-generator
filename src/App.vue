@@ -55,6 +55,17 @@
 					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
 				</label>
 			</div>
+			<div class="mtb-1">
+				<div>
+					Radius
+					<input type="number" v-model.number="settings.radius" @input="handleRadiusInput" />
+					m
+				</div>
+				<small>
+					Radius in which to search for a panorama.<br />
+					Keep it between 100-1000m for best results. You might want to increase it only for big/poorly covered territories.
+				</small>
+			</div>
 			<hr />
 			<div class="flex space-between mtb-1">
 				<label>From</label>
@@ -114,7 +125,7 @@ const state = reactive({
 });
 
 const settings = reactive({
-	nbNeeded: 100,
+	radius: 500,
 	rejectUnofficial: true,
 	adjustHeading: true,
 	headingDeviation: 0,
@@ -124,6 +135,16 @@ const settings = reactive({
 	fromDate: "2009-01",
 	toDate: dateToday,
 });
+
+// TODO better input validation
+const handleRadiusInput = (e) => {
+	const value = parseInt(e.target.value);
+	if (value < 50) {
+		settings.radius = 50;
+	} else if (value > 10000) {
+		settings.radius = 10000;
+	}
+};
 
 const myIcon = L.icon({
 	iconUrl: marker,
@@ -153,6 +174,79 @@ onMounted(() => {
 	resizeObserver.observe(mapDiv);
 });
 
+// Process
+document.onkeydown = () => {
+	if (window.event.keyCode == "13" || window.event.keyCode == "32") {
+		handleClickStart();
+	}
+};
+const handleClickStart = () => {
+	state.started = !state.started;
+	start();
+};
+
+const start = async () => {
+	for (let country of selected.value) {
+		await generate(country);
+	}
+	state.started = false;
+	state.finished = true;
+};
+
+Array.prototype.chunk = function (n) {
+	if (!this.length) {
+		return [];
+	}
+	return [this.slice(0, n)].concat(this.slice(n).chunk(n));
+};
+
+const generate = async (country) => {
+	return new Promise(async (resolve) => {
+		while (country.found.length < country.nbNeeded) {
+			if (!state.started) return;
+			country.isProcessing = true;
+			const randomCoords = [];
+			while (randomCoords.length < country.nbNeeded) {
+				const point = randomPointInPoly(country);
+				if (country.feature.properties.name == getCountryCode({ lat: point.lat, lng: point.lng }).name) {
+					randomCoords.push(point);
+				}
+			}
+			for (let locationGroup of randomCoords.chunk(100)) {
+				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
+				for (let res of responses) {
+					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
+						country.found.push(res.value);
+						L.marker([res.value.lat, res.value.lng], { icon: myIcon })
+							.on("click", () => {
+								window.open(
+									`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}&heading=${res.value.heading}&pitch=${res.value.pitch}`,
+									"_blank"
+								);
+							})
+							.addTo(layerGroup);
+					}
+				}
+			}
+		}
+		resolve();
+		country.isProcessing = false;
+	});
+};
+
+const randomPointInPoly = (polygon) => {
+	const bounds = polygon.getBounds();
+	const x_min = bounds.getEast();
+	const x_max = bounds.getWest();
+	const y_min = bounds.getSouth();
+	const y_max = bounds.getNorth();
+
+	const lat = y_min + Math.random() * (y_max - y_min);
+	const lng = x_min + Math.random() * (x_max - x_min);
+	return { lat, lng };
+};
+
+// Map features
 const switchLayer = (e) => {
 	map.removeLayer(geojson);
 	geojson = L.geoJson(e.target.checked ? borders : borders_coverage, {
@@ -223,99 +317,23 @@ const style = () => {
 		fillOpacity: 0,
 	};
 };
-
 const highlighted = () => {
 	return {
 		fillColor: getRandomColor(),
 		fillOpacity: 0.6,
 	};
 };
-
 const removeHighlight = () => {
 	return { fillOpacity: 0 };
 };
-
 const clearMarkers = () => {
 	layerGroup.clearLayers();
 };
-
 const getRandomColor = () => {
 	const red = Math.floor(((1 + Math.random()) * 256) / 2);
 	const green = Math.floor(((1 + Math.random()) * 256) / 2);
 	const blue = Math.floor(((1 + Math.random()) * 256) / 2);
 	return "rgb(" + red + ", " + green + ", " + blue + ")";
-};
-
-// Process
-const handleClickStart = () => {
-	state.started = !state.started;
-	start();
-};
-document.onkeydown = () => {
-	if (window.event.keyCode == "13" || window.event.keyCode == "32") {
-		handleClickStart();
-	}
-};
-
-const start = async () => {
-	for (let country of selected.value) {
-		await generate(country);
-	}
-	state.started = false;
-	state.finished = true;
-};
-
-Array.prototype.chunk = function (n) {
-	if (!this.length) {
-		return [];
-	}
-	return [this.slice(0, n)].concat(this.slice(n).chunk(n));
-};
-
-const generate = async (country) => {
-	return new Promise(async (resolve) => {
-		while (country.found.length < country.nbNeeded) {
-			if (!state.started) return;
-			country.isProcessing = true;
-			const randomCoords = [];
-			while (randomCoords.length < country.nbNeeded) {
-				const point = randomPointInPoly(country);
-				if (country.feature.properties.name == getCountryCode({ lat: point.lat, lng: point.lng }).name) {
-					randomCoords.push(point);
-				}
-			}
-			for (let locationGroup of randomCoords.chunk(100)) {
-				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
-				for (let res of responses) {
-					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
-						country.found.push(res.value);
-						L.marker([res.value.lat, res.value.lng], { icon: myIcon })
-							.on("click", () => {
-								window.open(
-									`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}&heading=${res.value.heading}&pitch=${res.value.pitch}`,
-									"_blank"
-								);
-							})
-							.addTo(layerGroup);
-					}
-				}
-			}
-		}
-		resolve();
-		country.isProcessing = false;
-	});
-};
-
-const randomPointInPoly = (polygon) => {
-	const bounds = polygon.getBounds();
-	const x_min = bounds.getEast();
-	const x_max = bounds.getWest();
-	const y_min = bounds.getSouth();
-	const y_max = bounds.getNorth();
-
-	const lat = y_min + Math.random() * (y_max - y_min);
-	const lng = x_min + Math.random() * (x_max - x_min);
-	return { lat, lng };
 };
 
 // Export
@@ -378,6 +396,7 @@ const exportToJsonFile = () => {
 	overflow: auto;
 }
 .settings {
-	min-width: 340px;
+	/* min-width: 340px; */
+	max-width: 360px;
 }
 </style>
