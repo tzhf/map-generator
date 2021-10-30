@@ -58,11 +58,11 @@
 			<hr />
 			<div class="flex space-between mtb-1">
 				<label>From</label>
-				<input type="month" v-model="settings.fromDate" min="2007-01" />
+				<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
 			</div>
 			<div class="flex space-between mtb-1">
 				<label>To</label>
-				<input type="month" v-model="settings.toDate" />
+				<input type="month" v-model="settings.toDate" :max="dateToday" />
 			</div>
 		</div>
 
@@ -107,6 +107,8 @@ const selected = ref([]);
 const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded));
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
 
+const dateToday = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+
 const state = reactive({
 	started: false,
 	finished: false,
@@ -120,8 +122,8 @@ const settings = reactive({
 	adjustPitch: false,
 	pitchDeviation: 15,
 	rejectByYear: false,
-	fromDate: "2008-01",
-	toDate: new Date().getFullYear() + "-" + (new Date().getMonth() + 1),
+	fromDate: "2009-01",
+	toDate: dateToday,
 });
 
 const myIcon = L.icon({
