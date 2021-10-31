@@ -16,7 +16,7 @@ defineProps({
 
 <style>
 .btn {
-	flex-grow: 1;
+	width: 100%;
 	color: #000;
 	display: block;
 	padding: 0.8rem;

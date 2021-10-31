@@ -2,8 +2,8 @@
 	<div id="map"></div>
 	<div class="overlay top flex-col gap">
 		<Logo class="mb-3" />
-		<div v-if="!state.started">
-			<div class="switch-layer flex flex-center space-between mb-1">
+		<div v-if="!state.started" class="flex-col gap">
+			<div class="switch-layer flex-center space-between">
 				Covered territories
 				<label class="switch">
 					<input type="checkbox" @change="switchLayer" />
@@ -12,12 +12,16 @@
 				All territories
 			</div>
 			<h4 class="select">{{ select }}</h4>
+			<div class="flex gap">
+				<Button @click="selectAll" class="bg-success" text="Select all" title="Select all" />
+				<Button @click="deselectAll" class="bg-danger" v-if="selected.length" text="Deselect all" title="Deselect all" />
+			</div>
 		</div>
 
 		<div class="selected" v-if="selected.length">
 			<h4 class="center mb-2">Countries/Territories ({{ selected.length }})</h4>
 			<div v-for="country of selected" class="line flex space-between">
-				<div class="flex flex-center">
+				<div class="flex-center">
 					<span :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>{{ country.feature.properties.name }}
 					<Spinner v-if="state.started && country.isProcessing" class="ml-2" />
 				</div>
@@ -27,14 +31,16 @@
 			</div>
 		</div>
 
-		<div v-if="!state.started" class="flex gap">
-			<Button @click="selectAll" class="bg-success" text="Select all" />
-			<Button @click="deselectAll" class="bg-danger" v-if="selected.length" text="Deselect all" />
-		</div>
-		<Button @click="clearMarkers" class="bg-warning" text="Clear markers" optText="(for performance, this won't erase your generated locations)" />
+		<Button
+			@click="clearMarkers"
+			class="bg-warning"
+			text="Clear markers"
+			optText="(for performance, this won't erase your generated locations)"
+			title="Clear markers"
+		/>
 	</div>
 
-	<div class="overlay right bottom flex-col gap">
+	<div class="overlay top right flex-col gap">
 		<div class="settings" v-if="!state.started">
 			<h4 class="center">Settings</h4>
 			<div class="mtb-1">
@@ -87,10 +93,15 @@
 			:text="state.started ? 'Pause' : 'Start'"
 			title="Space bar/Enter"
 		/>
-
-		<div class="flex gap" v-if="!state.started && hasResults">
-			<Button @click="copyToClipboard" class="bg-success" text="Copy to clipboard" />
-			<Button @click="exportToJsonFile" class="bg-success" text="Export as JSON" />
+	</div>
+	<div class="overlay bottom right" v-if="!state.started && hasResults">
+		<div class="export">
+			<h4 class="center mb-2">Export selection to</h4>
+			<div class="flex gap">
+				<Button @click="copyToClipboard" class="bordered-success" text="Clipboard" title="Copy to clipboard" />
+				<Button @click="exportAsJson" class="bordered-success" text="JSON" title="Export as JSON" />
+				<Button @click="exportAsCSV" class="bordered-success" text="CSV" title="Export as CSV" />
+			</div>
 		</div>
 	</div>
 </template>
@@ -124,7 +135,6 @@ const dateToday = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
 
 const state = reactive({
 	started: false,
-	finished: false,
 });
 
 const settings = reactive({
@@ -193,7 +203,6 @@ const start = async () => {
 		await generate(country);
 	}
 	state.started = false;
-	state.finished = true;
 };
 
 Array.prototype.chunk = function (n) {
@@ -349,14 +358,24 @@ const copyToClipboard = () => {
 		console.log("Something went wrong", err);
 	});
 };
-const exportToJsonFile = () => {
+const exportAsJson = () => {
 	const data = [];
 	selected.value.map((country) => data.push(...country.found));
 	const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ customCoordinates: data }));
-	const fileName = `Generated Map (${data.length} locations).json`;
+	const fileName = `Generated map (${data.length} locations).json`;
 	const linkElement = document.createElement("a");
-	linkElement.setAttribute("href", dataUri);
-	linkElement.setAttribute("download", fileName);
+	linkElement.href = dataUri;
+	linkElement.download = fileName;
+	linkElement.click();
+};
+const exportAsCSV = () => {
+	let csv = "";
+	selected.value.forEach((country) => country.found.forEach((coords) => (csv += coords.lat + "," + coords.lng + ",\n")));
+	const dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+	const fileName = `Generated map.csv`;
+	const linkElement = document.createElement("a");
+	linkElement.href = dataUri;
+	linkElement.download = fileName;
 	linkElement.click();
 };
 </script>
@@ -389,7 +408,8 @@ const exportToJsonFile = () => {
 .switch-layer,
 .select,
 .selected,
-.settings {
+.settings,
+.export {
 	padding: 0.5rem;
 	color: #ffffff;
 	background: rgba(0, 0, 0, 0.7);
@@ -397,11 +417,10 @@ const exportToJsonFile = () => {
 	border-radius: 5px;
 }
 .selected {
-	max-height: 280px;
+	max-height: calc(100vh - 300px);
 	overflow: auto;
 }
 .settings {
-	/* min-width: 340px; */
 	max-width: 360px;
 }
 </style>

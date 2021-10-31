@@ -64,6 +64,7 @@ input::-webkit-inner-spin-button {
 	flex-direction: column;
 }
 .flex-center {
+	display: flex;
 	align-items: center;
 }
 .justify-center {
@@ -119,6 +120,11 @@ input::-webkit-inner-spin-button {
 }
 .bg-danger {
 	background: var(--danger);
+}
+.bordered-success {
+	color: #fff;
+	background-color: rgba(66, 66, 66, 0.6);
+	border: 1px solid var(--success);
 }
 ::-webkit-scrollbar {
 	width: 1rem;
