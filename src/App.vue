@@ -43,38 +43,33 @@
 	<div class="overlay top right flex-col gap">
 		<div class="settings" v-if="!state.started">
 			<h4 class="center">Settings</h4>
-			<div class="mtb-1">
-				<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
+			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
+			<hr />
+			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
+			<div v-if="settings.adjustHeading" class="indent">
+				<label class="flex wrap">
+					Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
+				</label>
+				<small>0° will point directly towards the road.</small>
 			</div>
-			<div class="mtb-1">
-				<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
-				<div v-if="settings.adjustHeading" class="indent">
-					<label class="flex wrap">
-						Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
-					</label>
-					<small>0° will point directly towards the road.</small>
-				</div>
+			<hr />
+			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
+			<div v-if="settings.adjustPitch" class="indent">
+				<label class="flex wrap">
+					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
+				</label>
+				<small>0 by default. -90° for tarmac/+90° for sky</small>
 			</div>
-			<div class="mtb-1">
-				<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
-				<div v-if="settings.adjustPitch" class="indent">
-					<label class="flex wrap">
-						Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
-					</label>
-					<small>0 by default. -90° for tarmac/+90° for sky</small>
-				</div>
+			<hr />
+			<div>
+				Radius
+				<input type="number" v-model.number="settings.radius" @input="handleRadiusInput" />
+				m
 			</div>
-			<div class="mtb-1">
-				<div>
-					Radius
-					<input type="number" v-model.number="settings.radius" @input="handleRadiusInput" />
-					m
-				</div>
-				<small>
-					Radius in which to search for a panorama.<br />
-					Keep it between 100-1000m for best results. Increase it only for big/poorly covered territories.
-				</small>
-			</div>
+			<small>
+				Radius in which to search for a panorama.<br />
+				Keep it between 100-1000m for best results. Increase it only for big/poorly covered territories.
+			</small>
 			<hr />
 			<div class="flex space-between mtb-1">
 				<label>From</label>
@@ -413,8 +408,8 @@ const exportAsCSV = () => {
 	padding: 0.5rem;
 	color: #ffffff;
 	background: rgba(0, 0, 0, 0.7);
-	box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
 	border-radius: 5px;
+	box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
 }
 .selected {
 	max-height: calc(100vh - 300px);

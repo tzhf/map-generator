@@ -27,6 +27,7 @@ a {
 	color: var(--success);
 }
 hr {
+	width: 85%;
 	height: 1px;
 	background-color: var(--success);
 	border: none;
