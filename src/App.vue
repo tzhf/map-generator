@@ -61,6 +61,10 @@
 				<small>0 by default. -90° for tarmac/+90° for sky</small>
 			</div>
 			<hr />
+			<div v-if="settings.rejectUnofficial">
+				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
+				<hr />
+			</div>
 			<div>
 				Radius
 				<input type="number" v-model.number="settings.radius" @input="handleRadiusInput" />
@@ -68,8 +72,9 @@
 			</div>
 			<small>
 				Radius in which to search for a panorama.<br />
-				Keep it between 100-1000m for best results. Increase it only for big/poorly covered territories.
+				Keep it between 100-1000m for best results. Increase it for poorly covered territories/intersections/specific search cases.
 			</small>
+
 			<hr />
 			<div class="flex space-between mtb-1">
 				<label>From</label>
@@ -142,6 +147,7 @@ const settings = reactive({
 	rejectByYear: false,
 	fromDate: "2009-01",
 	toDate: dateToday,
+	getIntersection: false,
 });
 
 // TODO better input validation
