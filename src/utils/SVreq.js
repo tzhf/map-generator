@@ -6,6 +6,7 @@ export default function SVreq(loc, settings) {
 			if (status != google.maps.StreetViewStatus.OK) return reject();
 			if (settings.rejectUnofficial) {
 				if (!res.copyright.includes(" Google")) return reject();
+				if (settings.rejectNoDescription && !res.location.description && !res.location.shortDescription) return reject();
 				if (settings.getIntersection && res.links.length < 3) return reject();
 			}
 			if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return reject();

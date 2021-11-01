@@ -63,6 +63,13 @@
 			<h4 class="center">Settings</h4>
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
+			<div v-if="settings.rejectUnofficial">
+				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
+				<small>This might prevent trekkers in most cases</small>
+				<hr />
+				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
+				<hr />
+			</div>
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 			<div v-if="settings.adjustHeading" class="indent">
 				<label class="flex wrap">
@@ -79,11 +86,7 @@
 				<small>0 by default. -90° for tarmac/+90° for sky</small>
 			</div>
 			<hr />
-			<div v-if="settings.rejectUnofficial">
-				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
-				<small>Might lead to more trekkers in some countries</small>
-				<hr />
-			</div>
+
 			<div>
 				Radius
 				<input type="number" v-model.number="settings.radius" @input="handleRadiusInput" />
@@ -153,6 +156,7 @@ const dateToday = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
 const settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
+	rejectNoDescription: true,
 	adjustHeading: true,
 	headingDeviation: 0,
 	adjustPitch: true,
@@ -546,6 +550,7 @@ const exportAsCSV = () => {
 	background-color: rgba(0, 0, 0, 0.6);
 	border-radius: 50px;
 	cursor: pointer;
+	user-select: none;
 }
 .switchLayer label:not(:last-child) {
 	margin-right: 0.5em;
