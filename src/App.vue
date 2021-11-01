@@ -14,7 +14,7 @@
 				<label title="Draw custom polygons" for="draw">Draw polygons</label>
 			</div>
 
-			<div v-if="!isDrawMode" class="flex-col gap">
+			<div v-if="!state.isDrawMode" class="flex-col gap">
 				<h4 class="select">{{ select }}</h4>
 				<div class="flex gap">
 					<Button @click="selectAll" class="bg-success" text="Select all" title="Select all" />
@@ -23,7 +23,7 @@
 			</div>
 		</div>
 
-		<div class="selected" v-if="!isDrawMode && selected.length">
+		<div class="selected" v-if="!state.isDrawMode && selected.length > 0">
 			<h4 class="center mb-2">Countries/Territories ({{ selected.length }})</h4>
 			<div v-for="country of selected" class="line flex space-between">
 				<div class="flex-center">
@@ -36,7 +36,7 @@
 			</div>
 		</div>
 
-		<div class="selected" v-if="isDrawMode && selected.length">
+		<div class="selected" v-if="state.isDrawMode && selected.length">
 			<h4 class="center mb-2">Custom polygons ({{ selected.length }})</h4>
 			<div v-for="(polygon, index) of selected" class="line flex space-between">
 				<div class="flex-center">
@@ -150,6 +150,7 @@ import borders_coverage from "@/utils/borders_coverage.json";
 const state = reactive({
 	started: false,
 	chosenLayer: 1,
+	isDrawMode: false,
 });
 
 const dateToday = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
@@ -171,7 +172,6 @@ const select = ref("Select a country");
 const selected = ref([]);
 const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded));
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
-const isDrawMode = computed(() => state.chosenLayer == 3);
 
 let map;
 let geojson;
@@ -269,6 +269,7 @@ const switchLayer = (e) => {
 	map.removeControl(drawControl);
 	map.removeLayer(geojson);
 	customPolygonsLayer.clearLayers();
+	state.isDrawMode = false;
 
 	switch (e.target.value) {
 		case "1":
@@ -278,6 +279,7 @@ const switchLayer = (e) => {
 			geojson = allCountriesGeoJSON.addTo(map);
 			break;
 		case "3":
+			state.isDrawMode = true;
 			customPolygonsLayer.addTo(map);
 			map.addControl(drawControl);
 			break;
@@ -338,7 +340,7 @@ const generate = async (country) => {
 			const randomCoords = [];
 			while (randomCoords.length < country.nbNeeded) {
 				const point = randomPointInPoly(country);
-				if (!isDrawMode) {
+				if (!state.isDrawMode) {
 					if (country.feature.properties.name == getCountryCode(point.lat, point.lng)) {
 						randomCoords.push(point);
 					}
