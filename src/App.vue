@@ -3,31 +3,19 @@
 	<div class="overlay top flex-col gap">
 		<Logo class="mb-3" />
 		<div v-if="!state.started" class="flex-col gap">
-			<div class="switchLayer mb-1">
-				<input id="covered" type="radio" @change="switchLayer($event)" value="1" v-model="state.chosenLayer" />
-				<label title="Covered territories" for="covered">Covered territories</label>
-
-				<input id="all" type="radio" @change="switchLayer($event)" value="2" v-model="state.chosenLayer" />
-				<label title="All territories" for="all">All territories</label>
-
-				<input id="draw" type="radio" @change="switchLayer($event)" value="3" v-model="state.chosenLayer" />
-				<label title="Draw custom polygons" for="draw">Draw polygons</label>
-			</div>
-
-			<div v-if="!state.isDrawMode" class="flex-col gap">
-				<h4 class="select">{{ select }}</h4>
-				<div class="flex gap">
-					<Button @click="selectAll" class="bg-success" text="Select all" title="Select all" />
-					<Button @click="deselectAll" class="bg-danger" v-if="selected.length" text="Deselect all" title="Deselect all" />
-				</div>
+			<h4 class="select">{{ select }}</h4>
+			<div class="flex gap">
+				<Button @click="selectAll" class="bg-success" text="Select all" title="Select all" />
+				<Button @click="deselectAll" class="bg-danger" v-if="selected.length" text="Deselect all" title="Deselect all" />
 			</div>
 		</div>
 
-		<div class="selected" v-if="!state.isDrawMode && selected.length > 0">
+		<div class="selected" v-if="selected.length > 0">
 			<h4 class="center mb-2">Countries/Territories ({{ selected.length }})</h4>
 			<div v-for="country of selected" class="line flex space-between">
 				<div class="flex-center">
-					<span :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>{{ country.feature.properties.name }}
+					<span v-if="country.feature.properties.code" :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span
+					>{{ country.feature.properties.name }}
 					<Spinner v-if="state.started && country.isProcessing" class="ml-2" />
 				</div>
 				<div>
@@ -35,27 +23,6 @@
 				</div>
 			</div>
 		</div>
-
-		<div class="selected" v-if="state.isDrawMode && selected.length">
-			<h4 class="center mb-2">Custom polygons ({{ selected.length }})</h4>
-			<div v-for="(polygon, index) of selected" class="line flex space-between">
-				<div class="flex-center">
-					Polygon {{ index + 1 }}
-					<Spinner v-if="state.started && polygon.isProcessing" class="ml-2" />
-				</div>
-				<div>
-					{{ polygon.found ? polygon.found.length : "0" }} / <input type="number" :min="polygon.found ? polygon.found.length : 0" v-model="polygon.nbNeeded" />
-				</div>
-			</div>
-		</div>
-
-		<Button
-			@click="clearMarkers"
-			class="bg-warning"
-			text="Clear markers"
-			optText="(for performance, this won't erase your generated locations)"
-			title="Clear markers"
-		/>
 	</div>
 
 	<div class="overlay top right flex-col gap">
@@ -116,8 +83,15 @@
 			title="Space bar/Enter"
 		/>
 	</div>
-	<div class="overlay bottom right" v-if="!state.started && hasResults">
-		<div class="export">
+	<div class="overlay bottom right" v-if="!state.started">
+		<Button
+			@click="clearMarkers"
+			class="bg-warning"
+			text="Clear markers"
+			optText="(for performance, this won't erase your generated locations)"
+			title="Clear markers"
+		/>
+		<div class="export mt-2" v-if="hasResults">
 			<h4 class="center mb-2">Export selection to</h4>
 			<div class="flex gap">
 				<Button @click="copyToClipboard" class="bordered-success" text="Clipboard" title="Copy to clipboard" />
@@ -135,25 +109,24 @@ import Checkbox from "@/components/Elements/Checkbox.vue";
 import Spinner from "@/components/Elements/Spinner.vue";
 import Logo from "@/components/Elements/Logo.vue";
 
-import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
-
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "@/assets/leaflet-draw/leaflet.draw.js";
 import "@/assets/leaflet-draw/leaflet.draw.css";
 import marker from "@/assets/images/marker-icon.png";
 
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+
 import SVreq from "@/utils/SVreq";
 import borders from "@/utils/borders.json";
-import borders_coverage from "@/utils/borders_coverage.json";
 
 const state = reactive({
 	started: false,
-	chosenLayer: 1,
-	isDrawMode: false,
+	polygonID: 0,
 });
 
 const dateToday = new Date().getFullYear() + "-" + (new Date().getMonth() + 1);
+
 const settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
@@ -168,26 +141,19 @@ const settings = reactive({
 	getIntersection: false,
 });
 
-const select = ref("Select a country");
+const select = ref("Select a country or draw a polygon");
 const selected = ref([]);
 const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded));
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
 
 let map;
-let geojson;
-
-const coverageGeoJSON = L.geoJson(borders_coverage, {
-	style: style,
-	onEachFeature: onEachFeature,
-});
-const allCountriesGeoJSON = L.geoJson(borders, {
-	style: style,
-	onEachFeature: onEachFeature,
-});
-
-const markerLayer = L.layerGroup();
 const customPolygonsLayer = new L.FeatureGroup();
-const drawPluginOptions = {
+const markerLayer = L.layerGroup();
+const geojson = L.geoJson(borders, {
+	style: style,
+	onEachFeature: onEachFeature,
+});
+const drawControl = new L.Control.Draw({
 	position: "bottomleft",
 	draw: {
 		polyline: false,
@@ -205,8 +171,7 @@ const drawPluginOptions = {
 		rectangle: { shapeOptions: { color: "#5d8ce3" } },
 	},
 	edit: { featureGroup: customPolygonsLayer },
-};
-const drawControl = new L.Control.Draw(drawPluginOptions);
+});
 
 onMounted(() => {
 	map = L.map("map", {
@@ -218,40 +183,38 @@ onMounted(() => {
 		layers: [L.tileLayer("https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"], type: "roadmap" })],
 	});
 
-	geojson = coverageGeoJSON.addTo(map);
-
+	geojson.addTo(map);
+	customPolygonsLayer.addTo(map);
 	markerLayer.addTo(map);
+	map.addControl(drawControl);
 
 	map.on("draw:created", (e) => {
-		customPolygonsLayer.addLayer(e.layer);
+		state.polygonID++;
 		const polygon = e.layer;
 		polygon.feature = e.layer.toGeoJSON();
 		polygon.found = [];
 		polygon.nbNeeded = 100;
-		polygon.layerID = Math.random().toString(36).substr(2, 9);
+		polygon.feature.properties.name = `Custom polygon ${state.polygonID}`;
+		polygon.setStyle(customPolygonStyle());
+		polygon.setStyle(highlighted());
+		polygon.on("mouseover", (e) => highlightFeature(e));
+		polygon.on("mouseout", (e) => resetHighlight(e));
+		polygon.on("click", (e) => selectCountry(e));
+		customPolygonsLayer.addLayer(polygon);
 		selected.value.push(polygon);
 	});
 	map.on("draw:edited", (e) => {
-		const layers = e.layers;
-		layers.eachLayer((layer) => {
+		e.layers.eachLayer((layer) => {
 			const polygon = layer;
 			polygon.feature = layer.toGeoJSON();
-			const index = selected.value.findIndex((x) => x.layerID === layer.layerID);
-			if (index == -1) {
-				polygon.found = [];
-				polygon.nbNeeded = 100;
-				selected.value.push(polygon);
-			} else {
-				selected.value[index] = polygon;
-			}
+			const index = selected.value.findIndex((x) => x.feature.properties.name === layer.feature.properties.name);
+			if (index != -1) selected.value[index] = polygon;
 		});
 	});
-
 	map.on("draw:deleted", (e) => {
-		const layers = e.layers;
-		layers.eachLayer((layer) => {
-			const index = selected.value.findIndex((x) => x.layerID === layer.layerID);
-			selected.value.splice(index, 1);
+		e.layers.eachLayer((layer) => {
+			const index = selected.value.findIndex((x) => x.feature.properties.name === layer.feature.properties.name);
+			if (index != -1) selected.value.splice(index, 1);
 		});
 	});
 
@@ -262,29 +225,6 @@ onMounted(() => {
 	});
 	resizeObserver.observe(mapDiv);
 });
-
-const switchLayer = (e) => {
-	deselectAll();
-	clearMarkers();
-	map.removeControl(drawControl);
-	map.removeLayer(geojson);
-	customPolygonsLayer.clearLayers();
-	state.isDrawMode = false;
-
-	switch (e.target.value) {
-		case "1":
-			geojson = coverageGeoJSON.addTo(map);
-			break;
-		case "2":
-			geojson = allCountriesGeoJSON.addTo(map);
-			break;
-		case "3":
-			state.isDrawMode = true;
-			customPolygonsLayer.addTo(map);
-			map.addControl(drawControl);
-			break;
-	}
-};
 
 // TODO better input validation
 const handleRadiusInput = (e) => {
@@ -326,12 +266,6 @@ Array.prototype.chunk = function (n) {
 	return [this.slice(0, n)].concat(this.slice(n).chunk(n));
 };
 
-const getCountryCode = (lat, lng) => {
-	for (let feature of borders.features) {
-		if (booleanPointInPolygon([lng, lat], feature)) return feature.properties.name;
-	}
-};
-
 const generate = async (country) => {
 	return new Promise(async (resolve) => {
 		while (country.found.length < country.nbNeeded) {
@@ -340,14 +274,8 @@ const generate = async (country) => {
 			const randomCoords = [];
 			while (randomCoords.length < country.nbNeeded) {
 				const point = randomPointInPoly(country);
-				if (!state.isDrawMode) {
-					if (country.feature.properties.name == getCountryCode(point.lat, point.lng)) {
-						randomCoords.push(point);
-					}
-				} else {
-					if (booleanPointInPolygon([point.lng, point.lat], country.feature)) {
-						randomCoords.push(point);
-					}
+				if (booleanPointInPolygon([point.lng, point.lat], country.feature)) {
+					randomCoords.push(point);
 				}
 			}
 			for (let locationGroup of randomCoords.chunk(100)) {
@@ -403,10 +331,11 @@ function selectCountry(e) {
 		if (!country.found) country.found = [];
 		if (!country.nbNeeded) country.nbNeeded = 100;
 		country.setStyle(highlighted());
+
 		selected.value.push(country);
 	} else {
 		selected.value.splice(index, 1);
-		geojson.resetStyle(e.target);
+		resetHighlight(e);
 	}
 }
 
@@ -421,7 +350,8 @@ function selectAll() {
 
 function deselectAll() {
 	selected.value.length = 0;
-	geojson.setStyle(style);
+	geojson.setStyle(style());
+	customPolygonsLayer.setStyle(customPolygonStyle());
 }
 
 function highlightFeature(e) {
@@ -439,11 +369,19 @@ function resetHighlight(e) {
 	if (index == -1) {
 		layer.setStyle(removeHighlight());
 	}
-	select.value = "Select a country";
+	select.value = "Select a country or draw a polygon";
 }
 function style() {
 	return {
 		opacity: 0,
+		fillOpacity: 0,
+	};
+}
+function customPolygonStyle() {
+	return {
+		weight: 2,
+		opacity: 1,
+		color: getRandomColor(),
 		fillOpacity: 0,
 	};
 }
@@ -510,15 +448,6 @@ const exportAsCSV = () => {
 	position: absolute;
 	padding: 1rem;
 }
-.top {
-	top: 0;
-}
-.right {
-	right: 0;
-}
-.bottom {
-	bottom: 0;
-}
 .select,
 .selected,
 .settings,
@@ -530,35 +459,13 @@ const exportAsCSV = () => {
 	box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
 }
 .selected {
-	max-height: calc(100vh - 300px);
+	max-height: calc(100vh - 310px);
 	overflow: auto;
+}
+.top {
+	min-width: 350px;
 }
 .settings {
 	max-width: 360px;
-}
-.switchLayer {
-	/* min-width: 250px; */
-}
-.switchLayer input[type="radio"] {
-	display: none;
-}
-.switchLayer input[type="radio"]:checked + label {
-	background-color: var(--success);
-	color: rgb(0, 0, 0);
-}
-.switchLayer label {
-	display: inline-block;
-	padding: 10px;
-	background-color: rgba(0, 0, 0, 0.6);
-	border-radius: 50px;
-	cursor: pointer;
-	user-select: none;
-}
-.switchLayer label:not(:last-child) {
-	margin-right: 0.5em;
-}
-.switchLayer label:hover {
-	background-color: var(--success);
-	color: rgb(0, 0, 0);
 }
 </style>
