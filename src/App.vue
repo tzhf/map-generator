@@ -56,7 +56,7 @@
 
 			<div>
 				Radius
-				<input type="number" v-model.number="settings.radius" @input="handleRadiusInput" />
+				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
 				m
 			</div>
 			<small>
@@ -229,7 +229,7 @@ onMounted(() => {
 // TODO better input validation
 const handleRadiusInput = (e) => {
 	const value = parseInt(e.target.value);
-	if (value < 50) {
+	if (!value || value < 50) {
 		settings.radius = 50;
 	} else if (value > 10000) {
 		settings.radius = 10000;

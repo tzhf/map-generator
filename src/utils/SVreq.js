@@ -10,7 +10,7 @@ export default function SVreq(loc, settings) {
 				if (settings.getIntersection && res.links.length < 3) return reject();
 			}
 			if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return reject();
-			if (settings.adjustHeading && res.links.length) {
+			if (settings.adjustHeading && res.links.length > 0) {
 				loc.heading = parseInt(res.links[0].heading) + randomInRange(-settings.headingDeviation, settings.headingDeviation);
 			}
 			if (settings.adjustPitch) loc.pitch = settings.pitchDeviation;
