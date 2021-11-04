@@ -1,21 +1,21 @@
 <template>
 	<div id="map"></div>
-	<div class="overlay top flex-col gap">
-		<Logo class="mb-3" />
-		<div v-if="!state.started" class="flex-col gap">
-			<h4 class="select">{{ select }}</h4>
+	<div class="overlay top left flex-col gap">
+		<Logo class="mb-2" />
+		<div v-if="!state.started">
+			<h4 class="select mb-2">{{ select }}</h4>
 			<div class="flex gap">
 				<Button @click="selectAll" class="bg-success" text="Select all" title="Select all" />
-				<Button @click="deselectAll" class="bg-danger" v-if="selected.length" text="Deselect all" title="Deselect all" />
+				<Button v-if="selected.length" @click="deselectAll" class="bg-danger" text="Deselect all" title="Deselect all" />
 			</div>
 		</div>
 
-		<div class="selected" v-if="selected.length > 0">
+		<div v-if="selected.length" class="selected">
 			<h4 class="center mb-2">Countries/Territories ({{ selected.length }})</h4>
 			<div v-for="country of selected" class="line flex space-between">
 				<div class="flex-center">
-					<span v-if="country.feature.properties.code" :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span
-					>{{ country.feature.properties.name }}
+					<span v-if="country.feature.properties.code" :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>
+					{{ country.feature.properties.name }}
 					<Spinner v-if="state.started && country.isProcessing" class="ml-2" />
 				</div>
 				<div>
@@ -23,13 +23,21 @@
 				</div>
 			</div>
 		</div>
+		<Button
+			@click="clearMarkers"
+			class="bg-warning"
+			text="Clear markers"
+			optText="(for performance, this won't erase your generated locations)"
+			title="Clear markers"
+		/>
 	</div>
 
 	<div class="overlay top right flex-col gap">
-		<div class="settings" v-if="!state.started">
+		<div v-if="!state.started" class="settings">
 			<h4 class="center">Settings</h4>
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
+
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
 				<small>This might prevent trekkers in most cases</small>
@@ -37,6 +45,7 @@
 				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
 				<hr />
 			</div>
+
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 			<div v-if="settings.adjustHeading" class="indent">
 				<label class="flex wrap">
@@ -45,6 +54,7 @@
 				<small>0° will point directly towards the road.</small>
 			</div>
 			<hr />
+
 			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
 			<div v-if="settings.adjustPitch" class="indent">
 				<label class="flex wrap">
@@ -63,13 +73,13 @@
 				Radius in which to search for a panorama.<br />
 				Keep it between 100-1000m for best results. Increase it for poorly covered territories/intersections/specific search cases.
 			</small>
-
 			<hr />
-			<div class="flex space-between mtb-1">
+
+			<div class="flex space-between mb-2">
 				<label>From</label>
 				<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
 			</div>
-			<div class="flex space-between mtb-1">
+			<div class="flex space-between">
 				<label>To</label>
 				<input type="month" v-model="settings.toDate" :max="dateToday" />
 			</div>
@@ -83,21 +93,13 @@
 			title="Space bar/Enter"
 		/>
 	</div>
-	<div class="overlay bottom right" v-if="!state.started">
-		<Button
-			@click="clearMarkers"
-			class="bg-warning"
-			text="Clear markers"
-			optText="(for performance, this won't erase your generated locations)"
-			title="Clear markers"
-		/>
-		<div class="export mt-2" v-if="hasResults">
-			<h4 class="center mb-2">Export selection to</h4>
-			<div class="flex gap">
-				<Button @click="copyToClipboard" class="bordered-success" text="Clipboard" title="Copy to clipboard" />
-				<Button @click="exportAsJson" class="bordered-success" text="JSON" title="Export as JSON" />
-				<Button @click="exportAsCSV" class="bordered-success" text="CSV" title="Export as CSV" />
-			</div>
+
+	<div v-if="!state.started && hasResults" class="overlay export bottom right">
+		<h4 class="center mb-2">Export selection to</h4>
+		<div class="flex gap">
+			<Button @click="copyToClipboard" class="bordered-success" text="Clipboard" title="Copy to clipboard" />
+			<Button @click="exportAsJson" class="bordered-success" text="JSON" title="Export as JSON" />
+			<Button @click="exportAsCSV" class="bordered-success" text="CSV" title="Export as CSV" />
 		</div>
 	</div>
 </template>
@@ -226,7 +228,6 @@ onMounted(() => {
 	resizeObserver.observe(mapDiv);
 });
 
-// TODO better input validation
 const handleRadiusInput = (e) => {
 	const value = parseInt(e.target.value);
 	if (!value || value < 50) {
@@ -439,33 +440,30 @@ const exportAsCSV = () => {
 	height: 100vh;
 }
 .leaflet-container {
-	background-color: #444444;
-}
-.line {
-	line-height: 1.5rem;
+	background-color: #2c2c2c;
 }
 .overlay {
 	position: absolute;
-	padding: 1rem;
 }
 .select,
 .selected,
 .settings,
 .export {
-	padding: 0.5rem;
-	color: #ffffff;
-	background: rgba(0, 0, 0, 0.7);
+	padding: var(--space-2);
 	border-radius: 5px;
+	background: rgba(0, 0, 0, 0.7);
 	box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
 }
 .selected {
-	max-height: calc(100vh - 310px);
+	max-height: calc(100vh - 390px);
 	overflow: auto;
 }
-.top {
-	min-width: 350px;
-}
 .settings {
-	max-width: 360px;
+	max-width: 380px;
+	max-height: calc(100vh - 180px);
+	overflow: auto;
+}
+.line {
+	line-height: 1.5rem;
 }
 </style>
