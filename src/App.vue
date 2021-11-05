@@ -182,7 +182,7 @@ onMounted(() => {
 		zoom: 2,
 		zoomControl: false,
 		worldCopyJump: true,
-		layers: [L.tileLayer("https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"], type: "roadmap" })],
+		layers: [L.tileLayer("https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"], type: "roadmap" })],
 	});
 
 	geojson.addTo(map);
