@@ -40,7 +40,10 @@
 
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
-				<small>This might prevent trekkers in most cases</small>
+				<small
+					>This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
+					have description)</small
+				>
 				<hr />
 				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
 				<hr />
@@ -97,9 +100,9 @@
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
 		<h4 class="center mb-2">Export selection to</h4>
 		<div class="flex gap">
-			<Button @click="copyToClipboard" class="bordered-success" text="Clipboard" title="Copy to clipboard" />
-			<Button @click="exportAsJson" class="bordered-success" text="JSON" title="Export as JSON" />
-			<Button @click="exportAsCSV" class="bordered-success" text="CSV" title="Export as CSV" />
+			<CopyToClipboard :selection="selected" />
+			<ExportToJSON :selection="selected" />
+			<ExportToCSV :selection="selected" />
 		</div>
 	</div>
 </template>
@@ -110,6 +113,10 @@ import Button from "@/components/Elements/Button.vue";
 import Checkbox from "@/components/Elements/Checkbox.vue";
 import Spinner from "@/components/Elements/Spinner.vue";
 import Logo from "@/components/Elements/Logo.vue";
+
+import CopyToClipboard from "@/components/copyToClipboard.vue";
+import ExportToJSON from "@/components/exportToJSON.vue";
+import ExportToCSV from "@/components/ExportToCSV.vue";
 
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -404,33 +411,6 @@ function getRandomColor() {
 function clearMarkers() {
 	markerLayer.clearLayers();
 }
-
-// Export
-const copyToClipboard = () => {
-	const data = [];
-	selected.value.map((country) => data.push(...country.found));
-	navigator.clipboard.writeText(JSON.stringify({ customCoordinates: data })).catch((err) => {});
-};
-const exportAsJson = () => {
-	const data = [];
-	selected.value.map((country) => data.push(...country.found));
-	const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ customCoordinates: data }));
-	const fileName = `Generated map (${data.length} locations).json`;
-	const linkElement = document.createElement("a");
-	linkElement.href = dataUri;
-	linkElement.download = fileName;
-	linkElement.click();
-};
-const exportAsCSV = () => {
-	let csv = "";
-	selected.value.forEach((country) => country.found.forEach((coords) => (csv += coords.lat + "," + coords.lng + ",\n")));
-	const dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-	const fileName = `Generated map.csv`;
-	const linkElement = document.createElement("a");
-	linkElement.href = dataUri;
-	linkElement.download = fileName;
-	linkElement.click();
-};
 </script>
 
 <style>
