@@ -439,9 +439,12 @@ function clearMarkers() {
 	overflow: auto;
 }
 .settings {
-	max-width: 380px;
+	max-width: 375px;
 	max-height: calc(100vh - 180px);
 	overflow: auto;
+}
+.export {
+	min-width: 375px;
 }
 .line {
 	line-height: 1.5rem;
