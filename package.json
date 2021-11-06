@@ -1,6 +1,9 @@
 {
 	"name": "map-generator",
 	"version": "0.0.0",
+	"repository": "github:tzhf/map-generator",
+	"author": "tzhf",
+	"license": "ISC",
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
