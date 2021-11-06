@@ -116,7 +116,7 @@ import Logo from "@/components/Elements/Logo.vue";
 
 import CopyToClipboard from "@/components/copyToClipboard.vue";
 import ExportToJSON from "@/components/exportToJSON.vue";
-import ExportToCSV from "@/components/ExportToCSV.vue";
+import ExportToCSV from "@/components/exportToCSV.vue";
 
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
