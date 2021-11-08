@@ -5,11 +5,10 @@ export default function SVreq(loc, settings) {
 		await SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
 			if (status != google.maps.StreetViewStatus.OK) return reject();
 			if (settings.rejectUnofficial) {
-				if (!res.copyright.includes(" Google")) return reject();
+				if (!/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return reject();
 				if (settings.rejectNoDescription && !res.location.description && !res.location.shortDescription) return reject();
 				if (settings.getIntersection && res.links.length < 3) return reject();
 			}
-
 			if (settings.checkAllDates) {
 				if (!res.time || !res.time.length) return reject();
 				var fromDate = Date.parse(settings.fromDate);
@@ -27,6 +26,7 @@ export default function SVreq(loc, settings) {
 			else {
 				if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return reject();
 			}
+			if (settings.rejectDateless && !res.imageDate) return reject();
 			if (settings.adjustHeading && res.links.length > 0) {
 				loc.heading = parseInt(res.links[0].heading) + randomInRange(-settings.headingDeviation, settings.headingDeviation);
 			}
