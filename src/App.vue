@@ -49,6 +49,10 @@
 				<hr />
 			</div>
 
+			<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
+			<small>This will prevent the local business tripod coverage that doesn't have a date.</small>
+			<hr />
+
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 			<div v-if="settings.adjustHeading" class="indent">
 				<label class="flex wrap">
@@ -140,6 +144,7 @@ const settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
 	rejectNoDescription: true,
+	rejectDateless: true,
 	adjustHeading: true,
 	headingDeviation: 0,
 	adjustPitch: true,
