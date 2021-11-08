@@ -45,13 +45,14 @@
 					have description)</small
 				>
 				<hr />
+
+				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
+				<small>This will prevent the local business tripod coverage that doesn't have a date.</small>
+				<hr />
+
 				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
 				<hr />
 			</div>
-
-			<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
-			<small>This will prevent the local business tripod coverage that doesn't have a date.</small>
-			<hr />
 
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 			<div v-if="settings.adjustHeading" class="indent">
@@ -91,11 +92,6 @@
 				<input type="month" v-model="settings.toDate" :max="dateToday" />
 			</div>
 			<hr />
-
-			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
-			<small>
-				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a specific timeframe.
-			</small>
 		</div>
 
 		<Button
@@ -159,7 +155,6 @@ const settings = reactive({
 	fromDate: "2009-01",
 	toDate: dateToday,
 	getIntersection: false,
-	checkAllDates: false
 });
 
 const select = ref("Select a country or draw a polygon");
