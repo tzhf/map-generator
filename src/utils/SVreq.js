@@ -5,7 +5,7 @@ export default function SVreq(loc, settings) {
 		await SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
 			if (status != google.maps.StreetViewStatus.OK) return reject();
 			if (settings.rejectUnofficial) {
-				if (!res.copyright.includes(" Google")) return reject();
+				if (!/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return reject();
 				if (settings.rejectNoDescription && !res.location.description && !res.location.shortDescription) return reject();
 				if (settings.getIntersection && res.links.length < 3) return reject();
 			}
