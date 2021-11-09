@@ -11,18 +11,28 @@ export default function SVreq(loc, settings) {
 				if (settings.getIntersection && res.links.length < 3) return reject();
 			}
 
-			if (!res.time?.length) return reject();
 			const fromDate = Date.parse(settings.fromDate);
 			const toDate = Date.parse(settings.toDate);
-			let dateWithin = false;
-			for (var i = 0; i < res.time.length; i++) {
-				const iDate = Date.parse(res.time[i].jm.getFullYear() + "-" + (res.time[i].jm.getMonth() + 1));
-				if (iDate >= fromDate && iDate <= toDate) {
-					dateWithin = true;
-					break;
+
+			if (settings.checkAllDates) {
+				if (!res.time?.length) return reject();
+
+				let dateWithin = false;
+				for (var i = 0; i < res.time.length; i++) {
+					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+					const iDate = Date.parse(res.time[i].jm.getFullYear() + "-" + (res.time[i].jm.getMonth() + 1));
+					if (iDate >= fromDate && iDate <= toDate) {
+						dateWithin = true;
+						break;
+					}
 				}
+				if (!dateWithin) return reject();
+			} else {
+				if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
 			}
-			if (!dateWithin) return reject();
+
+			loc.lat = res.location.latLng.lat();
+			loc.lng = res.location.latLng.lng();
 
 			if (settings.adjustHeading && res.links.length > 0) {
 				loc.heading = parseInt(res.links[0].heading) + randomInRange(-settings.headingDeviation, settings.headingDeviation);
@@ -30,8 +40,6 @@ export default function SVreq(loc, settings) {
 
 			if (settings.adjustPitch) loc.pitch = settings.pitchDeviation;
 
-			loc.lat = res.location.latLng.lat();
-			loc.lng = res.location.latLng.lng();
 			resolve(loc);
 		}).catch((e) => reject(e.message));
 	});

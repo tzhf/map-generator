@@ -92,6 +92,12 @@
 				<input type="month" v-model="settings.toDate" :max="dateToday" />
 			</div>
 			<hr />
+
+			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
+			<small>
+				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
+				specific timeframe.
+			</small>
 		</div>
 
 		<Button
@@ -154,6 +160,7 @@ const settings = reactive({
 	rejectByYear: false,
 	fromDate: "2009-01",
 	toDate: dateToday,
+	checkAllDates: false,
 	getIntersection: false,
 });
 
