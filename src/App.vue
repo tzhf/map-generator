@@ -253,8 +253,8 @@ const handleRadiusInput = (e) => {
 	const value = parseInt(e.target.value);
 	if (!value || value < 50) {
 		settings.radius = 50;
-	} else if (value > 10000) {
-		settings.radius = 10000;
+	} else if (value > 100000000) {
+		settings.radius = 100000000;
 	}
 };
 
