@@ -33,7 +33,7 @@ input[type="range"] {
 	margin: 0 0.5em;
 }
 input[type="number"] {
-	width: 3.5rem;
+	width: 3.6rem;
 	margin-left: var(--space-1);
 	padding: 0.18rem 0rem;
 	background: #292929;
