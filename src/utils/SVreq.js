@@ -20,7 +20,7 @@ export default function SVreq(loc, settings) {
 				let dateWithin = false;
 				for (var i = 0; i < res.time.length; i++) {
 					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
-					const iDate = Date.parse(res.time[i].jm.getFullYear() + "-" + (res.time[i].jm.getMonth() + 1));
+					const iDate = Date.parse(res.time[i].jm.getFullYear() + "-" + (res.time[i].jm.getMonth() > 8 ? "" : "0") + (res.time[i].jm.getMonth() + 1));
 					if (iDate >= fromDate && iDate <= toDate) {
 						dateWithin = true;
 						break;
