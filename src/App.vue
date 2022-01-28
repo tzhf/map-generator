@@ -147,7 +147,6 @@ const state = reactive({
 });
 
 const dateToday = new Date().getFullYear() + "-" + ("0" + (new Date().getMonth() + 1)).slice(-2);
-console.log(dateToday);
 
 const settings = reactive({
 	radius: 500,
