@@ -114,6 +114,7 @@
 		<div class="flex gap">
 			<CopyToClipboard :selection="selected" />
 			<ExportToJSON :selection="selected" />
+			<ExportToGeoJSON :selection="selected" />
 			<ExportToCSV :selection="selected" />
 		</div>
 	</div>
@@ -128,6 +129,7 @@ import Logo from "@/components/Elements/Logo.vue";
 
 import CopyToClipboard from "@/components/copyToClipboard.vue";
 import ExportToJSON from "@/components/exportToJSON.vue";
+import ExportToGeoJSON from "@/components/exportToGeoJSON.vue";
 import ExportToCSV from "@/components/exportToCSV.vue";
 
 import L from "leaflet";
