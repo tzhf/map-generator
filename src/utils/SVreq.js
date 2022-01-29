@@ -26,6 +26,7 @@ export default function SVreq(loc, settings) {
 
 					if (iDate >= fromDate && iDate <= toDate) {
 						dateWithin = true;
+						loc.panoId = res.time[i].pano;
 						break;
 					}
 				}
