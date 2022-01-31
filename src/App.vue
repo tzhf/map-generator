@@ -82,6 +82,15 @@
 				Keep it between 100-1000m for best results. Increase it for poorly covered territories/intersections/specific search cases.
 			</small>
 			<hr />
+			<div>
+				Timeout
+				<input type="number" v-model.number="failed_iterations" />
+				m
+			</div>
+			<small>
+				Number of failed iterations before switching to next task (10000-20000).
+			</small>
+			<hr />
 
 			<div class="flex space-between mb-2">
 				<label>From</label>
