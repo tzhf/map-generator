@@ -336,7 +336,7 @@ const generate = async (country) => {
 					else{
 						failed_iterations += 1;
 						console.log(failed_iterations);
-						if (failed_iterations == 200){
+						if (failed_iterations == settings.failed_iterations){
 							bool_failed_iterations = true;
 						}
 					}
