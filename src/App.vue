@@ -293,7 +293,8 @@ Array.prototype.chunk = function (n) {
 const generate = async (country) => {
 	return new Promise(async (resolve) => {
 		var failed_iterations = 0;
-		while (country.found.length < country.nbNeeded) {
+		let bool_failed_iterations = false;
+		while (country.found.length < country.nbNeeded || bool_failed_iterations == false) {
 			if (!state.started) return;
 			country.isProcessing = true;
 			const randomCoords = [];
@@ -323,15 +324,14 @@ const generate = async (country) => {
 					else{
 						failed_iterations += 1;
 						console.log(failed_iterations);
-						if (failed_iterations == 20000){
-							country.found.length = country.nbNeeded;
+						if (failed_iterations == 200){
+							bool_failed_iterations = true;
 						}
 					}
 				}
 			}
 		}
 		resolve();
-		country.nbNeeded += 100;
 		country.isProcessing = false;
 	});
 };
