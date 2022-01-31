@@ -291,7 +291,7 @@ const start = async () => {
 		await generate(polygon);
 	}
 	state.started = false;
-	await new Promise(r => setTimeout(r, 2000));	
+	//await new Promise(r => setTimeout(r, 2000));	
 	handleClickStart();
 };
 
