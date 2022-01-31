@@ -84,8 +84,8 @@
 			<hr />
 			<div>
 				Timeout
-				<input type="number" v-model.number="failed_iterations" />
-				m
+				<input type="number" v-model.number="settings.failed_iterations" />
+				
 			</div>
 			<small>
 				Number of failed iterations before switching to next task (10000-20000).
@@ -172,6 +172,7 @@ const settings = reactive({
 	fromDate: "2009-01",
 	toDate: dateToday,
 	checkAllDates: false,
+	failed_iterations: 10000000;
 	getIntersection: false,
 });
 
