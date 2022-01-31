@@ -292,6 +292,7 @@ Array.prototype.chunk = function (n) {
 
 const generate = async (country) => {
 	return new Promise(async (resolve) => {
+		var failed_iterations = 0;
 		while (country.found.length < country.nbNeeded) {
 			if (!state.started) return;
 			country.isProcessing = true;
@@ -306,6 +307,7 @@ const generate = async (country) => {
 				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
+						failed_iterations = 0;
 						country.found.push(res.value);
 						L.marker([res.value.lat, res.value.lng], { icon: myIcon })
 							.on("click", () => {
@@ -318,10 +320,18 @@ const generate = async (country) => {
 							})
 							.addTo(markerLayer);
 					}
+					else{
+						failed_iterations += 1;
+						console.log(failed_iterations);
+						if (failed_iterations == 20000){
+							country.found.length = country.nbNeeded;
+						}
+					}
 				}
 			}
 		}
 		resolve();
+		country.nbNeeded += 100;
 		country.isProcessing = false;
 	});
 };
