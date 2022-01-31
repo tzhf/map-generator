@@ -283,7 +283,6 @@ document.onkeydown = () => {
 };
 const handleClickStart = () => {
 	state.started = !state.started;
-	country.isProcessing = false;
 	start();
 };
 
