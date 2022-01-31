@@ -338,6 +338,7 @@ const generate = async (country) => {
 						console.log(failed_iterations);
 						if (failed_iterations == settings.failed_iterations){
 							bool_failed_iterations = true;
+							country.isProcessing = false;
 						}
 					}
 				}
