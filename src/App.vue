@@ -292,7 +292,7 @@ const start = async () => {
 	}
 	state.started = false;
 	await new Promise(r => setTimeout(r, 2000));	
-	handleClickStart();
+	//handleClickStart();
 };
 
 Array.prototype.chunk = function (n) {
@@ -338,7 +338,6 @@ const generate = async (country) => {
 						console.log(failed_iterations);
 						if (failed_iterations == settings.failed_iterations){
 							bool_failed_iterations = true;
-							country.isProcessing = false;
 						}
 					}
 				}
