@@ -172,7 +172,7 @@ const settings = reactive({
 	fromDate: "2009-01",
 	toDate: dateToday,
 	checkAllDates: false,
-	failed_iterations: 10000000;
+	failed_iterations: 10000000,
 	getIntersection: false,
 });
 
