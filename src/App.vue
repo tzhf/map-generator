@@ -292,7 +292,7 @@ const start = async () => {
 	}
 	state.started = false;
 	await new Promise(r => setTimeout(r, 2000));	
-	//handleClickStart();
+	handleClickStart();
 };
 
 Array.prototype.chunk = function (n) {
