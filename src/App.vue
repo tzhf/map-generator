@@ -178,7 +178,7 @@ const settings = reactive({
 
 const select = ref("Select a country or draw a polygon");
 const selected = ref([]);
-const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded && !country.bool_failed_iterations == true));
+const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded && country.bool_failed_iterations != true));
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
 
 let map;
