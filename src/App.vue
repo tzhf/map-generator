@@ -292,9 +292,9 @@ Array.prototype.chunk = function (n) {
 
 const generate = async (country) => {
 	return new Promise(async (resolve) => {
-		var failed_iterations = 0;
 		let bool_failed_iterations = false;
-		while (country.found.length < country.nbNeeded || bool_failed_iterations == false) {
+		var failed_iterations = 0;
+		while (country.found.length < country.nbNeeded && bool_failed_iterations == false) {
 			if (!state.started) return;
 			country.isProcessing = true;
 			const randomCoords = [];
