@@ -287,9 +287,11 @@ const handleClickStart = () => {
 };
 
 const start = async () => {
+	const generator = [];
 	for (let polygon of selected.value) {
-		await generate(polygon);
+	    generator.push(generate(polygon));
 	}
+	await Promise.all(generator);
 	state.started = false;
 	await new Promise(r => setTimeout(r, 2000));	
 	handleClickStart();
