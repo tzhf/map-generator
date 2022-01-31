@@ -178,7 +178,7 @@ const settings = reactive({
 
 const select = ref("Select a country or draw a polygon");
 const selected = ref([]);
-const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded));
+const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded && country.bool_failed_iterations == false));
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
 
 let map;
@@ -304,7 +304,7 @@ Array.prototype.chunk = function (n) {
 
 const generate = async (country) => {
 	return new Promise(async (resolve) => {
-		let bool_failed_iterations = false;
+		country.bool_failed_iterations = false;
 		var failed_iterations = 0;
 		while (country.found.length < country.nbNeeded && bool_failed_iterations == false) {
 			if (!state.started) return;
@@ -337,14 +337,14 @@ const generate = async (country) => {
 						failed_iterations += 1;
 						console.log(failed_iterations);
 						if (failed_iterations == settings.failed_iterations){
-							bool_failed_iterations = true;
+							country.bool_failed_iterations = true;
 						}
 					}
 				}
 			}
 		}
 		resolve();
-		bool_failed_iterations = false;
+		country.bool_failed_iterations = false;
 		country.isProcessing = false;
 	});
 };
