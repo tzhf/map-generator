@@ -332,6 +332,7 @@ const generate = async (country) => {
 			}
 		}
 		resolve();
+		bool_failed_iterations = false;
 		country.isProcessing = false;
 	});
 };
