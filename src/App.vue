@@ -295,8 +295,6 @@ const start = async () => {
 	}
 	await Promise.all(generator);
 	state.started = false;
-	await new Promise(r => setTimeout(r, 2000));	
-	handleClickStart();
 };
 
 Array.prototype.chunk = function (n) {
