@@ -83,14 +83,6 @@
 			</small>
 			<hr />
 			<div>
-				Timeout
-				<input type="number" v-model.number="settings.failed_iterations" />
-				
-			</div>
-			<small>
-				Number of failed iterations before switching to next task (10000-20000).
-			</small>
-			<div>
 				Generators
 				<input type="number" v-model.number="settings.num_of_generators" />
 				
@@ -98,7 +90,6 @@
 			<small>
 				Number of generators per polygon.
 			</small>
-			<hr />
 			<hr />
 
 			<div class="flex space-between mb-2">
@@ -182,7 +173,6 @@ const settings = reactive({
 	toDate: dateToday,
 	checkAllDates: false,
 	num_of_generators: 1,
-	failed_iterations: 10000000,
 	getIntersection: false,
 });
 
@@ -318,9 +308,7 @@ Array.prototype.chunk = function (n) {
 
 const generate = async (country) => {
 	return new Promise(async (resolve) => {
-		let bool_failed_iterations = false;
-		var failed_iterations = 0;
-		while (country.found.length < country.nbNeeded && bool_failed_iterations == false) {
+		while (country.found.length < country.nbNeeded) {
 			if (!state.started) return;
 			country.isProcessing = true;
 			const randomCoords = [];
@@ -334,7 +322,6 @@ const generate = async (country) => {
 				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
-						failed_iterations = 0;
 						country.found.push(res.value);
 						L.marker([res.value.lat, res.value.lng], { icon: myIcon })
 							.on("click", () => {
@@ -347,18 +334,10 @@ const generate = async (country) => {
 							})
 							.addTo(markerLayer);
 					}
-					else{
-						failed_iterations += 1;
-						console.log(failed_iterations);
-						if (failed_iterations == settings.failed_iterations){
-							bool_failed_iterations = true;
-						}
-					}
 				}
 			}
 		}
 		resolve();
-		bool_failed_iterations = false;
 		country.isProcessing = false;
 	});
 };
