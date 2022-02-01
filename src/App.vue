@@ -90,6 +90,15 @@
 			<small>
 				Number of failed iterations before switching to next task (10000-20000).
 			</small>
+			<div>
+				Generators
+				<input type="number" v-model.number="settings.num_of_generators" />
+				
+			</div>
+			<small>
+				Number of generators per polygon.
+			</small>
+			<hr />
 			<hr />
 
 			<div class="flex space-between mb-2">
@@ -172,6 +181,7 @@ const settings = reactive({
 	fromDate: "2009-01",
 	toDate: dateToday,
 	checkAllDates: false,
+	num_of_generators: 1,
 	failed_iterations: 10000000,
 	getIntersection: false,
 });
@@ -289,7 +299,7 @@ const handleClickStart = () => {
 const start = async () => {
 	const generator = [];
 	for (let polygon of selected.value) {
-	    for (let i = 0; i < 5; i++) {
+	    for (let i = 0; i < settings.num_of_generators; i++) {
 	    	generator.push(generate(polygon));
 	    }
 	}
