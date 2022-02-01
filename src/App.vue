@@ -289,7 +289,9 @@ const handleClickStart = () => {
 const start = async () => {
 	const generator = [];
 	for (let polygon of selected.value) {
-	    generator.push(generate(polygon));
+	    for (let i = 0; i < 5; i++) {
+	    	generator.push(generate(polygon));
+	    }
 	}
 	await Promise.all(generator);
 	state.started = false;
