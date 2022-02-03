@@ -74,7 +74,7 @@
 
 			<div>
 				Radius
-				<input type="number" v-model.number="selected.settings.radius" @change="handleRadiusInput" />
+				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
 				m
 			</div>
 			<small>
