@@ -186,6 +186,7 @@
 			</div>
 
 			<Button
+				:class="bg-success"
 				@click="handleClickSave"
 				text="Save"
 			/>
