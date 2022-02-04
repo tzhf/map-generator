@@ -33,7 +33,7 @@
 	</div>
 
 	<div class="overlay top right flex-col gap">
-		<div v-if="!state.started && !selected.length" class="settings">
+		<div v-if="!state.started && selected.length" class="settings">
 			<h4 class="center">Settings</h4>
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
@@ -121,34 +121,38 @@
 		<div class="overlay top right flex-col gap">
 		<div v-if="selected.length" class="selected">
 			<h4 class="center">Settings</h4>
-			<Checkbox v-model:checked="country.settings.rejectUnofficial" label="Reject unofficial" />
+			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
 
-			<div v-if="country.settings.rejectUnofficial">
-				<Checkbox v-model:checked="country.settings.rejectNoDescription" label="Reject locations without description" />
-
+			<div v-if="settings.rejectUnofficial">
+				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
+				<small
+					>test123 This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
+					have description)</small
+				>
 				<hr />
 
-				<Checkbox v-model:checked="country.settings.rejectDateless" label="Reject locations without date" />
+				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
+				<small>This will prevent the local business tripod coverage that doesn't have a date.</small>
 				<hr />
 
-				<Checkbox v-model:checked="country.settings.getIntersection" label="Prefer intersections" />
+				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
 				<hr />
 			</div>
 
-			<Checkbox v-model:checked="country.settings.adjustHeading" label="Adjust heading" />
-			<div v-if="country.settings.adjustHeading" class="indent">
+			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
+			<div v-if="settings.adjustHeading" class="indent">
 				<label class="flex wrap">
-					Deviation <input type="range" v-model.number="country.settings.headingDeviation" min="0" max="50" /> (+/- {{ country.settings.headingDeviation }}°)
+					Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
 				</label>
 				<small>0° will point directly towards the road.</small>
 			</div>
 			<hr />
 
-			<Checkbox v-model:checked="country.settings.adjustPitch" label="Adjust pitch" />
-			<div v-if="country.settings.adjustPitch" class="indent">
+			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
+			<div v-if="settings.adjustPitch" class="indent">
 				<label class="flex wrap">
-					Pitch deviation <input type="range" v-model.number="country.settings.pitchDeviation" min="-90" max="90" /> ({{ country.settings.pitchDeviation }}°)
+					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
 				</label>
 				<small>0 by default. -90° for tarmac/+90° for sky</small>
 			</div>
@@ -156,13 +160,17 @@
 
 			<div>
 				Radius
-				<input type="number" v-model.number="country.settings.radius" @change="handleRadiusInput" />
+				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
 				m
 			</div>
+			<small>
+				Radius in which to search for a panorama.<br />
+				Keep it between 100-1000m for best results. Increase it for poorly covered territories/intersections/specific search cases.
+			</small>
 			<hr />
 			<div>
 				Generators
-				<input type="number" v-model.number="country.settings.num_of_generators" />
+				<input type="number" v-model.number="settings.num_of_generators" />
 				
 			</div>
 			<small>
@@ -172,15 +180,19 @@
 
 			<div class="flex space-between mb-2">
 				<label>From</label>
-				<input type="month" v-model="country.settings.fromDate" min="2007-01" :max="dateToday" />
+				<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
 			</div>
 			<div class="flex space-between">
 				<label>To</label>
-				<input type="month" v-model="country.settings.toDate" :max="dateToday" />
+				<input type="month" v-model="settings.toDate" :max="dateToday" />
 			</div>
 			<hr />
 
-			<Checkbox v-model:checked="country.settings.checkAllDates" label="Check all dates" />
+			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
+			<small>
+				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
+				specific timeframe.
+			</small>
 		</div>
 
 		<Button
@@ -391,7 +403,7 @@ const generate = async (country) => {
 				}
 			}
 			for (let locationGroup of randomCoords.chunk(100)) {
-				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
+				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, country.settings)));
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
 						country.found.push(res.value);
@@ -443,9 +455,9 @@ function selectCountry(e) {
 		if (!country.found) country.found = [];
 		if (!country.nbNeeded) country.nbNeeded = 100;
 		country.setStyle(highlighted());
-		country.settings = settings;
 		selected.value.push(country);
 	} else {
+		country.settings = settings;
 		selected.value.splice(index, 1);
 		resetHighlight(e);
 	}
