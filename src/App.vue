@@ -159,10 +159,6 @@
 				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
 				m
 			</div>
-			<small>
-				Radius in which to search for a panorama.<br />
-				Keep it between 100-1000m for best results. Increase it for poorly covered territories/intersections/specific search cases.
-			</small>
 			<hr />
 			<div>
 				Generators
