@@ -121,18 +121,18 @@
 		<div class="overlay top right flex-col gap">
 		<div v-if="selected.length" class="selected">
 			<h4 class="center">Settings</h4>
-			<Checkbox v-model:checked="country_settings.rejectUnofficial" label="Reject unofficial" />
+			<Checkbox v-model:checked="country.rejectUnofficial" label="Reject unofficial" />
 			<hr />
 
 			<div v-if="country.rejectUnofficial">
-				<Checkbox v-model:checked="country_settings.rejectNoDescription" label="Reject locations without description" />
+				<Checkbox v-model:checked="country.rejectNoDescription" label="Reject locations without description" />
 
 				<hr />
 
-				<Checkbox v-model:checked="country_settings.rejectDateless" label="Reject locations without date" />
+				<Checkbox v-model:checked="country.rejectDateless" label="Reject locations without date" />
 				<hr />
 
-				<Checkbox v-model:checked="country_settings.getIntersection" label="Prefer intersections" />
+				<Checkbox v-model:checked="country.getIntersection" label="Prefer intersections" />
 				<hr />
 			</div>
 
