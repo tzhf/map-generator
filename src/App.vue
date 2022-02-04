@@ -380,7 +380,6 @@ const handleClickStart = () => {
 
 function handleClickSave(e) {
 	e.target.settings = country_settings;
-	country_settings = settings;
 };
 
 const start = async () => {
