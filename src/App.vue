@@ -186,11 +186,8 @@
 			</div>
 
 			<Button
-				v-if="canBeStarted"
-				@click="handleClickStart"
-				:class="state.started ? 'bg-danger' : 'bg-success'"
-				:text="state.started ? 'Pause' : 'Start'"
-				title="Space bar/Enter"
+				@click="handleClickSave"
+				:text="Save"
 			/>
 		</div>
 	</div>
@@ -381,6 +378,11 @@ const handleClickStart = () => {
 	start();
 };
 
+const handleClickSave = () => {
+	country.settings = country_settings;
+	country_settings = settings;
+};
+
 const start = async () => {
 	const generator = [];
 	for (let polygon of selected.value) {
@@ -466,7 +468,6 @@ function selectCountry(e) {
 		country.setStyle(highlighted());
 		selected.value.push(country);
 	} else {
-		country.settings = country_settings;
 		selected.value.splice(index, 1);
 		resetHighlight(e);
 	}
