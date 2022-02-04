@@ -120,7 +120,7 @@
 	
 		<div class="overlay top right flex-col gap">
 		<div v-if="selected.length" class="selected">
-			<h4 class="center">Settings</h4>
+			<h4 class="center">Custom settings for polygon</h4>
 			<Checkbox v-model:checked="country_settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
 
