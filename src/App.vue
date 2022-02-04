@@ -126,8 +126,7 @@
 
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
-				<small
-					>test123 This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
+				<small>This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
 					have description)</small
 				>
 				<hr />
