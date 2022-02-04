@@ -108,9 +108,18 @@
 				specific timeframe.
 			</small>
 		</div>
-		
+
+		<Button
+			v-if="canBeStarted"
+			@click="handleClickStart"
+			:class="state.started ? 'bg-danger' : 'bg-success'"
+			:text="state.started ? 'Pause' : 'Start'"
+			title="Space bar/Enter"
+		/>
+	</div>
+	
 		<div class="overlay top right flex-col gap">
-			<div v-if="selected.length" class="selected">
+		<div v-if="selected.length" class="selected">
 			<h4 class="center">Settings</h4>
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
@@ -118,7 +127,7 @@
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
 				<small
-					>TEST123 This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
+					>test123 This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
 					have description)</small
 				>
 				<hr />
