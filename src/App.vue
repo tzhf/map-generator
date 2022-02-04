@@ -251,7 +251,7 @@ const settings = reactive({
 });
 
 
-const country.settings = reactive({
+const country_settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
 	rejectNoDescription: true,
@@ -409,7 +409,7 @@ const generate = async (country) => {
 				}
 			}
 			for (let locationGroup of randomCoords.chunk(100)) {
-				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, country.settings)));
+				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, country_settings)));
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
 						country.found.push(res.value);
