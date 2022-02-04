@@ -369,7 +369,7 @@ function selectCountry(e) {
 		if (!country.found) country.found = [];
 		if (!country.nbNeeded) country.nbNeeded = 100;
 		country.setStyle(highlighted());
-
+		country.settings = settings;
 		selected.value.push(country);
 	} else {
 		selected.value.splice(index, 1);
