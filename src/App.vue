@@ -186,7 +186,7 @@
 			</div>
 
 			<Button
-				@click="handleClickSave"
+				@click="handleClickSave && isHidden = true"
 				text="Save"
 			/>
 		</div>
@@ -380,7 +380,6 @@ const handleClickStart = () => {
 
 function handleClickSave(e) {
 	e.target.settings = country_settings;
-	selected.length = !selected.length;
 };
 
 const start = async () => {
