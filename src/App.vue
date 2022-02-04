@@ -187,7 +187,7 @@
 
 			<Button
 				@click="handleClickSave"
-				:text="Save"
+				text="Save"
 			/>
 		</div>
 	</div>
