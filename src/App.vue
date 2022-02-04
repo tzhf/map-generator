@@ -186,7 +186,7 @@
 			</div>
 
 			<Button
-				@click="handleClickSave && isHidden = true"
+				@click="handleClickSave"
 				text="Save"
 			/>
 		</div>
