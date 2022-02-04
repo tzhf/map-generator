@@ -250,6 +250,24 @@ const settings = reactive({
 	getIntersection: false,
 });
 
+
+const country.settings = reactive({
+	radius: 500,
+	rejectUnofficial: true,
+	rejectNoDescription: true,
+	rejectDateless: true,
+	adjustHeading: true,
+	headingDeviation: 0,
+	adjustPitch: true,
+	pitchDeviation: 10,
+	rejectByYear: false,
+	fromDate: "2009-01",
+	toDate: dateToday,
+	checkAllDates: false,
+	num_of_generators: 1,
+	getIntersection: false,
+});
+
 const select = ref("Select a country or draw a polygon");
 const selected = ref([]);
 const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded));
