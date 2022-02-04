@@ -409,7 +409,7 @@ const generate = async (country) => {
 				}
 			}
 			for (let locationGroup of randomCoords.chunk(100)) {
-				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, country_settings)));
+				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, country.settings)));
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
 						country.found.push(res.value);
@@ -463,7 +463,7 @@ function selectCountry(e) {
 		country.setStyle(highlighted());
 		selected.value.push(country);
 	} else {
-		country.settings = settings;
+		country.settings = country_settings;
 		selected.value.splice(index, 1);
 		resetHighlight(e);
 	}
