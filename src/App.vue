@@ -378,8 +378,8 @@ const handleClickStart = () => {
 	start();
 };
 
-const handleClickSave = () => {
-	country.settings = country_settings;
+function handleClickSave(e) {
+	e.target.settings = country_settings;
 	country_settings = settings;
 };
 
