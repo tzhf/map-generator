@@ -33,7 +33,7 @@
 	</div>
 
 	<div class="overlay top right flex-col gap">
-		<div v-if="!state.started && selected.length" class="settings">
+		<div v-if="!state.started && !selected.length" class="settings">
 			<h4 class="center">Settings</h4>
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
@@ -126,14 +126,10 @@
 
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
-				<small
-					>test123 This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
-					have description)</small
-				>
+
 				<hr />
 
 				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
-				<small>This will prevent the local business tripod coverage that doesn't have a date.</small>
 				<hr />
 
 				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
@@ -163,10 +159,6 @@
 				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
 				m
 			</div>
-			<small>
-				Radius in which to search for a panorama.<br />
-				Keep it between 100-1000m for best results. Increase it for poorly covered territories/intersections/specific search cases.
-			</small>
 			<hr />
 			<div>
 				Generators
@@ -189,10 +181,6 @@
 			<hr />
 
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
-			<small>
-				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
-				specific timeframe.
-			</small>
 		</div>
 
 		<Button
@@ -403,7 +391,7 @@ const generate = async (country) => {
 				}
 			}
 			for (let locationGroup of randomCoords.chunk(100)) {
-				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, country.settings)));
+				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
 						country.found.push(res.value);
@@ -455,9 +443,9 @@ function selectCountry(e) {
 		if (!country.found) country.found = [];
 		if (!country.nbNeeded) country.nbNeeded = 100;
 		country.setStyle(highlighted());
+		country.settings = settings;
 		selected.value.push(country);
 	} else {
-		country.settings = settings;
 		selected.value.splice(index, 1);
 		resetHighlight(e);
 	}
