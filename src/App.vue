@@ -33,7 +33,7 @@
 	</div>
 
 	<div class="overlay top right flex-col gap">
-		<div v-if="!state.started" class="settings">
+		<div v-if="!state.started && !selected.length" class="settings">
 			<h4 class="center">Settings</h4>
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
