@@ -33,7 +33,7 @@
 	</div>
 
 	<div class="overlay top right flex-col gap">
-		<div v-if="!state.started && !selected.length" class="settings">
+		<div v-if="!state.started" class="settings">
 			<h4 class="center">Settings</h4>
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
@@ -117,81 +117,6 @@
 			title="Space bar/Enter"
 		/>
 	</div>
-	
-		<div class="overlay top right flex-col gap">
-		<div v-if="selected.length" class="selected">
-			<Checkbox v-model:checked="country_settings.custom_settings" label="Enable custom settings" />
-			<div v-if="country_settings.custom_settings">
-				<h4 class="center">Custom settings for polygon</h4>
-				<Checkbox v-model:checked="country_settings.rejectUnofficial" label="Reject unofficial" />
-				<hr />
-
-				<div v-if="country_settings.rejectUnofficial">
-					<Checkbox v-model:checked="country_settings.rejectNoDescription" label="Reject locations without description" />
-
-					<hr />
-
-					<Checkbox v-model:checked="country_settings.rejectDateless" label="Reject locations without date" />
-					<hr />
-
-					<Checkbox v-model:checked="country_settings.getIntersection" label="Prefer intersections" />
-					<hr />
-				</div>
-
-				<Checkbox v-model:checked="country_settings.adjustHeading" label="Adjust heading" />
-				<div v-if="country_settings.adjustHeading" class="indent">
-					<label class="flex wrap">
-						Deviation <input type="range" v-model.number="country_settings.headingDeviation" min="0" max="50" /> (+/- {{ country_settings.headingDeviation }}°)
-					</label>
-					<small>0° will point directly towards the road.</small>
-				</div>
-				<hr />
-
-				<Checkbox v-model:checked="country_settings.adjustPitch" label="Adjust pitch" />
-				<div v-if="country_settings.adjustPitch" class="indent">
-					<label class="flex wrap">
-						Pitch deviation <input type="range" v-model.number="country_settings.pitchDeviation" min="-90" max="90" /> ({{ country_settings.pitchDeviation }}°)
-					</label>
-					<small>0 by default. -90° for tarmac/+90° for sky</small>
-				</div>
-				<hr />
-
-				<div>
-					Radius
-					<input type="number" v-model.number="country_settings.radius" @change="handleRadiusInput" />
-					m
-				</div>
-				<hr />
-				<div>
-					Generators
-					<input type="number" v-model.number="country_settings.num_of_generators" />
-
-				</div>
-				<small>
-					Number of generators per polygon.
-				</small>
-				<hr />
-
-				<div class="flex space-between mb-2">
-					<label>From</label>
-					<input type="month" v-model="country_settings.fromDate" min="2007-01" :max="dateToday" />
-				</div>
-				<div class="flex space-between">
-					<label>To</label>
-					<input type="month" v-model="country_settings.toDate" :max="dateToday" />
-				</div>
-				<hr />
-
-				<Checkbox v-model:checked="country_settings.checkAllDates" label="Check all dates" />
-			</div>
-
-			<Button
-				class="bg-success"
-				@click="handleClickSave"
-				text="Save"
-			/>
-		</div>
-	</div>
 
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
 		<h4 class="center mb-2">Export selection to</h4>
@@ -235,24 +160,6 @@ const state = reactive({
 const dateToday = new Date().getFullYear() + "-" + ("0" + (new Date().getMonth() + 1)).slice(-2);
 
 const settings = reactive({
-	radius: 500,
-	rejectUnofficial: true,
-	rejectNoDescription: true,
-	rejectDateless: true,
-	adjustHeading: true,
-	headingDeviation: 0,
-	adjustPitch: true,
-	pitchDeviation: 10,
-	rejectByYear: false,
-	fromDate: "2009-01",
-	toDate: dateToday,
-	checkAllDates: false,
-	num_of_generators: 1,
-	getIntersection: false,
-});
-
-
-const country_settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
 	rejectNoDescription: true,
@@ -379,10 +286,6 @@ const handleClickStart = () => {
 	start();
 };
 
-function handleClickSave(e) {
-	e.target.settings = country_settings;
-};
-
 const start = async () => {
 	const generator = [];
 	for (let polygon of selected.value) {
@@ -414,7 +317,7 @@ const generate = async (country) => {
 				}
 			}
 			for (let locationGroup of randomCoords.chunk(100)) {
-				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, country.settings)));
+				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
 						country.found.push(res.value);
@@ -466,6 +369,7 @@ function selectCountry(e) {
 		if (!country.found) country.found = [];
 		if (!country.nbNeeded) country.nbNeeded = 100;
 		country.setStyle(highlighted());
+
 		selected.value.push(country);
 	} else {
 		selected.value.splice(index, 1);
