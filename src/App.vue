@@ -82,6 +82,15 @@
 				Keep it between 100-1000m for best results. Increase it for poorly covered territories/intersections/specific search cases.
 			</small>
 			<hr />
+			<div>
+				Generators
+				<input type="number" v-model.number="settings.num_of_generators" />
+				
+			</div>
+			<small>
+				Number of generators per polygon.
+			</small>
+			<hr />
 
 			<div class="flex space-between mb-2">
 				<label>From</label>
@@ -163,6 +172,7 @@ const settings = reactive({
 	fromDate: "2009-01",
 	toDate: dateToday,
 	checkAllDates: false,
+	num_of_generators: 1,
 	getIntersection: false,
 });
 
@@ -277,9 +287,13 @@ const handleClickStart = () => {
 };
 
 const start = async () => {
+	const generator = [];
 	for (let polygon of selected.value) {
-		await generate(polygon);
+	    for (let i = 0; i < settings.num_of_generators; i++) {
+	    	generator.push(generate(polygon));
+	    }
 	}
+	await Promise.all(generator);
 	state.started = false;
 };
 
