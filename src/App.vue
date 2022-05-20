@@ -311,7 +311,7 @@ const generate = async (country) => {
 	    const data = await response.json();
 	    let test = data;
 	    console.log(test);
-	  };
+	  },
 
 	return new Promise(async (resolve) => {
 		while (country.found.length < country.nbNeeded) {
