@@ -17,7 +17,7 @@ export default function SVreq(loc, settings) {
 			    const data = await response.json();
 			    if (data.Data.image_width == 16384){
 			      console.log("kkkgen 1");
-				loc.generation = "gen1";
+				loc.generation = "gen1dd";
 			    }
 
 			})();
