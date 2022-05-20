@@ -45,6 +45,7 @@ export default function SVreq(loc, settings) {
 					console.log(genCheck_result);
 					if (genCheck_result != "gen4") break;
 					if (genCheck_result == "gen4"){
+						generation_ne = true;
 						loc.panoId = res.time[i].pano;
 						break;
 					}
@@ -64,7 +65,7 @@ export default function SVreq(loc, settings) {
 
 					
 				}
-				if (!dateWithin) return reject();
+				if (!dateWithin || !generation_ne) return reject();
 			} else {
 				if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
 			}
