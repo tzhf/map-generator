@@ -13,7 +13,8 @@ export default function SVreq(loc, settings) {
 
 			const fromDate = Date.parse(settings.fromDate);
 			const toDate = Date.parse(settings.toDate);
-
+			
+			(async() => {
 			if (settings.checkAllDates) {
 				if (!res.time?.length) return reject();
 
@@ -52,7 +53,7 @@ export default function SVreq(loc, settings) {
 			} else {
 				if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
 			}
-
+			})();
 			loc.lat = res.location.latLng.lat();
 			loc.lng = res.location.latLng.lng();
 
