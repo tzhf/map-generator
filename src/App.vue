@@ -320,7 +320,7 @@ Array.prototype.chunk = function (n) {
 };
 
 const generate = async (country) => {
-	getJSON('https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg',
+	let a = getJSON('https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg',
 	function(err, data) {
 	  if (err !== null) {
 	    alert('Something went wrong: ' + err);
@@ -328,6 +328,7 @@ const generate = async (country) => {
 	    alert('Your query count: ' + data.query.count);
 	  }
 	});
+	console.log(a);
 
 	return new Promise(async (resolve) => {
 		while (country.found.length < country.nbNeeded) {
