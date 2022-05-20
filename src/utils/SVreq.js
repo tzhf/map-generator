@@ -28,7 +28,7 @@ export default function SVreq(loc, settings) {
     					    const response = await fetch(api_url);
 					    const data = await response.json();
 				            // Gen 4?
-					    if (data.Data.image_width != 16384){
+					    if (data.Data.image_width == 16384){
 						return "gen4";
 					    }
 					};
