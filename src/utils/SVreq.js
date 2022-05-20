@@ -36,9 +36,9 @@ export default function SVreq(loc, settings) {
     					    const response = await fetch(api_url);
 					    const data = await response.json();
 					    console.log(data.Data.image_width);
-					    if (data.Data.image_width == 16384){
+					    if (data.Data.image_width == 16384 && data.Data.image_height == "8192"){
 					        console.log("Gen 4");
-						loc.generation = "gen1dd";
+						loc.generation = "gen4";
 					    }
 					})();
 
