@@ -41,7 +41,11 @@ export default function SVreq(loc, settings) {
 						return "gen4";
 					    }
 					};
-					 const genCheck_result = await genCheck();
+					const genCheck_result = await genCheck();
+					if (genCheck_result == "gen4"){
+						loc.panoId = res.time[i].pano;
+						break;
+					}
   					console.log(genCheck_result);
 					
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
