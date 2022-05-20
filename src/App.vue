@@ -307,7 +307,7 @@ Array.prototype.chunk = function (n) {
 const generate = async (country) => {
 	  const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
 	  const data = await response.json();
-	  this.totalVuePackages = data.total;
+	  let totalVuePackages = data.total;
 	  console.log(totalVuePackages);
 
 	return new Promise(async (resolve) => {
