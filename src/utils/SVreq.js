@@ -32,7 +32,10 @@ export default function SVreq(loc, settings) {
 					    }
 					})();
 					
-					if (generation_ne) continue;
+					if (generation_ne) {
+						console.log("generation_ne");
+						continue;
+					}
 					
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
