@@ -10,17 +10,6 @@ export default function SVreq(loc, settings) {
 				if (settings.rejectDateless && !res.imageDate) return reject();
 				if (settings.getIntersection && res.links.length < 3) return reject();
 			}
-			
-			(async () => {
-			    // GET request using fetch with async/await
-			    const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
-			    const data = await response.json();
-			    if (data.Data.image_width == 16384){
-			      console.log("kkkgen 1");
-				loc.generation = "gen1dd";
-			    }
-
-			})();
 
 			const fromDate = Date.parse(settings.fromDate);
 			const toDate = Date.parse(settings.toDate);
@@ -41,7 +30,16 @@ export default function SVreq(loc, settings) {
 						break;
 					}
 					
-	
+					(async () => {
+					    // GET request using fetch with async/await
+					    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
+    					    const response = await fetch(api_url);
+					    const data = await response.json();
+					    if (data.Data.image_width == 16384){
+					        console.log("Gen 4");
+						loc.generation = "gen1dd";
+					    }
+					})();
 
 					
 				}
