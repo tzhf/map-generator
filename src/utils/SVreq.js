@@ -35,6 +35,7 @@ export default function SVreq(loc, settings) {
 					    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
     					    const response = await fetch(api_url);
 					    const data = await response.json();
+					    console.log(data.Data.image_width);
 					    if (data.Data.image_width == 16384){
 					        console.log("Gen 4");
 						loc.generation = "gen1dd";
