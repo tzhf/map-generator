@@ -19,6 +19,18 @@ export default function SVreq(loc, settings) {
 
 				let dateWithin = false;
 				for (var i = 0; i < res.time.length; i++) {
+					
+					 (async () => {
+					    // GET request using fetch with async/await
+					    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
+    					    const response = await fetch(api_url);
+					    const data = await response.json();
+					    if (data.Data.image_width == 16384 && data.Data.image_height == "8192"){
+					        console.log("Gen 4");
+						loc.generation = "gen4";
+					    }
+					})();
+					
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
 					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
@@ -30,17 +42,6 @@ export default function SVreq(loc, settings) {
 						break;
 					}
 					
-					(async () => {
-					    // GET request using fetch with async/await
-					    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
-    					    const response = await fetch(api_url);
-					    const data = await response.json();
-					    console.log(data.Data.image_width);
-					    if (data.Data.image_width == 16384 && data.Data.image_height == "8192"){
-					        console.log("Gen 4");
-						loc.generation = "gen4";
-					    }
-					})();
 
 					
 				}
