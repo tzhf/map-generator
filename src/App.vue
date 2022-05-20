@@ -305,10 +305,13 @@ Array.prototype.chunk = function (n) {
 };
 
 const generate = async (country) => {
-	  const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
-	  const data = await response.json();
-	  let totalVuePackages = data.total;
-	  console.log(totalVuePackages);
+	  async created() {
+	    // GET request using fetch with async/await
+	    const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
+	    const data = await response.json();
+	    let test = data;
+	    console.log(test);
+	  }
 
 	return new Promise(async (resolve) => {
 		while (country.found.length < country.nbNeeded) {
