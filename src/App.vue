@@ -159,21 +159,6 @@ const state = reactive({
 
 const dateToday = new Date().getFullYear() + "-" + ("0" + (new Date().getMonth() + 1)).slice(-2);
 
-var getJSON = function(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-      var status = xhr.status;
-      if (status === 200) {
-        callback(null, xhr.response);
-      } else {
-        callback(status, xhr.response);
-      }
-    };
-    xhr.send();
-};
-
 const settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
@@ -320,15 +305,10 @@ Array.prototype.chunk = function (n) {
 };
 
 const generate = async (country) => {
-	let a = getJSON('https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg',
-	function(err, data) {
-	  if (err !== null) {
-	    alert('Something went wrong: ' + err);
-	  } else {
-	    alert('Your query count: ' + data.query.count);
-	  }
-	});
-	console.log(a);
+	  const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
+	  const data = await response.json();
+	  this.totalVuePackages = data.total;
+	  console.log(totalVuePackages);
 
 	return new Promise(async (resolve) => {
 		while (country.found.length < country.nbNeeded) {
