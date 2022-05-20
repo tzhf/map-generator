@@ -18,6 +18,7 @@ export default function SVreq(loc, settings) {
 				if (!res.time?.length) return reject();
 
 				let dateWithin = false;
+				let generation_ne = false;
 				for (var i = 0; i < res.time.length; i++) {
 					
 					 (async () => {
@@ -27,9 +28,11 @@ export default function SVreq(loc, settings) {
 					    const data = await response.json();
 				            // Gen 4?
 					    if (data.Data.image_width != 16384){
-						continue;
+						generation_ne = true;
 					    }
 					})();
+					
+					if (generation_ne) continue;
 					
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
