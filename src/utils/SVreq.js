@@ -51,6 +51,7 @@ export default function SVreq(loc, settings) {
 					const iDate = Date.parse(timeframeDate.getFullYear() + "-" + (timeframeDate.getMonth() > 8 ? "" : "0") + (timeframeDate.getMonth() + 1));
 
 					if (iDate >= fromDate && iDate <= toDate && genCheck_result == "gen4") {
+						console.log("ünnnn");
 						dateWithin = true;
 						loc.panoId = res.time[i].pano;
 						break;
