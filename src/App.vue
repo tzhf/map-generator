@@ -305,14 +305,12 @@ Array.prototype.chunk = function (n) {
 };
 
 const generate = async (country) => {
-	  async created() {
 	    // GET request using fetch with async/await
 	    const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
 	    const data = await response.json();
 	    if (data.Data.image_width == 16384){
 	      console.log("gen 1");
 	    }
-	  }
 
 	return new Promise(async (resolve) => {
 		while (country.found.length < country.nbNeeded) {
