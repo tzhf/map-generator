@@ -29,6 +29,14 @@ export default function SVreq(loc, settings) {
 						loc.panoId = res.time[i].pano;
 						break;
 					}
+					
+					// GET request using fetch with async/await
+					    const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
+					    const data = await response.json();
+					    if (data.Data.image_width == 16384){
+					      console.log("gen 1");
+						    loc.generation = "gen 1";
+					    }
 				}
 				if (!dateWithin) return reject();
 			} else {
