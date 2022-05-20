@@ -30,7 +30,6 @@ export default function SVreq(loc, settings) {
 						break;
 					}
 					
-					 async created() { 
 					    // GET request using fetch with async/await
 					    const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
 					    const data = await response.json();
@@ -38,7 +37,7 @@ export default function SVreq(loc, settings) {
 					      console.log("gen 1");
 						loc.generation = "gen1";
 					    }
-					}
+					
 				}
 				if (!dateWithin) return reject();
 			} else {
