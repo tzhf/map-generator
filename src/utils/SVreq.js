@@ -43,12 +43,6 @@ export default function SVreq(loc, settings) {
 					};
 					const genCheck_result = await genCheck();
 					console.log(genCheck_result);
-					if (genCheck_result != "gen4") continue;
-					if (genCheck_result == "gen4"){
-						generation_ne = true;
-						loc.panoId = res.time[i].pano;
-						break;
-					}
 
 					
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
@@ -56,7 +50,7 @@ export default function SVreq(loc, settings) {
 					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
 					const iDate = Date.parse(timeframeDate.getFullYear() + "-" + (timeframeDate.getMonth() > 8 ? "" : "0") + (timeframeDate.getMonth() + 1));
 
-					if (iDate >= fromDate && iDate <= toDate) {
+					if (iDate >= fromDate && iDate <= toDate && genCheck_result == "gen4") {
 						dateWithin = true;
 						loc.panoId = res.time[i].pano;
 						break;
@@ -65,7 +59,7 @@ export default function SVreq(loc, settings) {
 
 					
 				}
-				if (!dateWithin || !generation_ne) return reject();
+				if (!dateWithin) return reject();
 			} else {
 				if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
 			}
