@@ -21,21 +21,18 @@ export default function SVreq(loc, settings) {
 				let generation_ne = false;
 				for (var i = 0; i < res.time.length; i++) {
 					
-					 (async () => {
+					 const genCheck = async() => {
 					    // GET request using fetch with async/await
 					    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
     					    const response = await fetch(api_url);
 					    const data = await response.json();
 				            // Gen 4?
-					    if (data.Data.image_width == 16384){
-						generation_ne = true;
+					    if (data.Data.image_width != 16384){
+						return "gen4";
 					    }
-					})();
-					
-					if (generation_ne) {
-						console.log("generation_ne");
-						continue;
-					}
+					};
+					 const genCheck_result = await genCheck();
+  					console.log(genCheck_result);
 					
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
