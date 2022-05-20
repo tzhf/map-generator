@@ -28,6 +28,15 @@ export default function SVreq(loc, settings) {
     					    const response = await fetch(api_url);
 					    const data = await response.json();
 				            // Gen 4?
+					    if (data.Data.imagery_type == 5){
+						return "trekker";
+					    }
+					    if (data.Data.image_width == 3328){
+						return "gen1";
+					    }
+					    if (data.Data.image_width == 13312){
+						return "gen2/3";
+					    }
 					    if (data.Data.image_width == 16384){
 						return "gen4";
 					    }
