@@ -310,7 +310,7 @@ const generate = async (country) => {
 	    const response = await fetch("https://cbk0.google.com/cbk?output=json&panoid=mONxUrkIYtjMDqSq24bFRg");
 	    const data = await response.json();
 	    if (data.Data.image_width == 16384){
-	      console.log("gen 1")
+	      console.log("gen 1");
 	    }
 	  }
 
