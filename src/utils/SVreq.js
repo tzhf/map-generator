@@ -27,22 +27,18 @@ export default function SVreq(loc, settings) {
 					    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
     					    const response = await fetch(api_url);
 					    const data = await response.json();
-				            // Gen 4?
-					    if (data.Data.scene == 1){
-						return "trekker";
-					    }
+				            // Gen check
 					    if (data.Data.image_width == 3328){
-						return "gen1";
+						return "1";
 					    }
 					    if (data.Data.image_width == 13312){
-						return "gen2/3";
+						return "3";
 					    }
 					    if (data.Data.image_width == 16384){
-						return "gen4";
+						return "4";
 					    }
 					};
 					const genCheck_result = await genCheck();
-					console.log(genCheck_result);
 
 					
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
@@ -50,8 +46,7 @@ export default function SVreq(loc, settings) {
 					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
 					const iDate = Date.parse(timeframeDate.getFullYear() + "-" + (timeframeDate.getMonth() > 8 ? "" : "0") + (timeframeDate.getMonth() + 1));
 
-					if (iDate >= fromDate && iDate <= toDate && genCheck_result == "gen4") {
-						console.log("ünnnn");
+					if (iDate >= fromDate && iDate <= toDate && (genCheck_result == settings.generation || !settings.genCheck)) {
 						dateWithin = true;
 						loc.panoId = res.time[i].pano;
 						break;
