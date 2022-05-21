@@ -32,7 +32,7 @@ export default function SVreq(loc, settings) {
 						return "1";
 					    }
 					    if (data.Data.image_width == 13312){
-						return "2 || 3";
+						return (2 || 3);
 					    }
 					    if (data.Data.image_width == 16384){
 						return "4";
