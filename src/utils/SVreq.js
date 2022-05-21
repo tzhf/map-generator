@@ -50,7 +50,7 @@ export default function SVreq(loc, settings) {
 					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
 					const iDate = Date.parse(timeframeDate.getFullYear() + "-" + (timeframeDate.getMonth() > 8 ? "" : "0") + (timeframeDate.getMonth() + 1));
 
-					if (iDate >= fromDate && iDate <= toDate && genCheck_result == "gen1") {
+					if (iDate >= fromDate && iDate <= toDate && genCheck_result == "gen4") {
 						console.log("ünnnn");
 						dateWithin = true;
 						loc.panoId = res.time[i].pano;
