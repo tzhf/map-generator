@@ -355,8 +355,7 @@ const randomPointInPoly = (polygon) => {
 	const x_max = bounds.getWest();
 	const y_min = bounds.getSouth();
 	const y_max = bounds.getNorth();
-
-	const lat = y_min + Math.random() * (y_max - y_min);
+	const lat = Math.asin(Math.random() * (Math.sin(y_max*Math.PI/180) - Math.sin(y_min*Math.PI/180)) + Math.sin(y_min*Math.PI/180));
 	const lng = x_min + Math.random() * (x_max - x_min);
 	return { lat, lng };
 };
