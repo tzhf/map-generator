@@ -190,6 +190,7 @@ const settings = reactive({
 	genCheck: false,
 	generation: 1,
 	getIntersection: false,
+	pinpointAngle: false,
 });
 
 const select = ref("Select a country or draw a polygon");
