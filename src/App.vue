@@ -49,13 +49,14 @@
 				<hr />
 			</div>
 			
-			
-			<div v-if="settings.getIntersection" class="indent">
-				<label class="flex wrap">
-					Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
-				</label>
-				<hr />
+			<Checkbox v-model:checked="settings.pinpointSearch" label="Pinpoint search" />
+			<div v-if="settings.adjustHeading" class="indent">
+			<label class="flex wrap">
+				Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
+			</label>
 			</div>
+			<hr />
+			
 			
 			
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
@@ -187,6 +188,7 @@ const settings = reactive({
 	genCheck: false,
 	generation: 1,
 	getIntersection: false,
+	pinpointSearch: false,
 	pinpointAngle: 145,
 });
 
