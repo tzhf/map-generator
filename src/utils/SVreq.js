@@ -10,7 +10,7 @@ export default function SVreq(loc, settings) {
 				if (settings.rejectNoDescription && !res.location.description && !res.location.shortDescription) return reject();
 				if (settings.rejectDateless && !res.imageDate) return reject();
 				if (settings.getIntersection && res.links.length < 2) return reject();
-				if (settings.getIntersection && res.links.length == 2 && res.links[0].heading - res.links[1].heading > 50) return reject();
+				if (settings.getIntersection && res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > 50) return reject();
 			}
 
 			const fromDate = Date.parse(settings.fromDate);
