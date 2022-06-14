@@ -57,10 +57,11 @@
 			<Checkbox v-model:checked="settings.pinpointAngle" label="Adjust pinpointable angle" />
 			<div v-if="settings.getIntersection" class="indent">
 				<label class="flex wrap">
-					Pinpointable angle <input type="range" v-model.number="settings.pitchDeviation" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
+					Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
 				</label>
 			</div>
-
+			<hr />
+			
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 			<div v-if="settings.adjustHeading" class="indent">
 				<label class="flex wrap">
@@ -190,7 +191,7 @@ const settings = reactive({
 	genCheck: false,
 	generation: 1,
 	getIntersection: false,
-	pinpointAngle: false,
+	pinpointAngle: 145,
 });
 
 const select = ref("Select a country or draw a polygon");
