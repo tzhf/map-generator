@@ -45,7 +45,7 @@
 				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
 				<hr />
 
-				<Checkbox v-model:checked="settings.getIntersection" label="Find pinpointable locations" />
+				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
 				<hr />
 			</div>
 			
