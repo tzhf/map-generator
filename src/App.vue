@@ -49,7 +49,7 @@
 				<hr />
 			</div>
 			
-			<Checkbox v-model:checked="settings.pinpointSearch" label="Pinpoint search" />
+			<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
 			<div v-if="settings.pinpointSearch" class="indent">
 			<label class="flex wrap">
 				Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
