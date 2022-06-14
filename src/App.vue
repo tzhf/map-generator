@@ -40,17 +40,12 @@
 
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
-				<small
-					>This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
-					have description)</small
-				>
 				<hr />
 
 				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
-				<small>This will prevent the local business tripod coverage that doesn't have a date.</small>
 				<hr />
 
-				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
+				<Checkbox v-model:checked="settings.getIntersection" label="Find pinpointable locations" />
 				<hr />
 			</div>
 			
