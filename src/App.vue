@@ -53,6 +53,13 @@
 				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
 				<hr />
 			</div>
+			
+			<Checkbox v-model:checked="settings.pinpointAngle" label="Adjust pinpointable angle" />
+			<div v-if="settings.getIntersection" class="indent">
+				<label class="flex wrap">
+					Pinpointable angle <input type="range" v-model.number="settings.pitchDeviation" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
+				</label>
+			</div>
 
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 			<div v-if="settings.adjustHeading" class="indent">
