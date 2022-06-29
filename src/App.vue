@@ -55,18 +55,15 @@
 
 				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
 				<hr />
+				
+				<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
+				<div v-if="settings.pinpointSearch" class="indent">
+				<label class="flex wrap">
+					Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
+				</label>
+				</div>
+				<hr />
 			</div>
-			
-			
-			<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
-			<div v-if="settings.pinpointSearch" class="indent">
-			<label class="flex wrap">
-				Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
-			</label>
-			</div>
-			<hr />
-			
-			
 			
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 			<div v-if="settings.adjustHeading" class="indent">
@@ -116,18 +113,20 @@
 			</div>
 			<hr />
 			
+			<div v-if="!settings.rejectOfficial" class="indent">
 			<Checkbox v-model:checked="settings.genCheck" label="Search for generation (1, 2/3, 4)" />
 			    <div v-if="settings.genCheck">
 			      <input type="range" v-model.number="settings.generation" min="1" max="4" />
 			      Generation: {{ settings.generation }}
 			    </div>
 			 <hr />
-
+			 
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			<small>
 				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
 				specific timeframe.
 			</small>
+			</div>
 		</div>
 
 		<Button
