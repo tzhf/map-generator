@@ -41,6 +41,11 @@
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
 				<hr />
+				
+				<div v-if="!settings.rejectNoDescription">
+				<Checkbox v-model:checked="settings.rejectDescription" label="Reject locations without description" />
+				<hr />
+				</div>
 
 				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
 				<hr />
@@ -175,6 +180,7 @@ const settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
 	rejectNoDescription: true,
+	rejectDescription: true,
 	rejectDateless: true,
 	adjustHeading: true,
 	headingDeviation: 0,
