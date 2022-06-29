@@ -18,7 +18,6 @@ export default function SVreq(loc, settings) {
 				if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return reject();
 			}
 
-			console.log(settings.fromDate.slice(5,7));
 			const fromDate = Date.parse(settings.fromDate);
 			const toDate = Date.parse(settings.toDate);
 				
