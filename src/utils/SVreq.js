@@ -7,7 +7,7 @@ export default function SVreq(loc, settings) {
 			if (status != google.maps.StreetViewStatus.OK) return reject();
 			if (settings.rejectUnofficial) {
 				if (!/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return reject();
-				if (settings.rejectNoDescription && !res.location.description && !res.location.shortDescription) return reject();
+				if (settings.rejectNoDescription && !settings.rejectDescription && !res.location.description && !res.location.shortDescription) return reject();
 				if (settings.rejectDescription && (res.location.description || res.location.shortDescription)) return reject();
 				if (settings.rejectDateless && !res.imageDate) return reject();
 				if (settings.pinpointSearch && res.links.length < 2) return reject();
