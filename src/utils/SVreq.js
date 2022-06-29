@@ -12,11 +12,10 @@ export default function SVreq(loc, settings) {
 				if (settings.rejectDateless && !res.imageDate) return reject();
 				if (settings.pinpointSearch && res.links.length < 2) return reject();
 				if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return reject();
-				console.log(settings.pinpointAngle);
 				if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return reject();
 			}
 			if (settings.rejectOfficial) {
-				if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return reject();
+				if !(!/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return reject();
 			}
 
 			const fromDate = Date.parse(settings.fromDate);
