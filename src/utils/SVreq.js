@@ -19,8 +19,8 @@ export default function SVreq(loc, settings) {
 			}
 
 			console.log(settings.fromDate.slice(5,7));
-			const fromDate = Date.parse(settings.fromDate.slice(5,7));
-			const toDate = Date.parse(settings.toDate.slice(5,7));
+			const fromDate = Date.parse(settings.fromDate);
+			const toDate = Date.parse(settings.toDate);
 				
 			if (settings.checkAllDates && !settings.rejectOfficial) {
 				if (!res.time?.length) return reject();
