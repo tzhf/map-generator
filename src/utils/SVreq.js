@@ -27,41 +27,35 @@ export default function SVreq(loc, settings) {
 				let dateWithin = false;
 				let generation_ne = false;
 				for (var i = 0; i < res.time.length; i++) {
-					try{
-						 const genCheck = async() => {
-						    // GET request using fetch with async/await
-						    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
-						    const response = await fetch(api_url);
-						    const data = await response.json();
-						    // Gen check
-						    if (data.Data.image_width == 3328){
-							return "1";
-						    }
-						    if (data.Data.image_width == 13312){
-							return (2 || 3);
-						    }
-						    if (data.Data.image_width == 16384){
-							return "4";
-						    }
-						};
-						const genCheck_result = await genCheck();
+					 const genCheck = async() => {
+					    // GET request using fetch with async/await
+					    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
+					    const response = await fetch(api_url);
+					    const data = await response.json();
+					    // Gen check
+					    if (data.Data.image_width == 3328){
+						return "1";
+					    }
+					    if (data.Data.image_width == 13312){
+						return (2 || 3);
+					    }
+					    if (data.Data.image_width == 16384){
+						return "4";
+					    }
+					};
+					const genCheck_result = await genCheck();
 
 
-						const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
+					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
-						if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
-						const iDate = Date.parse(timeframeDate.getFullYear() + "-" + (timeframeDate.getMonth() > 8 ? "" : "0") + (timeframeDate.getMonth() + 1));
+					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+					const iDate = Date.parse(timeframeDate.getFullYear() + "-" + (timeframeDate.getMonth() > 8 ? "" : "0") + (timeframeDate.getMonth() + 1));
 
-						if (iDate >= fromDate && iDate <= toDate && (genCheck_result == settings.generation || !settings.genCheck)) {
-							dateWithin = true;
-							loc.panoId = res.time[i].pano;
-							break;
-						}
-					} catch (error){
-						console.error(error);
+					if (iDate >= fromDate && iDate <= toDate && (genCheck_result == settings.generation || !settings.genCheck)) {
+						dateWithin = true;
+						loc.panoId = res.time[i].pano;
+						break;
 					}
-					
-
 					
 				}
 				if (!dateWithin) return reject();
