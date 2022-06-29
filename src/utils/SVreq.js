@@ -30,17 +30,21 @@ export default function SVreq(loc, settings) {
 					 const genCheck = async() => {
 					    // GET request using fetch with async/await
 					    const api_url = "https://cbk0.google.com/cbk?output=json&panoid=" + res.time[i].pano;
-					    const response = await fetch(api_url);
-					    const data = await response.json();
-					    // Gen check
-					    if (data.Data.image_width == 3328){
-						return "1";
-					    }
-					    if (data.Data.image_width == 13312){
-						return (2 || 3);
-					    }
-					    if (data.Data.image_width == 16384){
-						return "4";
+					    try{
+						    const response = await fetch(api_url);
+						    const data = await response.json();
+						    // Gen check
+						    if (data.Data.image_width == 3328){
+							return "1";
+						    }
+						    if (data.Data.image_width == 13312){
+							return (2 || 3);
+						    }
+						    if (data.Data.image_width == 16384){
+							return "4";
+						    }
+					    } catch (error){
+						    return "0";
 					    }
 					};
 					const genCheck_result = await genCheck();
