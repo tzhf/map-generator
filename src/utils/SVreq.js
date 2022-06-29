@@ -57,7 +57,7 @@ export default function SVreq(loc, settings) {
 							loc.panoId = res.time[i].pano;
 							break;
 						}
-					catch (error){
+					} catch (error){
 						console.error(error);
 					}
 					
