@@ -20,6 +20,7 @@ export default function SVreq(loc, settings) {
 
 			const fromDate = Date.parse(settings.fromDate);
 			const toDate = Date.parse(settings.toDate);
+			console.log(fromDate.getMonth());
 			
 			if (settings.checkAllDates && !settings.rejectOfficial) {
 				if (!res.time?.length) return reject();
