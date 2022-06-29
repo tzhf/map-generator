@@ -35,8 +35,11 @@
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
 			<h4 class="center">Settings</h4>
+			
+			<div v-if="!settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
+			</div>
 			
 			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
 			<hr />
