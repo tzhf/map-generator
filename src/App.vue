@@ -37,8 +37,11 @@
 			<h4 class="center">Settings</h4>
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
+			
+			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
+			<hr />
 
-			<div v-if="settings.rejectUnofficial">
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 				<div v-if="!settings.rejectDescription">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
 				<hr />
@@ -53,6 +56,7 @@
 				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
 				<hr />
 			</div>
+			
 			
 			<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
 			<div v-if="settings.pinpointSearch" class="indent">
@@ -179,6 +183,7 @@ const dateToday = new Date().getFullYear() + "-" + ("0" + (new Date().getMonth()
 const settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
+	rejectOfficial: false,
 	rejectNoDescription: true,
 	rejectDescription: false,
 	rejectDateless: true,
