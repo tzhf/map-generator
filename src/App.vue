@@ -131,7 +131,6 @@
 			:text="state.started ? 'Pause' : 'Start'"
 			title="Space bar/Enter"
 		/>
-	</div>
 
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
 		<h4 class="center mb-2">Export selection to</h4>
