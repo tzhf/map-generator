@@ -116,13 +116,6 @@
 			</div>
 			<hr />
 			
-			<div v-if="!settings.rejectOfficial">
-			<Checkbox v-model:checked="settings.genCheck" label="Search for generation (1, 2/3, 4)" />
-			    <div v-if="settings.genCheck">
-			      <input type="range" v-model.number="settings.generation" min="1" max="4" />
-			      Generation: {{ settings.generation }}
-			    </div>
-			 <hr />
 			 
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			<small>
@@ -198,7 +191,6 @@ const settings = reactive({
 	toDate: dateToday,
 	checkAllDates: true,
 	num_of_generators: 1,
-	genCheck: false,
 	generation: 1,
 	getIntersection: false,
 	pinpointSearch: false,
