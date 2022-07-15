@@ -114,13 +114,9 @@
 				<label>To</label>
 				<input type="month" v-model="settings.toDate" :max="dateToday" />
 			</div>
-			<hr />
+			<Checkbox v-model:checked="settings.selectMonths" label="Filter by month" />
+		
 			 
-			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
-			<small>
-				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
-				specific timeframe.
-			</small>
 		</div>
 
 		<Button
@@ -193,6 +189,7 @@ const settings = reactive({
 	getIntersection: false,
 	pinpointSearch: false,
 	pinpointAngle: 145,
+	selectMonths: false,
 });
 
 const select = ref("Select a country or draw a polygon");

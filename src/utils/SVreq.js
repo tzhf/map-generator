@@ -19,12 +19,13 @@ export default function SVreq(loc, settings) {
 			}
 			const fromDate = Date.parse(settings.fromDate); 
 			const toDate = Date.parse(settings.toDate);
+			const fromMonth = settings.fromDate.slice(5);
+			const toMonth = settings.toDate.slice(5);
 				
-			if (settings.checkAllDates && !settings.rejectOfficial) {
+			if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
 				if (!res.time?.length) return reject();
 
 				let dateWithin = false;
-				let generation_ne = false;
 				for (var i = 0; i < res.time.length; i++) {
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
@@ -37,11 +38,30 @@ export default function SVreq(loc, settings) {
 						break;
 					}
 					
-				}
+				} 
 				if (!dateWithin) return reject();
-			} else {
-				if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
+			} 
+				
+			if (settings.selectMonths && settings.checkAllDates && !settings.rejectOfficial) {
+				if (!res.time?.length) return reject();
+
+				let dateWithin = false;
+				for (var i = 0; i < res.time.length; i++) {
+					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
+
+					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+					const iDateMonth = timeframeDate.getMonth() + 1;
+
+					if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
+						dateWithin = true;
+						loc.panoId = res.time[i].pano;
+						break;
+					}
+					
+				} 
+				if (!dateWithin) return reject();
 			}
+				
 			loc.lat = res.location.latLng.lat();
 			loc.lng = res.location.latLng.lng();
 
