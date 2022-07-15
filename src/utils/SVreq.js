@@ -46,23 +46,28 @@ export default function SVreq(loc, settings) {
 				if (!dateWithin) return reject();
 			} 
 				
-			if (settings.selectMonths && settings.checkAllDates && !settings.rejectOfficial) {
+			if (settings.selectMonths && !settings.rejectOfficial) {
 				if (!res.time?.length) return reject();
+				
+				if (settings.checkAllDates){
+					let dateWithin = false;
+					for (var i = 0; i < res.time.length; i++) {
+						const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
-				let dateWithin = false;
-				for (var i = 0; i < res.time.length; i++) {
-					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
+						if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+						const iDateMonth = timeframeDate.getMonth() + 1;
 
-					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
-					const iDateMonth = timeframeDate.getMonth() + 1;
+						if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
+							dateWithin = true;
+							loc.panoId = res.time[i].pano;
+							break;
+						}
 
-					if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
-						dateWithin = true;
-						loc.panoId = res.time[i].pano;
-						break;
-					}
-					
-				} 
+					} 
+				}
+				else{
+					if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
+				}
 				if (!dateWithin) return reject();
 			}
 				
