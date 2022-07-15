@@ -114,6 +114,7 @@
 				<label>To</label>
 				<input type="month" v-model="settings.toDate" :max="dateToday" />
 			</div>
+			<Checkbox v-model:checked="settings.selectMonths" label="Filter by month" />
 			<hr />
 			 
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
@@ -193,7 +194,7 @@ const settings = reactive({
 	getIntersection: false,
 	pinpointSearch: false,
 	pinpointAngle: 145,
-	selectMonths: true,
+	selectMonths: false,
 });
 
 const select = ref("Select a country or draw a polygon");
