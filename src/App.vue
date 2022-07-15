@@ -115,7 +115,7 @@
 				<input type="month" v-model="settings.toDate" :max="dateToday" />
 			</div>
 			<Checkbox v-model:checked="settings.selectMonths" label="Filter by month" />
-			<hr />
+		
 			 
 		</div>
 
