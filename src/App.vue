@@ -125,7 +125,6 @@
 				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
 				specific timeframe.
 			</small>
-			</div>
 			 
 		</div>
 
