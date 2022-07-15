@@ -66,6 +66,7 @@ export default function SVreq(loc, settings) {
 					} 
 				}
 				else{
+					console.log(res.imageDate);
 					if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
 				}
 				if (!dateWithin) return reject();
