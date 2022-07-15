@@ -24,7 +24,6 @@ export default function SVreq(loc, settings) {
 				if (!res.time?.length) return reject();
 
 				let dateWithin = false;
-				let generation_ne = false;
 				for (var i = 0; i < res.time.length; i++) {
 					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
@@ -32,6 +31,28 @@ export default function SVreq(loc, settings) {
 					const iDate = Date.parse(timeframeDate.getFullYear() + "-" + (timeframeDate.getMonth() > 8 ? "" : "0") + (timeframeDate.getMonth() + 1));
 
 					if (iDate >= fromDate && iDate <= toDate) {
+						dateWithin = true;
+						loc.panoId = res.time[i].pano;
+						break;
+					}
+					
+				} 
+				if (!dateWithin) return reject();
+			} else {
+				if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
+			}
+				
+			if (settings.selectMonths && settings.checkAllDates && !settings.rejectOfficial) {
+				if (!res.time?.length) return reject();
+
+				let dateWithin = false;
+				for (var i = 0; i < res.time.length; i++) {
+					const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
+
+					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+					const iDateMonth = timeframeDate.getMonth();
+
+					if (iDateMonth >= settings.fromDate.slice(5) && iDateMonth <= settings.toDate.slice(5)) {
 						dateWithin = true;
 						loc.panoId = res.time[i].pano;
 						break;
