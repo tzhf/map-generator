@@ -64,12 +64,12 @@ export default function SVreq(loc, settings) {
 						}
 
 					} 
+					if (!dateWithin) return reject();
 				}
 				else{
-					console.log(res.imageDate);
-					if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
+					if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return reject();
 				}
-				if (!dateWithin) return reject();
+				
 			}
 				
 			loc.lat = res.location.latLng.lat();
