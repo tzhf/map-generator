@@ -48,9 +48,9 @@ export default function SVreq(loc, settings) {
 				
 			if (settings.selectMonths && !settings.rejectOfficial) {
 				if (!res.time?.length) return reject();
-				
+				let dateWithin = false;
+
 				if (settings.checkAllDates){
-					let dateWithin = false;
 					for (var i = 0; i < res.time.length; i++) {
 						const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
