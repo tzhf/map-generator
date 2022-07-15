@@ -19,6 +19,8 @@ export default function SVreq(loc, settings) {
 			}
 			const fromDate = Date.parse(settings.fromDate); 
 			const toDate = Date.parse(settings.toDate);
+			const fromMonth = settings.fromDate.slice(5);
+			const toMonth = settings.toDate.slice(5);
 				
 			if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
 				if (!res.time?.length) return reject();
@@ -50,7 +52,7 @@ export default function SVreq(loc, settings) {
 					if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
 					const iDateMonth = timeframeDate.getMonth();
 
-					if (iDateMonth >= settings.fromDate.slice(5) && iDateMonth <= settings.toDate.slice(5)) {
+					if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
 						dateWithin = true;
 						loc.panoId = res.time[i].pano;
 						break;
