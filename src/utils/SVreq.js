@@ -22,6 +22,10 @@ export default function SVreq(loc, settings) {
 			const fromMonth = settings.fromDate.slice(5);
 			const toMonth = settings.toDate.slice(5);
 				
+			if (!settings.checkAllDates || settings.rejectOfficial) {
+				if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
+			}
+				
 			if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
 				if (!res.time?.length) return reject();
 
