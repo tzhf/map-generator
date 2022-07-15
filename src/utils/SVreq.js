@@ -38,9 +38,7 @@ export default function SVreq(loc, settings) {
 					
 				} 
 				if (!dateWithin) return reject();
-			} else {
-				if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
-			}
+			} 
 				
 			if (settings.selectMonths && settings.checkAllDates && !settings.rejectOfficial) {
 				if (!res.time?.length) return reject();
