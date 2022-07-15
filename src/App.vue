@@ -193,7 +193,7 @@ const settings = reactive({
 	getIntersection: false,
 	pinpointSearch: false,
 	pinpointAngle: 145,
-	selectMonths: false,
+	selectMonths: true,
 });
 
 const select = ref("Select a country or draw a polygon");
