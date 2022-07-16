@@ -67,6 +67,9 @@ export default function SVreq(loc, settings) {
 					if (!dateWithin) return reject();
 				}
 				else{
+					console.log("res:" + res.imageDate.slice(5));
+					console.log("from:" + fromMonth);
+					console.log("to:" + toMonth);
 					if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return reject();
 				}
 				
