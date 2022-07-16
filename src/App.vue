@@ -120,7 +120,7 @@
 			</div>
 			<hr />
 			
-			<select id="month">
+			<select id="settings.fromMonth">
 				<option value=""></option>
 				<option value="1">January</option>
 				<option value="2">February</option>
@@ -198,6 +198,8 @@ const settings = reactive({
 	rejectByYear: false,
 	fromDate: "2009-01",
 	toDate: dateToday,
+	fromMonth: 1,
+	toMonth: 12,
 	checkAllDates: true,
 	num_of_generators: 1,
 	generation: 1,
