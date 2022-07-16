@@ -119,6 +119,12 @@
 			<Checkbox v-model:checked="settings.selectMonths" label="Filter by month" />
 			</div>
 			<hr />
+			
+			<select id="month">
+				<option value=""></option>
+				<option value="1">January</option>
+				<option value="2">February</option>
+			</select>
 		
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			<small>
