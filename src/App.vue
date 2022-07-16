@@ -224,7 +224,7 @@ const settings = reactive({
 	rejectByYear: false,
 	fromDate: "2009-01",
 	toDate: dateToday,
-	fromMonth: 1,
+	fromMonth: 01,
 	toMonth: 12,
 	checkAllDates: true,
 	num_of_generators: 1,
