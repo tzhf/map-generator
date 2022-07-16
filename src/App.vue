@@ -105,20 +105,54 @@
 				Number of generators per polygon.
 			</small>
 			<hr />
-
-			<div class="flex space-between mb-2">
-				<label>From</label>
-				<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
-			</div>
-			<div class="flex space-between">
-				<label>To</label>
-				<input type="month" v-model="settings.toDate" :max="dateToday" />
+			
+			<div v-if="!settings.selectMonths">
+				<div class="flex space-between mb-2">
+					<label>From</label>
+					<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
+				</div>
+				<div class="flex space-between">
+					<label>To</label>
+					<input type="month" v-model="settings.toDate" :max="dateToday" />
+				</div>
 			</div>
 			
 			<div v-if="!settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.selectMonths" label="Filter by month" />
+				<div v-if="settings.selectMonths">
+					<select v-model="settings.fromMonth">
+						<option value="01">January</option>
+						<option value="02">February</option>
+						<option value="03">March</option>
+						<option value="04">April</option>
+						<option value="05">May</option>
+						<option value="06">June</option>
+						<option value="07">July</option>
+						<option value="08">August</option>
+						<option value="09">September</option>
+						<option value="10">October</option>
+						<option value="11">November</option>
+						<option value="12">December</option>
+					</select>
+					<label> to </label>
+					<select v-model="settings.toMonth">
+						<option value="01">January</option>
+						<option value="02">February</option>
+						<option value="03">March</option>
+						<option value="04">April</option>
+						<option value="05">May</option>
+						<option value="06">June</option>
+						<option value="07">July</option>
+						<option value="08">August</option>
+						<option value="09">September</option>
+						<option value="10">October</option>
+						<option value="11">November</option>
+						<option value="12">December</option>
+					</select>
+				</div>
 			</div>
 			<hr />
+			
 		
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			<small>
@@ -192,6 +226,8 @@ const settings = reactive({
 	rejectByYear: false,
 	fromDate: "2009-01",
 	toDate: dateToday,
+	fromMonth: "01",
+	toMonth: "12",
 	checkAllDates: true,
 	num_of_generators: 1,
 	generation: 1,
@@ -312,6 +348,7 @@ const handleClickStart = () => {
 };
 
 const start = async () => {
+	console.log(settings.fromMonth);
 	const generator = [];
 	for (let polygon of selected.value) {
 	    for (let i = 0; i < settings.num_of_generators; i++) {
