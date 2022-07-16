@@ -120,7 +120,7 @@
 			</div>
 			<hr />
 			
-			<select id="settings.fromMonth">
+			<select v-model="settings.fromMonth">
 				<option value=""></option>
 				<option value="1">January</option>
 				<option value="2">February</option>
