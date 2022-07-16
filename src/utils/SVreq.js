@@ -56,18 +56,32 @@ export default function SVreq(loc, settings) {
 
 						if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
 						const iDateMonth = timeframeDate.getMonth() + 1;
-
-						if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
-							dateWithin = true;
-							loc.panoId = res.time[i].pano;
-							break;
+						
+						if (fromMonth <= toMonth){
+							if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
+								dateWithin = true;
+								loc.panoId = res.time[i].pano;
+								break;
+							}
+						}
+						else {
+							if (iDateMonth >= fromMonth || iDateMonth <= toMonth) {
+								dateWithin = true;
+								loc.panoId = res.time[i].pano;
+								break;
+							}
 						}
 
 					} 
 					if (!dateWithin) return reject();
 				}
 				else{
-					if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return reject();
+					if (fromMonth <= toMonth){
+						if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return reject();
+					}
+					else{
+						if (res.imageDate.slice(5) < fromMonth && res.imageDate.slice(5) > toMonth) return reject();
+					}
 				}
 				
 			}
