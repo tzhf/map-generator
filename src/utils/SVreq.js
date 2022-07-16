@@ -70,7 +70,7 @@ export default function SVreq(loc, settings) {
 					console.log("res:" + res.imageDate.slice(5));
 					console.log("from:" + fromMonth);
 					console.log("to:" + toMonth);
-					if (res.imageDate.slice(5) < String(fromMonth) || res.imageDate.slice(5) > String(toMonth)) return reject();
+					if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return reject();
 				}
 				
 			}
