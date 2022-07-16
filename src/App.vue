@@ -126,7 +126,6 @@
 				<option value="2">February</option>
 			</select>
 			
-			{{ settings.fromMonth }}
 		
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			<small>
@@ -322,6 +321,7 @@ const handleClickStart = () => {
 };
 
 const start = async () => {
+	console.log(settings.fromMonth);
 	const generator = [];
 	for (let polygon of selected.value) {
 	    for (let i = 0; i < settings.num_of_generators; i++) {
