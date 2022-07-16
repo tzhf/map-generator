@@ -105,14 +105,16 @@
 				Number of generators per polygon.
 			</small>
 			<hr />
-
-			<div class="flex space-between mb-2">
-				<label>From</label>
-				<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
-			</div>
-			<div class="flex space-between">
-				<label>To</label>
-				<input type="month" v-model="settings.toDate" :max="dateToday" />
+			
+			<div v-if="!settings.selectMonths">
+				<div class="flex space-between mb-2">
+					<label>From</label>
+					<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
+				</div>
+				<div class="flex space-between">
+					<label>To</label>
+					<input type="month" v-model="settings.toDate" :max="dateToday" />
+				</div>
 			</div>
 			
 			<div v-if="!settings.rejectOfficial">
@@ -120,37 +122,37 @@
 			</div>
 			<hr />
 			
-			<select v-model="settings.fromMonth">
-				<option value=""></option>
-				<option value="01">January</option>
-				<option value="02">February</option>
-				<option value="03">March</option>
-				<option value="04">April</option>
-				<option value="05">May</option>
-				<option value="06">June</option>
-				<option value="07">July</option>
-				<option value="08">August</option>
-				<option value="09">September</option>
-				<option value="10">October</option>
-				<option value="11">November</option>
-				<option value="12">December</option>
-			</select>
-			
-			<select v-model="settings.toMonth">
-				<option value=""></option>
-				<option value="01">January</option>
-				<option value="02">February</option>
-				<option value="03">March</option>
-				<option value="04">April</option>
-				<option value="05">May</option>
-				<option value="06">June</option>
-				<option value="07">July</option>
-				<option value="08">August</option>
-				<option value="09">September</option>
-				<option value="10">October</option>
-				<option value="11">November</option>
-				<option value="12">December</option>
-			</select>
+			<div v-if="settings.selectMonths">
+				<select v-model="settings.fromMonth">
+					<option value="01">January</option>
+					<option value="02">February</option>
+					<option value="03">March</option>
+					<option value="04">April</option>
+					<option value="05">May</option>
+					<option value="06">June</option>
+					<option value="07">July</option>
+					<option value="08">August</option>
+					<option value="09">September</option>
+					<option value="10">October</option>
+					<option value="11">November</option>
+					<option value="12">December</option>
+				</select>
+				<label>To</label>
+				<select v-model="settings.toMonth">
+					<option value="01">January</option>
+					<option value="02">February</option>
+					<option value="03">March</option>
+					<option value="04">April</option>
+					<option value="05">May</option>
+					<option value="06">June</option>
+					<option value="07">July</option>
+					<option value="08">August</option>
+					<option value="09">September</option>
+					<option value="10">October</option>
+					<option value="11">November</option>
+					<option value="12">December</option>
+				</select>
+			</div>
 		
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			<small>
