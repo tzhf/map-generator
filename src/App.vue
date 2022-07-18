@@ -348,7 +348,6 @@ const handleClickStart = () => {
 };
 
 const start = async () => {
-	console.log(settings.fromMonth);
 	const generator = [];
 	for (let polygon of selected.value) {
 	    for (let i = 0; i < settings.num_of_generators; i++) {
