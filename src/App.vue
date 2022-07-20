@@ -85,11 +85,8 @@
 			<div>
 				Generators
 				<input type="number" v-model.number="settings.num_of_generators" />
-				
 			</div>
-			<small>
-				Number of generators per polygon.
-			</small>
+			<small> Number of generators per polygon. </small>
 			<hr />
 
 			<div class="flex space-between mb-2">
@@ -289,9 +286,9 @@ const handleClickStart = () => {
 const start = async () => {
 	const generator = [];
 	for (let polygon of selected.value) {
-	    for (let i = 0; i < settings.num_of_generators; i++) {
-	    	generator.push(generate(polygon));
-	    }
+		for (let i = 0; i < settings.num_of_generators; i++) {
+			generator.push(generate(polygon));
+		}
 	}
 	await Promise.all(generator);
 	state.started = false;
@@ -347,7 +344,7 @@ const randomPointInPoly = (polygon) => {
 	const y_min = bounds.getSouth();
 	const y_max = bounds.getNorth();
 
-	const lat = y_min + Math.random() * (y_max - y_min);
+	const lat = (Math.asin(Math.random() * (Math.sin((y_max * Math.PI) / 180) - Math.sin((y_min * Math.PI) / 180)) + Math.sin((y_min * Math.PI) / 180)) * 180) / Math.PI;
 	const lng = x_min + Math.random() * (x_max - x_min);
 	return { lat, lng };
 };
