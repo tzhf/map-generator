@@ -293,8 +293,7 @@ let map;
 const allFound = [];
 const allFoundPanoIds = new Set();
 let customLayers = {};
-//let successfulRequests = 0;
-//TODO display successfulRequests
+
 const customPolygonsLayer = new L.FeatureGroup();
 const markerLayer = L.markerClusterGroup({
   maxClusterRadius: 100,
@@ -305,6 +304,7 @@ const geojson = L.geoJson(borders, {
   onEachFeature: onEachFeature,
   contextmenu: true
 });
+
 const roadmapLayer = L.tileLayer("https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
 const googleSatelliteLayer = L.tileLayer("http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
 const googleTerrainLayer = L.tileLayer("http://mt0.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
@@ -322,11 +322,13 @@ const baseMaps = {
   "Carto Light": cartoLightLayer,
   "Carto Dark": cartoDarkLayer,
 };
+
 const overlayMaps = {
   "Google Street View": gsvLayer,
   "Google Street View Official Only": gsvLayer2,
   "Google Street View Roads (Only Works at Zoom Level 12+)": gsvLayer3,
 };
+
 const drawControl = new L.Control.Draw({
   position: "bottomleft",
   draw: {
@@ -346,9 +348,11 @@ const drawControl = new L.Control.Draw({
   },
   edit: { featureGroup: customPolygonsLayer },
 });
+
 const copyCoords = (e) => {
   navigator.clipboard.writeText(e.latlng.lat.toFixed(7) + ", " + e.latlng.lng.toFixed(7));
 };
+
 const openNearestPano = (e) => {
   open("https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=" + e.latlng.lat + "," + e.latlng.lng);
 };
@@ -391,6 +395,7 @@ onMounted(() => {
     customPolygonsLayer.addLayer(polygon);
     selected.value.push(polygon);
   });
+  
   map.on("draw:edited", (e) => {
     e.layers.eachLayer((layer) => {
       const polygon = layer;
@@ -399,19 +404,21 @@ onMounted(() => {
       if (index != -1) selected.value[index] = polygon;
     })
   });
+  
   map.on("draw:deleted", (e) => {
     e.layers.eachLayer((layer) => {
       const index = selected.value.findIndex((x) => L.Util.stamp(x) === L.Util.stamp(layer));
       if (index != -1) selected.value.splice(index, 1);
     });
   });
-  // Fix hard reload issue
+  
   const mapDiv = document.getElementById("map");
   const resizeObserver = new ResizeObserver(() => {
     map.invalidateSize();
   });
   resizeObserver.observe(mapDiv);
 });
+
 async function readFileAsText(file) {
   const result = await new Promise((resolve) => {
     const fileReader = new FileReader();
@@ -420,6 +427,7 @@ async function readFileAsText(file) {
   });
   return result;
 }
+
 async function customLayerFileProcess(e) {
   for (const file of e.target.files) {
     const result = await readFileAsText(file);
@@ -431,6 +439,7 @@ async function customLayerFileProcess(e) {
     }
   }
 }
+
 function addCustomLayer(geoJSON, name) {
   try {
     const newLayer = L.geoJson(geoJSON, {
@@ -448,12 +457,14 @@ function addCustomLayer(geoJSON, name) {
     alert("Invalid GeoJSON.");
   }
 }
+
 async function changeLocationsCaps() {
   const newCap = Math.abs(parseInt(prompt("What would you like to set the locations cap to?")));
   if (!isNaN(newCap)) {
     for (const polygon of selected.value) polygon.nbNeeded = newCap;
   }
 }
+
 async function locationsFileProcess(e, country) {
   for (const file of e.target.files) {
     const result = await readFileAsText(file);
@@ -481,6 +492,7 @@ async function locationsFileProcess(e, country) {
     }
   }
 }
+
 async function importLayer(e) {
   if (!e.target.value) return;
   const response = await fetch(e.target.value);
@@ -489,10 +501,12 @@ async function importLayer(e) {
   e.target.options[e.target.selectedIndex].remove();
   e.target.value = "";
 }
+
 function removeCustomLayer(name) {
   customLayers[name].remove();
   delete customLayers[name];
 }
+
 function exportDrawnLayer() {
   const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customPolygonsLayer.toGeoJSON()));
   const fileName = "DrawnLayer.geojson";
@@ -501,11 +515,13 @@ function exportDrawnLayer() {
   linkElement.download = fileName;
   linkElement.click();
 }
+
 const handleRadiusInput = (e) => {
   const value = parseInt(e.target.value);
   if (!value || value < 50)  settings.radius = 50;
   else if (value > 10000) settings.radius = 10000;
 };
+
 const myIcon = L.icon({
   iconUrl: marker,
   iconAnchor: [12, 41],
