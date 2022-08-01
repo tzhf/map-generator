@@ -602,13 +602,13 @@ async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
     if (settings.rejectUnofficial && !settings.rejectOfficial) {
-    	    if (pano.location.pano.length != 22) return false;
-	    if (settings.rejectNoDescription && !pano.location.description && !pano.location.shortDescription) return false;
-	    if (settings.getIntersection && pano.links.length < 3) return false;
-	    if (settings.rejectDescription && (pano.location.description || pano.location.shortDescription)) return false;
-	    if (settings.pinpointSearch && pano.links.length < 2) return false;
-	    if (settings.getIntersection && !settings.pinpointSearch && pano.links.length < 3) return false;
-	    if (settings.pinpointSearch && (pano.links.length == 2 && Math.abs(pano.links[0].heading - pano.links[1].heading) > settings.pinpointAngle)) return false;
+    	    if (res.location.pano.length != 22) return false;
+	    if (settings.rejectNoDescription && !res.location.description && !res.location.shortDescription) return false;
+	    if (settings.getIntersection && res.links.length < 3) return false;
+	    if (settings.rejectDescription && (res.location.description || res.location.shortDescription)) return false;
+	    if (settings.pinpointSearch && res.links.length < 2) return false;
+	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
+	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
       if (!res.time.length) return false;
