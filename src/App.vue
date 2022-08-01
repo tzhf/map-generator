@@ -617,6 +617,8 @@ async function getLoc(loc, country) {
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
+      const fromMonth = settings.fromMonth;
+      const toMonth = settings.toMonth;
       let dateWithin = false;
       for (const loc of res.time) {
         if (settings.rejectUnofficial && loc.pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
@@ -692,6 +694,8 @@ function isPanoGood(pano) {
   const fromDate = Date.parse(settings.fromDate);
   const toDate = Date.parse(settings.toDate);
   const locDate = Date.parse(pano.imageDate);
+  const fromMonth = settings.fromMonth;
+  const toMonth = settings.toMonth;
   
   if (!settings.selectMonths){
 	if (!settings.checkAllDates || settings.rejectOfficial) {
