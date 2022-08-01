@@ -645,7 +645,7 @@ async function getLoc(loc, country) {
 		for (var i = 0; i < res.time.length; i++) {
 			const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
-			if (settings.rejectUnofficial && res.time[i].res.length != 22) continue; // Checks if res ID is 22 characters long. Otherwise, it's an Ari
+			if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if res ID is 22 characters long. Otherwise, it's an Ari
 			const iDateMonth = timeframeDate.getMonth() + 1;
 
 			if (fromMonth <= toMonth){
