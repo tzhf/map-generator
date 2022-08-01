@@ -1,21 +1,27 @@
 {
-	"name": "map-generator",
-	"version": "0.0.0",
-	"repository": "github:tzhf/map-generator",
-	"author": "tzhf",
-	"license": "ISC",
-	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"serve": "vite build && vite preview"
-	},
-	"dependencies": {
-		"@turf/boolean-point-in-polygon": "^6.5.0",
-		"leaflet": "^1.7.1",
-		"vue": "^3.2.16"
-	},
-	"devDependencies": {
-		"@vitejs/plugin-vue": "^1.9.3",
-		"vite": "^2.6.4"
-	}
+  "name": "map-generator",
+  "version": "0.0.0",
+  "author": "tzhf",
+  "scripts": {
+    "serve": "vite build && vite preview",
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@turf/boolean-point-in-polygon": "^6.5.0",
+    "leaflet": "^1.7.1",
+    "leaflet-contextmenu": "^1.4.0",
+    "leaflet-draw": "^1.0.4",
+    "leaflet.markercluster": "^1.5.3",
+    "leaflet.markercluster.freezable": "^1.0.0",
+    "vue": "^3.2.20"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^1.9.3",
+    "eslint": "^8.9.0",
+    "eslint-plugin-vue": "^8.4.1",
+    "vite": "^2.6.4"
+  },
+  "license": "ISC",
+  "repository": "github:jM1pOpJhre-mJaMOFOMt/map-generator"
 }

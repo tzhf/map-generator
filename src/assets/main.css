@@ -1,147 +1,147 @@
 @import url("https://fonts.googleapis.com/css?family=Quicksand:400,700");
 @import url("./flags/flag-icon.min.css");
 :root {
-	--success: #53e0aa;
-	--danger: #e66a6a;
-	--warning: #ffc72d;
-	--space-1: 0.2rem;
-	--space-2: 0.5rem;
-	--space-3: 1rem;
+  --success: #53e0aa;
+  --danger: #e66a6a;
+  --warning: #ffc72d;
+  --space-1: 0.2rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
 }
 *,
 *::before,
 *::after {
-	box-sizing: border-box;
+  box-sizing: border-box;
 }
 body {
-	margin: 0;
-	background-color: #242424;
-	font-family: "Quicksand", serif;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	font-size: 15px;
-	color: #fff;
+  margin: 0;
+  background-color: #242424;
+  font-family: "Quicksand", serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 15px;
+  color: #fff;
 }
 h1,
 h4 {
-	margin: 0;
+  margin: 0;
 }
 a {
-	color: var(--success);
+  color: var(--success);
 }
 input[type="range"] {
-	margin: 0 0.5em;
+  margin: 0 0.5em;
 }
 input[type="number"] {
-	width: 3.7rem;
-	margin-left: var(--space-1);
-	padding: 0.18rem 0rem;
-	background: #292929;
-	color: #ffffff;
-	text-align: center;
-	border-radius: 5px;
-	border: 1px solid var(--success);
-	overflow: hidden;
-	outline: 0;
-	cursor: pointer;
-	-moz-appearance: textfield;
+  width: 3rem;
+  margin-left: var(--space-1);
+  padding: 0.18rem 0rem;
+  background: #292929;
+  color: #ffffff;
+  text-align: center;
+  border-radius: 5px;
+  border: 1px solid var(--success);
+  overflow: hidden;
+  outline: 0;
+  cursor: pointer;
+  -moz-appearance: textfield;
 }
 input[type="number"]:hover {
-	filter: brightness(120%);
+  filter: brightness(120%);
 }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 hr {
-	width: 85%;
-	height: 1px;
-	background-color: var(--success);
-	border: none;
+  width: 85%;
+  height: 1px;
+  background-color: var(--success);
+  border: none;
 }
 .flex {
-	display: flex;
+  display: flex;
 }
 .flex-col {
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 .flex-center {
-	display: flex;
-	align-items: center;
+  display: flex;
+  align-items: center;
 }
 .justify-center {
-	justify-content: center;
+  justify-content: center;
 }
 .space-between {
-	justify-content: space-between;
+  justify-content: space-between;
 }
 .wrap {
-	flex-wrap: wrap;
+  flex-wrap: wrap;
 }
 .gap {
-	gap: var(--space-2);
+  gap: var(--space-2);
 }
 .top {
-	top: var(--space-3);
+  top: var(--space-3);
 }
 .left {
-	left: var(--space-3);
+  left: var(--space-3);
 }
 .right {
-	right: var(--space-3);
+  right: var(--space-3);
 }
 .bottom {
-	bottom: var(--space-3);
+  bottom: var(--space-3);
 }
 .mb-1 {
-	margin-bottom: var(--space-1);
+  margin-bottom: var(--space-1);
 }
 .mb-2 {
-	margin-bottom: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 .ml-2 {
-	margin-left: var(--space-2);
+  margin-left: var(--space-2);
 }
 .center {
-	text-align: center;
+  text-align: center;
 }
 .indent {
-	margin: 0.3em 0 0 1.6em;
+  margin: 0.3em 0 0 1.6em;
 }
 .small {
-	font-size: 0.8rem;
+  font-size: 0.8rem;
 }
 .success {
-	color: var(--success);
+  color: var(--success);
 }
 .danger {
-	color: var(--danger);
+  color: var(--danger);
 }
 .bg-success {
-	background: var(--success);
+  background: var(--success);
 }
 .bg-warning {
-	background: var(--warning);
+  background: var(--warning);
 }
 .bg-danger {
-	background: var(--danger);
+  background: var(--danger);
 }
 .bordered-success {
-	color: #fff;
-	background-color: rgba(66, 66, 66, 0.6);
-	border: 1px solid var(--success);
+  color: #fff;
+  background-color: rgba(66, 66, 66, 0.6);
+  border: 1px solid var(--success);
 }
 ::-webkit-scrollbar {
-	width: 1rem;
+  width: 1rem;
 }
 ::-webkit-scrollbar-track {
-	background: #2c2c2c;
+  background: #2c2c2c;
 }
 ::-webkit-scrollbar-thumb {
-	background: var(--success);
+  background: var(--success);
 }
 ::-webkit-scrollbar-thumb:hover {
-	background: var(--success);
+  background: var(--success);
 }
