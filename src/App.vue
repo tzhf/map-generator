@@ -197,7 +197,6 @@
 			<a @click="selectAllLayer(value)" class="smallbtn bg-success" style="width: 25%">Select All</a>
 			<button @click="removeCustomLayer(name)" type="button" class="close" aria-label="Close">×</button>
 		      </div>
-		    </div>
 		</div>
 		
 		<Button
@@ -209,6 +208,8 @@
 		/>
 		
 	<Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
+	
+	</div>
 
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
 		<h4 class="center mb-2">Export selection to</h4>
