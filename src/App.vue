@@ -176,7 +176,7 @@
 				specific timeframe.
 			</small>
 			 
-		
+		<hr />
 		<div class="customLayers">
 		      <h4 class="center mb-2">
 			Custom Layers ({{ Object.keys(customLayers).length }})
