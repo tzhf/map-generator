@@ -603,7 +603,7 @@ async function getLoc(loc, country) {
     if (status != google.maps.StreetViewStatus.OK) return false;
     if (settings.rejectUnofficial && !settings.rejectOfficial) {
     	    if (res.location.pano.length != 22) return false;
-	    if (settings.rejectNoDescription && !res.location.description && !res.location.shortDescription) return false;
+	    if (settings.rejectNoDescription && !settings.rejectDescription && !res.location.description && !res.location.shortDescription) return false;
 	    if (settings.getIntersection && res.links.length < 3) return false;
 	    if (settings.rejectDescription && (res.location.description || res.location.shortDescription)) return false;
 	    if (settings.pinpointSearch && res.links.length < 2) return false;
@@ -680,7 +680,7 @@ function isPanoGood(pano) {
   if (settings.rejectUnofficial && !settings.rejectOfficial) {
     if (pano.location.pano.length != 22) return false;
     // if (!/^\xA9 (?:\d+ )?Google$/.test(pano.copyright)) return false;
-    if (settings.rejectNoDescription && !pano.location.description && !pano.location.shortDescription) return false;
+    if (settings.rejectNoDescription && !settings.rejectDescription && !pano.location.description && !pano.location.shortDescription) return false;
     if (settings.getIntersection && pano.links.length < 3) return false;
     if (settings.rejectDescription && (pano.location.description || pano.location.shortDescription)) return false;
     if (settings.pinpointSearch && pano.links.length < 2) return false;
