@@ -601,7 +601,16 @@ const generate = async (country) => {
 async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
-    if (settings.checkAllDates && res.time) {
+    if (settings.rejectUnofficial && !settings.rejectOfficial) {
+    	    if (pano.location.pano.length != 22) return false;
+	    if (settings.rejectNoDescription && !pano.location.description && !pano.location.shortDescription) return false;
+	    if (settings.getIntersection && pano.links.length < 3) return false;
+	    if (settings.rejectDescription && (pano.location.description || pano.location.shortDescription)) return false;
+	    if (settings.pinpointSearch && pano.links.length < 2) return false;
+	    if (settings.getIntersection && !settings.pinpointSearch && pano.links.length < 3) return false;
+	    if (settings.pinpointSearch && (pano.links.length == 2 && Math.abs(pano.links[0].heading - pano.links[1].heading) > settings.pinpointAngle)) return false;
+    }
+    if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
@@ -614,8 +623,6 @@ async function getLoc(loc, country) {
           // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
           dateWithin = true;
           getPano(loc.pano, country);
-          // TODO: add settings.onlyOneLoc
-          // if(settings.onlyOneLoc)break;
         }
       }
       if (!dateWithin) return false;
@@ -624,6 +631,44 @@ async function getLoc(loc, country) {
       if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return false;
       getPano(res.location.pano, country);
     }
+    
+    if (settings.selectMonths && !settings.rejectOfficial) {
+	if (!res.time?.length) return false;
+	let dateWithin = false;
+
+	if (settings.checkAllDates){
+		for (var i = 0; i < res.time.length; i++) {
+			const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
+
+			if (settings.rejectUnofficial && res.time[i].res.length != 22) continue; // Checks if res ID is 22 characters long. Otherwise, it's an Ari
+			const iDateMonth = timeframeDate.getMonth() + 1;
+
+			if (fromMonth <= toMonth){
+				if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
+					dateWithin = true;
+					break;
+				}
+			}
+			else {
+				if (iDateMonth >= fromMonth || iDateMonth <= toMonth) {
+					dateWithin = true;
+					break;
+				}
+			}
+
+		} 
+		if (!dateWithin) return false;
+	}
+	else{
+		if (fromMonth <= toMonth){
+			if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return false;
+		}
+		else{
+			if (res.imageDate.slice(5) < fromMonth && res.imageDate.slice(5) > toMonth) return false;
+		}
+	}
+    }
+
     return true;
   });
 }
