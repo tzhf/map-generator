@@ -673,7 +673,6 @@ function isPanoGood(pano) {
 
 		if (iDate >= fromDate && iDate <= toDate) {
 			dateWithin = true;
-			loc.panoId = pano.time[i].pano;
 			break;
 		}
 
@@ -695,14 +694,12 @@ function isPanoGood(pano) {
 			if (fromMonth <= toMonth){
 				if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
 					dateWithin = true;
-					loc.panoId = pano.time[i].pano;
 					break;
 				}
 			}
 			else {
 				if (iDateMonth >= fromMonth || iDateMonth <= toMonth) {
 					dateWithin = true;
-					loc.panoId = pano.time[i].pano;
 					break;
 				}
 			}
