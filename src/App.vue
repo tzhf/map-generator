@@ -610,6 +610,9 @@ async function getLoc(loc, country) {
 	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
+    if (settings.rejectOfficial) {
+	if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
+    }
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
