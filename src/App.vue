@@ -204,6 +204,7 @@
 		/>
 		
 	<Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
+	</div>
 
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
 		<h4 class="center mb-2">Export selection to</h4>
@@ -212,7 +213,6 @@
 			<ExportToJSON :selection="selected" />
 			<ExportToCSV :selection="selected" />
 		</div>
-	</div>
 	</div>
 </template>
 
