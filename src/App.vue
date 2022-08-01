@@ -207,7 +207,6 @@
 			:text="state.started ? 'Pause' : 'Start'"
 			title="Space bar/Enter"
 		/>
-		</div>
 		
 	<Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
 
