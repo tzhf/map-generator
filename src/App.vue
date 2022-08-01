@@ -779,6 +779,8 @@ const isDate = (date) => {
 	return new Date(date) !== "Invalid Date" && !isNaN(new Date(date));
 };
 
+const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 function addLoc(pano, country) {
   const location = {
     panoId: pano.location.pano,
