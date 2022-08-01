@@ -12,26 +12,30 @@
 
 		<div v-if="selected.length" class="selected">
 			<h4 class="center mb-2">Countries/Territories ({{ selected.length }})</h4>
-			<div v-for="country of selected" class="line flex space-between">
-				<div class="flex-center">
-					<span v-if="country.feature.properties.code" :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>
-					{{ country.feature.properties.name }}
-					<Spinner v-if="state.started && country.isProcessing" class="ml-2" />
-				</div>
-				<div>
-					{{ country.found ? country.found.length : "0" }} / <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
-				</div>
-			</div>
+			<Checkbox v-model:checked="settings.markersOnImport" label="Add markers to imported locations" title="This may affect performance." />
+			<Checkbox v-model:checked="settings.checkImports" label="Check imported locations" title="Useful for comprehensive datasets." />
+			<br/>
+			<Button @click="changeLocationsCaps" class="smallbtn bg-success" title="Change locations cap for all selected" text="Change locations cap for all selected" />
+			      <hr/>
+	       <div v-for="country of selected" class="line flex space-between">
+		<div class="flex-center">
+		  <span v-if="country.feature.properties.code" :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>
+		  {{ getName(country) }}
+		  <Spinner v-if="state.started && country.isProcessing" class="ml-2" />
 		</div>
-		<Button
-			@click="clearMarkers"
-			class="bg-warning"
-			text="Clear markers"
-			optText="(for performance, this won't erase your generated locations)"
-			title="Clear markers"
-		/>
-	</div>
-
+		<label class="smallbtn bg-success">
+		  <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
+		  Import Locations
+		</label>
+		<div>
+		  {{ country.found ? country.found.length : "0" }} /
+		  <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
+		</div>
+	      </div>
+	    </div>
+	    <Button @click="clearMarkers" class="bg-warning" text="Clear markers" optText="(for performance, this won't erase your generated locations)" title="Clear markers" />
+  	</div>
+	
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
 			<h4 class="center">Settings</h4>
@@ -55,7 +59,10 @@
 
 				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
 				<hr />
-
+				
+			        <Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
+				<hr />
+				
 				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
 				<hr />
 				
@@ -64,6 +71,13 @@
 				<label class="flex wrap">
 					Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
 				</label>
+				</div>
+				<hr />
+				
+				<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
+				<div v-if="settings.checkLinks">
+				<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
+				      Depth: {{ settings.linksDepth }}
 				</div>
 				<hr />
 			</div>
@@ -105,6 +119,12 @@
 				Number of generators per polygon.
 			</small>
 			<hr />
+			
+			<Checkbox v-model:checked="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
+    			<hr />
+			
+		        <Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
+    			<hr />
 			
 			<div v-if="!settings.selectMonths">
 				<div class="flex space-between mb-2">
@@ -161,7 +181,25 @@
 			</small>
 			 
 		</div>
-
+		
+		<div class="customLayers">
+		      <h4 class="center mb-2">
+			Custom Layers ({{ Object.keys(customLayers).length }})
+		      </h4>
+		      <input type="file" @change="customLayerFileProcess" accept=".txt,.json,.geojson" />
+		      <select @change="importLayer">
+			<option value=""></option>
+			<option value="/geojson/us_county_min.json">US Counties</option>
+			<option value="/geojson/urban_areas.geojson">Urban Areas</option>
+		      </select>
+		      <div v-for="(value, name) of customLayers" class="line flex space-between">
+			<div class="flex-center">{{ name }}</div>
+			<a @click="selectAllLayer(value)" class="smallbtn bg-success" style="width: 25%">Select All</a>
+			<button @click="removeCustomLayer(name)" type="button" class="close" aria-label="Close">×</button>
+		      </div>
+		    </div>
+		</div>
+		
 		<Button
 			v-if="canBeStarted"
 			@click="handleClickStart"
@@ -170,13 +208,14 @@
 			title="Space bar/Enter"
 		/>
 		</div>
+		
+	<Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
 
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
 		<h4 class="center mb-2">Export selection to</h4>
 		<div class="flex gap">
 			<CopyToClipboard :selection="selected" />
 			<ExportToJSON :selection="selected" />
-			<ExportToGeoJSON :selection="selected" />
 			<ExportToCSV :selection="selected" />
 		</div>
 	</div>
@@ -191,7 +230,6 @@ import Logo from "@/components/Elements/Logo.vue";
 
 import CopyToClipboard from "@/components/copyToClipboard.vue";
 import ExportToJSON from "@/components/exportToJSON.vue";
-import ExportToGeoJSON from "@/components/exportToGeoJSON.vue";
 import ExportToCSV from "@/components/exportToCSV.vue";
 
 import L from "leaflet";
@@ -200,17 +238,24 @@ import "@/assets/leaflet-draw/leaflet.draw.js";
 import "@/assets/leaflet-draw/leaflet.draw.css";
 import marker from "@/assets/images/marker-icon.png";
 
+import 'leaflet.markercluster/dist/leaflet.markercluster.js';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable.js';
+import "leaflet-contextmenu/dist/leaflet.contextmenu.js";
+import "leaflet-contextmenu/dist/leaflet.contextmenu.css";
+
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
-import SVreq from "@/utils/SVreq";
 import borders from "@/utils/borders.json";
+window.type = !0;
 
 const state = reactive({
 	started: false,
 	polygonID: 0,
 });
 
-const dateToday = new Date().getFullYear() + "-" + ("0" + (new Date().getMonth() + 1)).slice(-2);
+const dateToday = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0");
 
 const settings = reactive({
 	radius: 500,
@@ -229,6 +274,13 @@ const settings = reactive({
 	fromMonth: "01",
 	toMonth: "12",
 	checkAllDates: true,
+	checkLinks: false,
+	linksDepth: 2,
+  	markersOnImport: true,
+  	checkImports: false,
+	cluster: true,
+  	onlyOneInTimeframe: false,
+  	oneCountryAtATime: false
 	num_of_generators: 1,
 	generation: 1,
 	getIntersection: false,
@@ -243,97 +295,225 @@ const canBeStarted = computed(() => selected.value.some((country) => country.fou
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
 
 let map;
+const allFound = [];
+const allFoundPanoIds = new Set();
+let customLayers = {};
+//let successfulRequests = 0;
+//TODO display successfulRequests
 const customPolygonsLayer = new L.FeatureGroup();
-const markerLayer = L.layerGroup();
+const markerLayer = L.markerClusterGroup({
+  maxClusterRadius: 100,
+  disableClusteringAtZoom: 15,
+});
 const geojson = L.geoJson(borders, {
-	style: style,
-	onEachFeature: onEachFeature,
+  style: style,
+  onEachFeature: onEachFeature,
+  contextmenu: true
 });
+const roadmapLayer = L.tileLayer("https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
+const googleSatelliteLayer = L.tileLayer("http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
+const googleTerrainLayer = L.tileLayer("http://mt0.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
+const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
+const cartoLightLayer = L.tileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png", { subdomains: ["a", "b", "c"] });
+const cartoDarkLayer = L.tileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png", { subdomains: ["a", "b", "c"] });
+const gsvLayer = L.tileLayer("https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m8!1e2!2ssvv!4m2!1scb_client!2sapiv3!4m2!1scc!2s*211m3*211e3*212b1*213e2*211m3*211e2*212b1*213e2!3m3!3sUS!12m1!1e68!4e0");
+const gsvLayer2 = L.tileLayer("https://{s}.google.com/mapslt?lyrs=svv&x={x}&y={y}&z={z}&w=256&h=256&hl=en&style=40,18", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
+const gsvLayer3 = L.tileLayer("https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m8!1e2!2ssvv!4m2!1scb_client!2sapiv3!4m2!1scc!2s*211m3*211e3*212b1*213e2*211m3*211e2*212b1*213e2!3m3!3sUS!12m1!1e68!4e0", { minZoom: 12, minNativeZoom: 14 });
+const baseMaps = {
+  Roadmap: roadmapLayer,
+  Satellite: googleSatelliteLayer,
+  Terrain: googleTerrainLayer,
+  OSM: osmLayer,
+  "Carto Light": cartoLightLayer,
+  "Carto Dark": cartoDarkLayer,
+};
+const overlayMaps = {
+  "Google Street View": gsvLayer,
+  "Google Street View Official Only": gsvLayer2,
+  "Google Street View Roads (Only Works at Zoom Level 12+)": gsvLayer3,
+};
 const drawControl = new L.Control.Draw({
-	position: "bottomleft",
-	draw: {
-		polyline: false,
-		marker: false,
-		circlemarker: false,
-		circle: false,
-		polygon: {
-			allowIntersection: false,
-			drawError: {
-				color: "#e1e100",
-				message: "<strong>Polygon draw does not allow intersections!<strong> (allowIntersection: false)",
-			},
-			shapeOptions: { color: "#5d8ce3" },
-		},
-		rectangle: { shapeOptions: { color: "#5d8ce3" } },
-	},
-	edit: { featureGroup: customPolygonsLayer },
+  position: "bottomleft",
+  draw: {
+    polyline: false,
+    marker: false,
+    circlemarker: false,
+    circle: false,
+    polygon: {
+      allowIntersection: false,
+      drawError: {
+        color: "#e1e100",
+        message: "<strong>Polygon draw does not allow intersections!<strong> (allowIntersection: false)",
+      },
+      shapeOptions: { color: "#5d8ce3" },
+    },
+    rectangle: { shapeOptions: { color: "#5d8ce3" } },
+  },
+  edit: { featureGroup: customPolygonsLayer },
 });
-
-onMounted(() => {
-	map = L.map("map", {
-		attributionControl: false,
-		center: [0, 0],
-		zoom: 2,
-		zoomControl: false,
-		worldCopyJump: true,
-		layers: [L.tileLayer("https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"], type: "roadmap" })],
-	});
-
-	geojson.addTo(map);
-	customPolygonsLayer.addTo(map);
-	markerLayer.addTo(map);
-	map.addControl(drawControl);
-
-	map.on("draw:created", (e) => {
-		state.polygonID++;
-		const polygon = e.layer;
-		polygon.feature = e.layer.toGeoJSON();
-		polygon.found = [];
-		polygon.nbNeeded = 100;
-		polygon.feature.properties.name = `Custom polygon ${state.polygonID}`;
-		polygon.setStyle(customPolygonStyle());
-		polygon.setStyle(highlighted());
-		polygon.on("mouseover", (e) => highlightFeature(e));
-		polygon.on("mouseout", (e) => resetHighlight(e));
-		polygon.on("click", (e) => selectCountry(e));
-		customPolygonsLayer.addLayer(polygon);
-		selected.value.push(polygon);
-	});
-	map.on("draw:edited", (e) => {
-		e.layers.eachLayer((layer) => {
-			const polygon = layer;
-			polygon.feature = layer.toGeoJSON();
-			const index = selected.value.findIndex((x) => x.feature.properties.name === layer.feature.properties.name);
-			if (index != -1) selected.value[index] = polygon;
-		});
-	});
-	map.on("draw:deleted", (e) => {
-		e.layers.eachLayer((layer) => {
-			const index = selected.value.findIndex((x) => x.feature.properties.name === layer.feature.properties.name);
-			if (index != -1) selected.value.splice(index, 1);
-		});
-	});
-
-	// Fix hard reload issue
-	const mapDiv = document.getElementById("map");
-	const resizeObserver = new ResizeObserver(() => {
-		map.invalidateSize();
-	});
-	resizeObserver.observe(mapDiv);
-});
-
-const handleRadiusInput = (e) => {
-	const value = parseInt(e.target.value);
-	if (!value || value < 50) {
-		settings.radius = 50;
-	} else if (value > 1000000) {
-		settings.radius = 1000000;
-	}
+const copyCoords = (e) => {
+  navigator.clipboard.writeText(e.latlng.lat.toFixed(7) + ", " + e.latlng.lng.toFixed(7));
+};
+const openNearestPano = (e) => {
+  open("https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=" + e.latlng.lat + "," + e.latlng.lng);
 };
 
+onMounted(() => {
+  map = L.map("map", {
+    attributionControl: false,
+    contextmenu: true,
+    contextmenuItems: [
+      {text: "Copy Coordinates", callback: copyCoords},
+      {text: "See Nearest Pano", callback: openNearestPano}
+    ],
+    center: [0, 0],
+    preferCanvas: true,
+    zoom: 2,
+    zoomControl: false,
+    worldCopyJump: true,
+  });
+  roadmapLayer.addTo(map);
+  gsvLayer2.addTo(map);
+  geojson.addTo(map);
+  customPolygonsLayer.addTo(map);
+  markerLayer.addTo(map);
+  updateClusters();
+  L.control.layers(baseMaps, overlayMaps, { position: "bottomleft" }).addTo(map);
+  map.addControl(drawControl);
+  map.on("draw:created", (e) => {
+    state.polygonID++;
+    const polygon = e.layer;
+    polygon.feature = e.layer.toGeoJSON();
+    polygon.found = [];
+    polygon.nbNeeded = 10000000;
+    polygon.checkedPanos = new Set();
+    polygon.feature.properties.name = `Custom polygon ${state.polygonID}`;
+    polygon.setStyle(customPolygonStyle());
+    polygon.setStyle(highlighted());
+    polygon.on("mouseover", (e) => highlightFeature(e));
+    polygon.on("mouseout", (e) => resetHighlight(e));
+    polygon.on("click", (e) => selectCountry(e));
+    customPolygonsLayer.addLayer(polygon);
+    selected.value.push(polygon);
+  });
+  map.on("draw:edited", (e) => {
+    e.layers.eachLayer((layer) => {
+      const polygon = layer;
+      polygon.feature = layer.toGeoJSON();
+      const index = selected.value.findIndex((x) => L.Util.stamp(x) === L.Util.stamp(layer));
+      if (index != -1) selected.value[index] = polygon;
+    })
+  });
+  map.on("draw:deleted", (e) => {
+    e.layers.eachLayer((layer) => {
+      const index = selected.value.findIndex((x) => L.Util.stamp(x) === L.Util.stamp(layer));
+      if (index != -1) selected.value.splice(index, 1);
+    });
+  });
+  // Fix hard reload issue
+  const mapDiv = document.getElementById("map");
+  const resizeObserver = new ResizeObserver(() => {
+    map.invalidateSize();
+  });
+  resizeObserver.observe(mapDiv);
+});
+async function readFileAsText(file) {
+  const result = await new Promise((resolve) => {
+    const fileReader = new FileReader();
+    fileReader.onload = () => resolve(fileReader.result);
+    fileReader.readAsText(file);
+  });
+  return result;
+}
+async function customLayerFileProcess(e) {
+  for (const file of e.target.files) {
+    const result = await readFileAsText(file);
+    try {
+      const JSONResult = JSON.parse(result);
+      addCustomLayer(JSONResult, file.name);
+    } catch (e) {
+      alert("Invalid GeoJSON.");
+    }
+  }
+}
+function addCustomLayer(geoJSON, name) {
+  try {
+    const newLayer = L.geoJson(geoJSON, {
+      style: style,
+      onEachFeature: onEachFeature,
+      contextmenu: true
+    });
+    for (const layer in newLayer._layers) {
+      const polygon = newLayer._layers[layer];
+      polygon.setStyle(customPolygonStyle());
+    }
+    newLayer.addTo(map);
+    customLayers[name] = newLayer;
+  } catch (e) {
+    alert("Invalid GeoJSON.");
+  }
+}
+async function changeLocationsCaps() {
+  const newCap = Math.abs(parseInt(prompt("What would you like to set the locations cap to?")));
+  if (!isNaN(newCap)) {
+    for (const polygon of selected.value) polygon.nbNeeded = newCap;
+  }
+}
+async function locationsFileProcess(e, country) {
+  for (const file of e.target.files) {
+    const result = await readFileAsText(file);
+    if (file.type == "application/json") {
+      let JSONResult;
+      try {
+        JSONResult = JSON.parse(result);
+        if (!JSONResult.customCoordinates) {
+          throw Error;
+        }
+      } catch (e) {
+        alert("Invalid JSON.");
+      }
+      for (const location of JSONResult.customCoordinates) {
+        if (!location.panoId || !location.lat || !location.lng) continue;
+        if (settings.checkImports) {
+          for (let link of location.links) {
+            if (!JSONResult.customCoordinates.some(loc => loc.panoId === link)) getPano(link, country);
+          }
+        }
+        addLocation(location, country, settings.markersOnImport);
+      }
+    } else {
+      alert("Unknown file type: " + file.type + ". Only JSON may be imported.");
+    }
+  }
+}
+async function importLayer(e) {
+  if (!e.target.value) return;
+  const response = await fetch(e.target.value);
+  const data = await response.json();
+  addCustomLayer(data, e.target.value);
+  e.target.options[e.target.selectedIndex].remove();
+  e.target.value = "";
+}
+function removeCustomLayer(name) {
+  customLayers[name].remove();
+  delete customLayers[name];
+}
+function exportDrawnLayer() {
+  const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customPolygonsLayer.toGeoJSON()));
+  const fileName = "DrawnLayer.geojson";
+  const linkElement = document.createElement("a");
+  linkElement.href = dataUri;
+  linkElement.download = fileName;
+  linkElement.click();
+}
+const handleRadiusInput = (e) => {
+  const value = parseInt(e.target.value);
+  if (!value || value < 50)  settings.radius = 50;
+  else if (value > 10000) settings.radius = 10000;
+};
 const myIcon = L.icon({
-	iconUrl: marker,
-	iconAnchor: [12, 41],
+  iconUrl: marker,
+  iconAnchor: [12, 41],
 });
 
 // Process
@@ -348,6 +528,7 @@ const handleClickStart = () => {
 };
 
 const start = async () => {
+  	if (settings.oneCountryAtATime) for (const polygon of selected.value) await generate(polygon);
 	const generator = [];
 	for (let polygon of selected.value) {
 	    for (let i = 0; i < settings.num_of_generators; i++) {
@@ -365,41 +546,267 @@ Array.prototype.chunk = function (n) {
 	return [this.slice(0, n)].concat(this.slice(n).chunk(n));
 };
 
-const generate = async (country) => {
-	return new Promise(async (resolve) => {
-		while (country.found.length < country.nbNeeded) {
-			if (!state.started) return;
-			country.isProcessing = true;
-			const randomCoords = [];
-			while (randomCoords.length < country.nbNeeded) {
-				const point = randomPointInPoly(country);
-				if (booleanPointInPolygon([point.lng, point.lat], country.feature)) {
-					randomCoords.push(point);
-				}
-			}
-			for (let locationGroup of randomCoords.chunk(100)) {
-				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
-				for (let res of responses) {
-					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
-						country.found.push(res.value);
-						L.marker([res.value.lat, res.value.lng], { icon: myIcon })
-							.on("click", () => {
-								window.open(
-									`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}
-									${res.value.heading ? "&heading=" + res.value.heading : ""}
-									${res.value.pitch ? "&pitch=" + res.value.pitch : ""}`,
-									"_blank"
-								);
-							})
-							.addTo(markerLayer);
-					}
-				}
-			}
-		}
-		resolve();
-		country.isProcessing = false;
-	});
+const SV = new google.maps.StreetViewService();
+
+top.all = function () {
+  return allFound;
 };
+
+top.allCSV = function () {
+  let csv = "";
+  let nbLocs = 0;
+  allFound.forEach((loc) => {
+    csv += loc.lat + "," + loc.lng + ",\n";
+    nbLocs++;
+  });
+  const dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+  const fileName = `Generated map (${nbLocs} location${nbLocs > 1 ? "s" : ""}).csv`;
+  const linkElement = document.createElement("a");
+  linkElement.href = dataUri;
+  linkElement.download = fileName;
+  linkElement.click();
+};
+
+top.allJSON = () => {
+  const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ customCoordinates: allFound }));
+  const fileName = `Generated map (${allFound.length} location${allFound.length > 1 ? "s" : ""}).json`;
+  const linkElement = document.createElement("a");
+  linkElement.href = dataUri;
+  linkElement.download = fileName;
+  linkElement.click();
+};
+
+function updateClusters() {
+  if (settings.cluster) markerLayer.enableClustering();
+  else markerLayer.disableClustering();
+}
+
+const generate = async (country) => {
+  while (country.found.length < country.nbNeeded) {
+    if (!state.started) return;
+    country.isProcessing = true;
+    const randomCoords = [];
+    const n = Math.min(country.nbNeeded * 100, 1000);
+    while (randomCoords.length < n) {
+      const point = randomPointInPoly(country);
+      if (booleanPointInPolygon([point.lng, point.lat], country.feature)) randomCoords.push(point);
+    }
+    for (const locationGroup of randomCoords.chunk(75)) {
+      await Promise.allSettled(locationGroup.map((l) => getLoc(l, country)));
+    }
+  }
+  country.isProcessing = false;
+};
+
+async function getLoc(loc, country) {
+  return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
+    if (status != google.maps.StreetViewStatus.OK) return false;
+    if (settings.checkAllDates && res.time) {
+      if (!res.time.length) return false;
+      const fromDate = Date.parse(settings.fromDate);
+      const toDate = Date.parse(settings.toDate);
+      let dateWithin = false;
+      for (const loc of res.time) {
+        if (settings.rejectUnofficial && loc.pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+        const date = Object.values(loc).find((val) => val instanceof Date);
+        const iDate = Date.parse(date.getFullYear() + "-" + (date.getMonth() > 8 ? "" : "0") + (date.getMonth() + 1)); // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
+        if (iDate >= fromDate && iDate <= toDate) {
+          // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
+          dateWithin = true;
+          getPano(loc.pano, country);
+          // TODO: add settings.onlyOneLoc
+          // if(settings.onlyOneLoc)break;
+        }
+      }
+      if (!dateWithin) return false;
+    } else {
+      if (settings.rejectDateless && !res.imageDate) return false;
+      if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return false;
+      getPano(res.location.pano, country);
+    }
+    return true;
+  });
+}
+
+function isPanoGood(pano) {
+  if (settings.rejectUnofficial && !settings.rejectOfficial) {
+    if (pano.location.pano.length != 22) return false;
+    // if (!/^\xA9 (?:\d+ )?Google$/.test(pano.copyright)) return false;
+    if (settings.rejectNoDescription && !pano.location.description && !pano.location.shortDescription) return false;
+    if (settings.getIntersection && pano.links.length < 3) return false;
+    if (settings.rejectDescription && (pano.location.description || pano.location.shortDescription)) return false;
+    if (settings.pinpointSearch && pano.links.length < 2) return false;
+    if (settings.getIntersection && !settings.pinpointSearch && pano.links.length < 3) return false;
+    if (settings.pinpointSearch && (pano.links.length == 2 && Math.abs(pano.links[0].heading - pano.links[1].heading) > settings.pinpointAngle)) return false;
+  }
+  
+  if (settings.rejectDateless && !pano.imageDate) return false;
+  const fromDate = Date.parse(settings.fromDate);
+  const toDate = Date.parse(settings.toDate);
+  const locDate = Date.parse(pano.imageDate);
+  
+  if (!settings.selectMonths){
+	if (!settings.checkAllDates || settings.rejectOfficial) {
+		if (locDate < fromDate || locDate > toDate) return false;
+	}
+  }
+  
+  if (settings.onlyOneInTimeframe) {
+    for (const loc of pano.time) {
+      if (settings.rejectUnofficial && loc.pano.length != 22) continue;
+      if (loc.pano == pano.location.pano) continue;
+      const date = Object.values(loc).find((val) => val instanceof Date);
+      const iDate = Date.parse(date.getFullYear() + "-" + (date.getMonth() > 8 ? "" : "0") + (date.getMonth() + 1));
+      if (iDate >= fromDate && iDate <= toDate) return false;
+    }
+  }
+  
+  if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
+	if (!pano.time?.length) return false;
+
+	let dateWithin = false;
+	for (var i = 0; i < pano.time.length; i++) {
+		const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val));
+
+		if (settings.rejectUnofficial && pano.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+		const iDate = Date.parse(timeframeDate.getFullYear() + "-" + (timeframeDate.getMonth() > 8 ? "" : "0") + (timeframeDate.getMonth() + 1));
+
+		if (iDate >= fromDate && iDate <= toDate) {
+			dateWithin = true;
+			loc.panoId = pano.time[i].pano;
+			break;
+		}
+
+	} 
+	if (!dateWithin) return false;
+   } 
+   
+   if (settings.selectMonths && !settings.rejectOfficial) {
+	if (!pano.time?.length) return false;
+	let dateWithin = false;
+
+	if (settings.checkAllDates){
+		for (var i = 0; i < pano.time.length; i++) {
+			const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val));
+
+			if (settings.rejectUnofficial && pano.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+			const iDateMonth = timeframeDate.getMonth() + 1;
+
+			if (fromMonth <= toMonth){
+				if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
+					dateWithin = true;
+					loc.panoId = pano.time[i].pano;
+					break;
+				}
+			}
+			else {
+				if (iDateMonth >= fromMonth || iDateMonth <= toMonth) {
+					dateWithin = true;
+					loc.panoId = pano.time[i].pano;
+					break;
+				}
+			}
+
+		} 
+		if (!dateWithin) return false;
+	}
+	else{
+		if (fromMonth <= toMonth){
+			if (pano.imageDate.slice(5) < fromMonth || pano.imageDate.slice(5) > toMonth) return false;
+		}
+		else{
+			if (pano.imageDate.slice(5) < fromMonth && pano.imageDate.slice(5) > toMonth) return false;
+		}
+	}
+
+  	}
+
+   return true;
+}
+
+top.goto = function (lat, lng) {
+  map.setView(new L.LatLng(lat, lng), 13);
+}
+
+function getPano(id, country) {
+  return getPanoDeep(id, country, 0);
+}
+
+function getPanoDeep(id, country, depth) {
+  // console.log(id, depth);
+  if (depth > settings.linksDepth) return;
+  if (country.checkedPanos.has(id)) return;
+  else country.checkedPanos.add(id);
+  SV.getPanorama({ pano: id }, async (pano, status) => {
+    if (status == google.maps.StreetViewStatus.UNKNOWN_ERROR) {
+      country.checkedPanos.delete(id);
+      return getPanoDeep(id, country, depth);
+    } else if (status != google.maps.StreetViewStatus.OK) return;
+    //successfulRequests++
+    if (!pano) console.log(status, pano);
+    const inCountry = booleanPointInPolygon([pano.location.latLng.lng(), pano.location.latLng.lat()], country.feature);
+    const isPanoGoodAndInCountry = isPanoGood(pano) && inCountry;
+    if (settings.checkAllDates && pano.time) {
+      const fromDate = Date.parse(settings.fromDate);
+      const toDate = Date.parse(settings.toDate);
+      for (const loc of pano.time) {
+        if (settings.rejectUnofficial && loc.pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+        const date = Object.values(loc).find((val) => val instanceof Date);
+        const iDate = Date.parse(date.getFullYear() + "-" + (date.getMonth() > 8 ? "" : "0") + (date.getMonth() + 1)); // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
+        if (iDate >= fromDate && iDate <= toDate) {
+          // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
+          getPanoDeep(loc.pano, country, isPanoGoodAndInCountry ? 1 : depth + 1);
+          // TODO: add settings.onlyOneLoc
+          // if(settings.onlyOneLoc)break;
+        }
+      }
+    }
+    if (settings.checkLinks) {
+      if (pano.links) {
+        for (const loc of pano.links) {
+          getPanoDeep(loc.pano, country, isPanoGoodAndInCountry ? 1 : depth + 1);
+        }
+      }
+      if (pano.time) {
+        for (const loc of pano.time) {
+          getPanoDeep(loc.pano, country, isPanoGoodAndInCountry ? 1 : depth + 1);
+        }
+      }
+    }
+    if (isPanoGoodAndInCountry) addLoc(pano, country);
+    return pano;
+  });
+}
+
+function addLoc(pano, country) {
+  const location = {
+    panoId: pano.location.pano,
+    lat: pano.location.latLng.lat(),
+    lng: pano.location.latLng.lng(),
+    heading: settings.adjustHeading && pano.links.length > 0 ? parseInt(pano.links[0].heading) + randomInRange(-settings.headingDeviation, settings.headingDeviation) : 0,
+    pitch: settings.adjustPitch ? settings.pitchDeviation : 0,
+    imageDate: pano.imageDate,
+    links: [...new Set(pano.links.map(loc => loc.pano).concat(pano.time.map(loc => loc.pano)))].sort()
+  };
+  const index = location.links.indexOf(pano.location.pano);
+  if (index != -1) location.links.splice(index, 1);
+  return addLocation(location, country, true);
+}
+
+function addLocation(location, country, marker) {
+  if (allFoundPanoIds.has(location.panoId)) return;
+  allFound.push(location);
+  allFoundPanoIds.add(location.panoId);
+  if (!country || country.found.length < country.nbNeeded) {
+    if (country) country.found.push(location);
+    if (marker) {
+      L.marker([location.lat, location.lng], { icon: myIcon })
+      .on('click', () => {
+        window.open(`https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}${location.heading ? '&heading=' + location.heading : ''}${location.pitch ? '&pitch=' + location.pitch : ''}`, '_blank');
+        }).addTo(markerLayer);
+      }
+    }
+  }
 
 const randomPointInPoly = (polygon) => {
 	const bounds = polygon.getBounds();
@@ -421,122 +828,172 @@ function onEachFeature(feature, layer) {
 	});
 }
 
-function selectCountry(e) {
-	if (state.started) return;
-	const country = e.target;
-	const index = selected.value.findIndex((x) => x.feature.properties.name === country.feature.properties.name);
-	if (index == -1) {
-		if (!country.found) country.found = [];
-		if (!country.nbNeeded) country.nbNeeded = 100;
-		country.setStyle(highlighted());
-
-		selected.value.push(country);
-	} else {
-		selected.value.splice(index, 1);
-		resetHighlight(e);
-	}
+function getName(poly) {
+ const properties = poly.feature.properties;
+ return (
+	properties.name ||
+	properties.NAME ||
+	properties.NAMELSAD ||
+	properties.NAMELSAD10 ||
+	properties.city ||
+	properties.CITY ||
+	properties.county ||
+	properties.COUNTY ||
+	properties.COUNTY_STATE_CODE ||
+	properties.COUNTY_STATE_NAME ||
+	properties.PRNAME ||
+	properties.prov_name_en ||
+	properties.state ||
+	properties.STATE ||
+	properties.country ||
+	properties.COUNTRY ||
+	properties.id ||
+	properties.ID
+ );
 }
 
-function selectAll() {
-	selected.value = geojson.getLayers().map((country) => {
-		if (!country.found) country.found = [];
-		if (!country.nbNeeded) country.nbNeeded = 100;
-		return country;
-	});
-	geojson.setStyle(highlighted);
+function initLayer(layer) {
+	if (!layer.found) layer.found = [];
+	if (!layer.nbNeeded) layer.nbNeeded = 10000000;
+	if (!layer.checkedPanos) layer.checkedPanos = new Set();
+	return layer;
 }
 
-function deselectAll() {
-	selected.value.length = 0;
-	geojson.setStyle(style());
-	customPolygonsLayer.setStyle(customPolygonStyle());
-}
+  function selectCountry(e) {
+    if (state.started) return;
+    const country = e.target;
+    initLayer(country);
+    const index = selected.value.findIndex((x) => L.Util.stamp(x) === L.Util.stamp(country));
+    if (index == -1) {
+      country.setStyle(highlighted());
+      selected.value.push(country);
+    } else {
+      selected.value.splice(index, 1);
+      resetHighlight(e);
+    }
+  }
 
+  function selectAllLayer(layer) {
+    layer.setStyle(highlighted);
+    for (const feature in layer._layers) {
+      initLayer(layer._layers[feature]);
+      if (!selected.value.includes(layer._layers[feature])) selected.value.push(layer._layers[feature]);
+    }
+  }
+  
+  function deselectAll() {
+    selected.value.length = 0;
+    geojson.setStyle(style());
+    customPolygonsLayer.setStyle(customPolygonStyle());
+    Object.values(customLayers).forEach((customLayer) => Object.values(customLayer._layers).forEach((polygon) => polygon.setStyle(customPolygonStyle())));
+  }
+  
 function highlightFeature(e) {
-	if (state.started) return;
-	const layer = e.target;
-	const index = selected.value.findIndex((x) => x.feature.properties.name === layer.feature.properties.name);
-	if (index == -1) {
-		layer.setStyle(highlighted());
-	}
-	select.value = `${layer.feature.properties.name} ${layer.found ? "(" + layer.found.length + ")" : "(0)"}`;
+  if (state.started) return;
+  const layer = e.target;
+  if (!selected.value.some((x) => L.Util.stamp(x) === L.Util.stamp(layer))) layer.setStyle(highlighted());
+  select.value = `${getName(layer)} ${layer.found ? "(" + layer.found.length + ")" : "(0)"}`;
 }
+
 function resetHighlight(e) {
-	const layer = e.target;
-	const index = selected.value.findIndex((x) => x.feature.properties.name === layer.feature.properties.name);
-	if (index == -1) {
-		layer.setStyle(removeHighlight());
-	}
-	select.value = "Select a country or draw a polygon";
+  const layer = e.target;
+  if (!selected.value.some((x) => L.Util.stamp(x) === L.Util.stamp(layer))) layer.setStyle(removeHighlight());
+  select.value = "Select a country or draw a polygon";
 }
+
 function style() {
-	return {
-		opacity: 0,
-		fillOpacity: 0,
-	};
+  return {
+    opacity: 0,
+    fillOpacity: 0,
+  };
 }
+
 function customPolygonStyle() {
-	return {
-		weight: 2,
-		opacity: 1,
-		color: getRandomColor(),
-		fillOpacity: 0,
-	};
+  return {
+    weight: 2,
+    opacity: 1,
+    color: getRandomColor(),
+    fillOpacity: 0,
+  };
 }
+
 function highlighted() {
-	return {
-		fillColor: getRandomColor(),
-		fillOpacity: 0.6,
-	};
+  return {
+    fillColor: getRandomColor(),
+    fillOpacity: 0.5,
+  };
 }
+
 function removeHighlight() {
-	return { fillOpacity: 0 };
+  return { fillOpacity: 0 };
 }
+
 function getRandomColor() {
-	const red = Math.floor(((1 + Math.random()) * 256) / 2);
-	const green = Math.floor(((1 + Math.random()) * 256) / 2);
-	const blue = Math.floor(((1 + Math.random()) * 256) / 2);
-	return "rgb(" + red + ", " + green + ", " + blue + ")";
+  const red = Math.floor(((1 + Math.random()) * 256) / 2);
+  const green = Math.floor(((1 + Math.random()) * 256) / 2);
+  const blue = Math.floor(((1 + Math.random()) * 256) / 2);
+  return "rgb(" + red + ", " + green + ", " + blue + ")";
 }
+
 function clearMarkers() {
-	markerLayer.clearLayers();
+  markerLayer.clearLayers();
 }
+
+
 </script>
 
 <style>
 @import "@/assets/main.css";
+.smallbtn {
+  color: #000;
+  display: block;
+  padding: 0.2rem;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 0 2px rgb(0 0 0 / 40%);
+}
+button.close {
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  font-size: 25px;
+  color: red;
+  cursor: pointer;
+}
 #map {
-	z-index: 0;
-	height: 100vh;
+  z-index: 0;
+  height: 100vh;
 }
 .leaflet-container {
-	background-color: #2c2c2c;
+  background-color: #2c2c2c;
 }
 .overlay {
-	position: absolute;
+  position: absolute;
 }
 .select,
 .selected,
 .settings,
 .export {
-	padding: var(--space-2);
-	border-radius: 5px;
-	background: rgba(0, 0, 0, 0.7);
-	box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+  padding: var(--space-2);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
 }
 .selected {
-	max-height: calc(100vh - 390px);
-	overflow: auto;
+  max-height: calc(100vh - 390px);
+  overflow: auto;
 }
 .settings {
-	max-width: 375px;
-	max-height: calc(100vh - 180px);
-	overflow: auto;
+  max-width: 375px;
+  max-height: calc(100vh - 180px);
+  overflow: auto;
 }
 .export {
-	min-width: 375px;
+  min-width: 375px;
 }
 .line {
-	line-height: 1.5rem;
+  line-height: 1.5rem;
 }
 </style>
