@@ -777,6 +777,10 @@ function getPanoDeep(id, country, depth) {
   });
 }
 
+const isDate = (date) => {
+	return new Date(date) !== "Invalid Date" && !isNaN(new Date(date));
+};
+
 function addLoc(pano, country) {
   const location = {
     panoId: pano.location.pano,
