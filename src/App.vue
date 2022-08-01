@@ -279,7 +279,7 @@ const settings = reactive({
   	checkImports: false,
 	cluster: true,
   	onlyOneInTimeframe: false,
-  	oneCountryAtATime: false
+  	oneCountryAtATime: false,
 	num_of_generators: 1,
 	generation: 1,
 	getIntersection: false,
