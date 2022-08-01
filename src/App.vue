@@ -197,6 +197,7 @@
 			<a @click="selectAllLayer(value)" class="smallbtn bg-success" style="width: 25%">Select All</a>
 			<button @click="removeCustomLayer(name)" type="button" class="close" aria-label="Close">×</button>
 		      </div>
+		   </div>
 		</div>
 		
 		<Button
