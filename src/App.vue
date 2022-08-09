@@ -651,7 +651,7 @@ async function getLoc(loc, country) {
 	}
 	
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
-      console.log(SV.getPanorama(loc.pano));
+      SV.getPanorama({ pano: loc.pano}, async (pano, status) => { console.log(pano.res.tiles); });
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
