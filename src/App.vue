@@ -639,6 +639,7 @@ async function getLoc(loc, country) {
 	if (settings.findGeneration){
 		var panoGeneration = 0;
 		const { worldSize } = res.tiles
+		console.log("res: ", worldSize.height);
 		switch (worldSize.height) {
 			case 1664: panoGeneration = 1
 			case 6656: panoGeneration = 23
