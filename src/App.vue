@@ -645,6 +645,8 @@ async function getLoc(loc, country) {
 			case 8192: panoGeneration = 4
 			default: panoGeneration = 0
 		}
+		console.log("pano gen", panoGeneration);
+		console.log("settings gen", settings.generation);
 		if (panoGeneration != settings.generation) return false;	
 	}
 	
