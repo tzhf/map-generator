@@ -651,7 +651,7 @@ async function getLoc(loc, country) {
 	}
 	
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
-	  console.log(google.maps.StreetViewService.getPanorama(loc.pano));
+      console.log(SV.getPanorama(loc.pano));
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
