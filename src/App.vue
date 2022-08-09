@@ -27,7 +27,7 @@
 		  <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
 		  Import Locations
 		</label>
-		<div>
+		<div> 
 		  {{ country.found ? country.found.length : "0" }} /
 		  <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
 		</div>
@@ -169,16 +169,25 @@
 			</div>
 			<hr />
 			
+		<Checkbox v-model:checked="settings.findGeneration" label="Filter generation" />
+			<div v-if="settings.findGeneration">
+				<select v-model="settings.generation">
+					<option value="1">Gen 1</option>
+					<option value="23">Gen 2/3</option>
+					<option value="4">Gen 4</option>
+				</select>
+			</div>
+		<hr />
 		
-			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
-			<small>
-				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
-				specific timeframe.
-			</small>
+		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
+		<small>
+			This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
+			specific timeframe.
+		</small>
 			 
 		<hr />
 		<div class="customLayers">
-		      <h4 class="center mb-2">
+			<h4 class="center mb-2">
 			Custom Layers ({{ Object.keys(customLayers).length }})
 		      </h4>
 		      <input type="file" @change="customLayerFileProcess" accept=".txt,.json,.geojson" />
@@ -191,7 +200,7 @@
 			<div class="flex-center">{{ name }}</div>
 			<a @click="selectAllLayer(value)" class="smallbtn bg-success" style="width: 25%">Select All</a>
 			<button @click="removeCustomLayer(name)" type="button" class="close" aria-label="Close">×</button>
-		      </div>
+			</div>
 		   </div>
 		</div>
 		
@@ -277,6 +286,7 @@ const settings = reactive({
   	onlyOneInTimeframe: false,
   	oneCountryAtATime: false,
 	num_of_generators: 1,
+	findGeneration: false,
 	generation: 1,
 	getIntersection: false,
 	pinpointSearch: false,
@@ -609,11 +619,21 @@ const generate = async (country) => {
   country.isProcessing = false;
 };
 
+function getCameraGeneration(res){
+	const { worldSize } = res.tiles
+	switch (worldSize.height) {
+		case 1664: return 1;
+		case 6656: return 23;
+		case 8192: return 4;
+		default: return 0;
+	}
+}
+
 async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
     if (settings.rejectUnofficial && !settings.rejectOfficial) {
-    	    if (res.location.pano.length != 22) return false;
+		if (res.location.pano.length != 22) return false;
 	    if (settings.rejectNoDescription && !settings.rejectDescription && !res.location.description && !res.location.shortDescription) return false;
 	    if (settings.getIntersection && res.links.length < 3) return false;
 	    if (settings.rejectDescription && (res.location.description || res.location.shortDescription)) return false;
@@ -621,9 +641,15 @@ async function getLoc(loc, country) {
 	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
+    
     if (settings.rejectOfficial) {
-	if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
+		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
     }
+	
+	if (settings.findGeneration && !settings.checkAllDates){
+		if (getCameraGeneration(res) != settings.generation) return false;	
+	}
+	
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
@@ -725,7 +751,9 @@ function isPanoGood(pano) {
   
   if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
 	if (!pano.time?.length) return false;
-
+	if (settings.findGeneration){
+		if (getCameraGeneration(pano) != settings.generation) return false;	
+	}
 	let dateWithin = false;
 	for (var i = 0; i < pano.time.length; i++) {
 		const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val));
