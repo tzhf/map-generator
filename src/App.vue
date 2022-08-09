@@ -619,6 +619,16 @@ const generate = async (country) => {
   country.isProcessing = false;
 };
 
+function getCameraGeneration(res){
+	const { worldSize } = res.tiles
+	switch (worldSize.height) {
+		case 1664: return 1;
+		case 6656: return 23;
+		case 8192: return 4;
+		default: return 0;
+	}
+}
+
 async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
@@ -636,23 +646,8 @@ async function getLoc(loc, country) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
     }
 	
-	if (settings.findGeneration){
-		var panoGeneration = 0;
-		const { worldSize } = res.tiles
-		switch (worldSize.height) {
-			case 1664: 
-			  panoGeneration = 1;
-			  break;
-			case 6656: 
-			  panoGeneration = 23;
-			  break;
-			case 8192: 
-			  panoGeneration = 4;
-			  break;
-			default: 
-			  panoGeneration = 0;
-		}
-		if (panoGeneration != settings.generation) return false;	
+	if (settings.findGeneration && !settings.checkAllDates){
+		return getCameraGeneration(res) == settings.generation;	
 	}
 	
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
