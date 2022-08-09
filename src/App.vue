@@ -636,10 +636,9 @@ async function getLoc(loc, country) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
     }
 	
-	if (settings.findGeneration){
+	if (settings.findGeneration && !settings.checkAllDates){
 		var panoGeneration = 0;
 		const { worldSize } = res.tiles
-		console.log("res: ", worldSize.height);
 		switch (worldSize.height) {
 			case 1664: 
 			  panoGeneration = 1;
@@ -653,8 +652,6 @@ async function getLoc(loc, country) {
 			default: 
 			  panoGeneration = 0;
 		}
-		console.log("pano gen", panoGeneration);
-		console.log("settings gen", settings.generation);
 		if (panoGeneration != settings.generation) return false;	
 	}
 	
