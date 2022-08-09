@@ -645,7 +645,7 @@ async function getLoc(loc, country) {
 			case 8192: panoGeneration = 4
 			default: panoGeneration = 0
 		}
-		if (panoGeneration != generation) return false;	
+		if (panoGeneration != settings.generation) return false;	
 	}
 	
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
