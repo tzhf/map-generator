@@ -646,7 +646,7 @@ async function getLoc(loc, country) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
     }
 	
-	if (settings.findGeneration){
+	if (settings.findGeneration && (!settings.checkAllDates || settings.selectMonths)){
 		if (getCameraGeneration(res) != settings.generation) return false;	
 	}
 	
