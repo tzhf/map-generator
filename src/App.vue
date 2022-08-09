@@ -651,7 +651,6 @@ async function getLoc(loc, country) {
 	}
 	
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
-      SV.getPanorama({ pano: loc.pano}, async (pano, status) => { console.log(pano); });
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
@@ -824,6 +823,7 @@ function getPanoDeep(id, country, depth) {
   if (country.checkedPanos.has(id)) return;
   else country.checkedPanos.add(id);
   SV.getPanorama({ pano: id }, async (pano, status) => {
+    console.log(pano.location);
     if (status == google.maps.StreetViewStatus.UNKNOWN_ERROR) {
       country.checkedPanos.delete(id);
       return getPanoDeep(id, country, depth);
