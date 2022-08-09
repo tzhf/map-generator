@@ -620,6 +620,7 @@ const generate = async (country) => {
 };
 
 function getCameraGeneration(res){
+	console.log(res.tiles);
 	const { worldSize } = res.tiles
 	switch (worldSize.height) {
 		case 1664: return 1;
@@ -647,7 +648,7 @@ async function getLoc(loc, country) {
     }
 	
 	if (settings.findGeneration && !settings.checkAllDates){
-		return getCameraGeneration(res) == settings.generation;	
+		if (getCameraGeneration(res) != settings.generation) return false;	
 	}
 	
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
