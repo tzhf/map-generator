@@ -641,10 +641,17 @@ async function getLoc(loc, country) {
 		const { worldSize } = res.tiles
 		console.log("res: ", worldSize.height);
 		switch (worldSize.height) {
-			case 1664: panoGeneration = 1
-			case 6656: panoGeneration = 23
-			case 8192: panoGeneration = 4
-			default: panoGeneration = 0
+			case 1664: 
+			  panoGeneration = 1;
+			  break;
+			case 6656: 
+			  panoGeneration = 23;
+			  break;
+			case 8192: 
+			  panoGeneration = 4;
+			  break;
+			default: 
+			  panoGeneration = 0;
 		}
 		console.log("pano gen", panoGeneration);
 		console.log("settings gen", settings.generation);
