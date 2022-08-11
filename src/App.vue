@@ -165,6 +165,10 @@
 						<option value="11">November</option>
 						<option value="12">December</option>
 					</select>
+					<label> In between years: </label> 
+					<input type="number" v-model.number="settings.fromYear" />
+					<label> and </label>
+					<input type="number" v-model.number="settings.toYear" />
 				</div>
 			</div>
 			<hr />
@@ -277,6 +281,8 @@ const settings = reactive({
 	toDate: dateToday,
 	fromMonth: "01",
 	toMonth: "12",
+	fromYear = "2007",
+	toYear = "2022",
 	checkAllDates: true,
 	checkLinks: false,
 	linksDepth: 2,
@@ -677,22 +683,25 @@ async function getLoc(loc, country) {
 	if (!res.time?.length) return false;
 	let dateWithin = false;
 	const fromMonth = settings.fromMonth;
-        const toMonth = settings.toMonth;
+	const toMonth = settings.toMonth;
+	const fromYear = settings.fromYear;
+	const toYear = settings.toYear;
 	if (settings.checkAllDates){
 		for (var i = 0; i < res.time.length; i++) {
 			const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
 			if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if res ID is 22 characters long. Otherwise, it's an Ari
 			const iDateMonth = timeframeDate.getMonth() + 1;
+			const iDateYear = timeframeDate.getFullYear(); 
 
 			if (fromMonth <= toMonth){
-				if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
+				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear => fromYear && iDateYear <= toYear) {
 					dateWithin = true;
 					break;
 				}
 			}
 			else {
-				if (iDateMonth >= fromMonth || iDateMonth <= toMonth) {
+				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear => fromYear && iDateYear <= toYear) {
 					dateWithin = true;
 					break;
 				}
@@ -702,6 +711,7 @@ async function getLoc(loc, country) {
 		if (!dateWithin) return false;
 	}
 	else{
+		if (iDateYear < fromYear || iDateYear > toYear) return false;
 		if (fromMonth <= toMonth){
 			if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return false;
 		}
@@ -733,6 +743,8 @@ function isPanoGood(pano) {
   const locDate = Date.parse(pano.imageDate);
   const fromMonth = settings.fromMonth;
   const toMonth = settings.toMonth;
+  const fromYear = settings.fromYear;
+  const toYear = settings.toYear;
  
   if (!settings.selectMonths){
 	if (!settings.checkAllDates || settings.rejectOfficial) {
@@ -781,15 +793,16 @@ function isPanoGood(pano) {
 
 			if (settings.rejectUnofficial && pano.time[i].pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
 			const iDateMonth = timeframeDate.getMonth() + 1;
-
+			const iDateYear = timeframeDate.getFullYear(); 
+			
 			if (fromMonth <= toMonth){
-				if (iDateMonth >= fromMonth && iDateMonth <= toMonth) {
+				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear => fromYear && iDateYear <= toYear) {
 					dateWithin = true;
 					break;
 				}
 			}
 			else {
-				if (iDateMonth >= fromMonth || iDateMonth <= toMonth) {
+				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear => fromYear && iDateYear <= toYear) {
 					dateWithin = true;
 					break;
 				}
@@ -799,6 +812,7 @@ function isPanoGood(pano) {
 		if (!dateWithin) return false;
 	}
 	else{
+		if (iDateYear < fromYear || iDateYear > toYear) return false;
 		if (fromMonth <= toMonth){
 			if (pano.imageDate.slice(5) < fromMonth || pano.imageDate.slice(5) > toMonth) return false;
 		}
