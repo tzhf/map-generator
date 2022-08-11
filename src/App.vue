@@ -165,7 +165,9 @@
 						<option value="11">November</option>
 						<option value="12">December</option>
 					</select>
-					<label> In between years: </label> 
+					<label> 
+					In between years 
+					</label> 
 					<input type="number" v-model.number="settings.fromYear" />
 					<label> and </label>
 					<input type="number" v-model.number="settings.toYear" />
