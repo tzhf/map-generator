@@ -965,6 +965,14 @@ function initLayer(layer) {
       resetHighlight(e);
     }
   }
+  
+  function selectAll() {
+      selected.value = geojson.getLayers().map((country) => {
+      initLayer(country);
+      return country;
+    });
+    geojson.setStyle(highlighted);
+  }
 
   function selectAllLayer(layer) {
     layer.setStyle(highlighted);
