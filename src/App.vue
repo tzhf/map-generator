@@ -712,7 +712,7 @@ async function getLoc(loc, country) {
 		if (!dateWithin) return false;
 	}
 	else{
-		if (pano.imageDate.slice(0, 4) < fromYear || pano.imageDate.slice(0, 4) > toYear) return false;
+		if (res.imageDate.slice(0, 4) < fromYear || res.imageDate.slice(0, 4) > toYear) return false;
 		if (fromMonth <= toMonth){
 			if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return false;
 		}
