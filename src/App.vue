@@ -712,7 +712,7 @@ async function getLoc(loc, country) {
 		if (!dateWithin) return false;
 	}
 	else{
-		if (iDateYear < fromYear || iDateYear > toYear) return false;
+		if (pano.imageDate.slice(0, 4) < fromYear || pano.imageDate.slice(0, 4) > toYear) return false;
 		if (fromMonth <= toMonth){
 			if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return false;
 		}
@@ -813,7 +813,7 @@ function isPanoGood(pano) {
 		if (!dateWithin) return false;
 	}
 	else{
-		if (iDateYear < fromYear || iDateYear > toYear) return false;
+		if (pano.imageDate.slice(0, 4) < fromYear || pano.imageDate.slice(0, 4) > toYear) return false;
 		if (fromMonth <= toMonth){
 			if (pano.imageDate.slice(5) < fromMonth || pano.imageDate.slice(5) > toMonth) return false;
 		}
