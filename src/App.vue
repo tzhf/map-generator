@@ -695,13 +695,13 @@ async function getLoc(loc, country) {
 			const iDateYear = timeframeDate.getFullYear(); 
 
 			if (fromMonth <= toMonth){
-				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear => fromYear && iDateYear <= toYear) {
+				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear >= fromYear && iDateYear <= toYear) {
 					dateWithin = true;
 					break;
 				}
 			}
 			else {
-				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear => fromYear && iDateYear <= toYear) {
+				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear >= fromYear && iDateYear <= toYear) {
 					dateWithin = true;
 					break;
 				}
@@ -796,13 +796,13 @@ function isPanoGood(pano) {
 			const iDateYear = timeframeDate.getFullYear(); 
 			
 			if (fromMonth <= toMonth){
-				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear => fromYear && iDateYear <= toYear) {
+				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear >= fromYear && iDateYear <= toYear) {
 					dateWithin = true;
 					break;
 				}
 			}
 			else {
-				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear => fromYear && iDateYear <= toYear) {
+				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear >= fromYear && iDateYear <= toYear) {
 					dateWithin = true;
 					break;
 				}
