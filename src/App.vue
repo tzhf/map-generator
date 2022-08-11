@@ -529,7 +529,6 @@ function exportDrawnLayer() {
 const handleRadiusInput = (e) => {
   const value = parseInt(e.target.value);
   if (!value || value < 50)  settings.radius = 50;
-  else if (value > 10000) settings.radius = 10000;
 };
 
 const myIcon = L.icon({
