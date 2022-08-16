@@ -28,12 +28,15 @@
 		  Import Locations
 		</label>
 		<div> 
-		  {{ country.found ? country.found.length : "0" }} /
+		  {{ country.found ? country.found.length : "0" }} / 
 		  <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
 		</div>
 	      </div>
 	    </div>
+	    <div>
 	    <Button @click="clearMarkers" class="bg-warning" text="Clear markers" optText="(for performance, this won't erase your generated locations)" title="Clear markers" />
+	    <Button @click="clearLocations" class="bg-warning" text="Clear generated locations" title="Clear generated locations" />
+	    </div>
   	</div>
 	
 	<div class="overlay top right flex-col gap">
@@ -1054,6 +1057,10 @@ function getRandomColor() {
 
 function clearMarkers() {
   markerLayer.clearLayers();
+}
+
+function clearLocations() {
+  for (const polygon of selected.value) polygon.found.length = 0;
 }
 
 
