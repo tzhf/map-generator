@@ -1056,7 +1056,7 @@ function clearMarkers() {
   markerLayer.clearLayers();
   console.log(selected);
   allFound.length = 0;
-  selected.length = 0;
+  selected.value.length = 0;
   console.log("2");
   console.log(selected);
 }
