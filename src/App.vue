@@ -28,7 +28,7 @@
 		  Import Locations
 		</label>
 		<div> 
-		  {{ country.found ? country.found.length : "0" }} /
+		  {{ country.found ? country.found.length : "0" }} / 
 		  <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
 		</div>
 	      </div>
