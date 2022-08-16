@@ -33,7 +33,8 @@
 		</div>
 	      </div>
 	    </div>
-	    <Button @click="clearMarkers" class="bg-warning" text="Clear markers" optText="(for performance, this won't erase your generated locations)" title="Clear markers" />
+	    <Button @click="clearMarkers" class="bg-warning" text="Clear markers" title="Clear markers" />
+	    <Button @click="clearLocations" class="bg-warning" text="Clear markers" title="Clear generated locations" />
   	</div>
 	
 	<div class="overlay top right flex-col gap">
@@ -1054,6 +1055,9 @@ function getRandomColor() {
 
 function clearMarkers() {
   markerLayer.clearLayers();
+}
+
+function clearLocations() {
   for (const polygon of selected.value) polygon.found.length = 0;
 }
 
