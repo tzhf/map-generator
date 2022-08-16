@@ -1054,7 +1054,7 @@ function getRandomColor() {
 
 function clearMarkers() {
   markerLayer.clearLayers();
-  for (const polygon of selected.value) polygon.length = 0;
+  for (const polygon of selected.value) polygon.found.length = 0;
 }
 
 
