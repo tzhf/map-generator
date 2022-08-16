@@ -1054,8 +1054,8 @@ function getRandomColor() {
 
 function clearMarkers() {
   markerLayer.clearLayers();
-  allFound.length = 0;
-  selected.length = 0;
+  allFound.splice(0,allFound.length)
+  selected.splice(0,selected.length)
 }
 
 
