@@ -926,7 +926,9 @@ function addLoc(pano, country) {
   // New road
   if (pano.time.length == 1) {
     return addLocation(location, country, true, newLocIcon);
+    console.log("pano.time.length == 1");
   } else {
+    console.log("pano.time.length > 1");
     SV.getPanorama(
       { pano: pano.time[pano.time.length - 2].pano },
       async (previousPano) => {
