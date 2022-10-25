@@ -926,12 +926,11 @@ function addLoc(pano, country) {
   // New road
   if (pano.time.length == 1) {
     return addLocation(location, country, true, newLocIcon);
-    console.log("pano.time.length == 1");
   } else {
-    console.log("pano.time.length > 1");
     SV.getPanorama(
       { pano: pano.time[pano.time.length - 2].pano },
       async (previousPano) => {
+        console.log(previousPano.tiles.worldSize.height);
         if (previousPano.tiles.worldSize.height === 1664) {
           return addLocation(location, country, true, gen1Icon);
         } else if (
