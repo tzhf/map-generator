@@ -860,7 +860,6 @@ function getPano(id, country) {
 }
 
 function getPanoDeep(id, country, depth) {
-  // console.log(id, depth);
   if (depth > settings.linksDepth) return;
   if (country.checkedPanos.has(id)) return;
   else country.checkedPanos.add(id);
