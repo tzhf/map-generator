@@ -250,9 +250,9 @@ import "leaflet/dist/leaflet.css";
 import "@/assets/leaflet-draw/leaflet.draw.js";
 import "@/assets/leaflet-draw/leaflet.draw.css";
 import marker from "@/assets/images/marker-icon.png";
-import marker-red from "@/assets/images/marker-icon-red.png";
-import marker-violet from "@/assets/images/marker-icon-violet.png";
-import marker-green from "@/assets/images/marker-icon-green.png";
+import markerRed from "@/assets/images/marker-icon-red.png";
+import markerViolet from "@/assets/images/marker-icon-violet.png";
+import markerGreen from "@/assets/images/marker-icon-green.png";
 
 import 'leaflet.markercluster/dist/leaflet.markercluster.js';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -555,17 +555,17 @@ const myIcon = L.icon({
 });
 
 const gen1Icon = L.icon({
-  iconUrl: marker-green,
+  iconUrl: markerGreen,
   iconAnchor: [12, 41],
 });
 
 const gen2Or3Icon = L.icon({
-  iconUrl: marker-violet,
+  iconUrl: markerViolet,
   iconAnchor: [12, 41],
 });
 
 const newLocIcon = L.icon({
-  iconUrl: marker-red,
+  iconUrl: markerRed,
   iconAnchor: [12, 41],
 });
 
