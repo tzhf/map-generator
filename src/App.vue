@@ -946,14 +946,14 @@ function addLoc(pano, country) {
   }
 }
 
-function addLocation(location, country, marker) {
+function addLocation(location, country, marker, iconType) {
   if (allFoundPanoIds.has(location.panoId)) return;
   allFound.push(location);
   allFoundPanoIds.add(location.panoId);
   if (!country || country.found.length < country.nbNeeded) {
     if (country) country.found.push(location);
     if (marker) {
-      L.marker([location.lat, location.lng], { icon: myIcon })
+      L.marker([location.lat, location.lng], { icon: iconType })
       .on('click', () => {
         window.open(`https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}${location.heading ? '&heading=' + location.heading : ''}${location.pitch ? '&pitch=' + location.pitch : ''}`, '_blank');
         }).addTo(markerLayer);
