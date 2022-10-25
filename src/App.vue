@@ -123,6 +123,9 @@
 		        <Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
     			<hr />
 			
+			<Checkbox v-model:checked="settings.hideBlueMarkers" label="Don't show blue markers"/>
+			<Checkbox v-model:checked="settings.gen2Or3Markers" label="Show seperate marker for gen 2/3 update locs"/>
+			
 			<div v-if="!settings.selectMonths">
 				<div class="flex space-between mb-2">
 					<label>From</label>
@@ -291,6 +294,8 @@ const settings = reactive({
   	markersOnImport: true,
   	checkImports: false,
 	cluster: true,
+	hideBlueMarkers: false,
+	gen2Or3Markers: false,
   	onlyOneInTimeframe: false,
   	oneCountryAtATime: false,
 	num_of_generators: 1,
@@ -543,6 +548,24 @@ const handleRadiusInput = (e) => {
 
 const myIcon = L.icon({
   iconUrl: marker,
+  iconAnchor: [12, 41],
+});
+
+const gen1Icon = L.icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+  iconAnchor: [12, 41],
+});
+
+const gen2Or3Icon = L.icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png",
+  iconAnchor: [12, 41],
+});
+
+const newLocIcon = L.icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
   iconAnchor: [12, 41],
 });
 
@@ -900,7 +923,26 @@ function addLoc(pano, country) {
   };
   const index = location.links.indexOf(pano.location.pano);
   if (index != -1) location.links.splice(index, 1);
-  return addLocation(location, country, true);
+  // New road
+  if (pano.time.length == 1) {
+    return addLocation(location, country, true, newLocIcon);
+  } else {
+    SV.getPanorama(
+      { pano: pano.time[pano.time.length - 2].pano },
+      async (previousPano) => {
+        if (previousPano.tiles.worldSize.height === 1664) {
+          return addLocation(location, country, true, gen1Icon);
+        } else if (
+          settings.gen2Or3Markers &&
+          previousPano.tiles.worldSize.height === 6656
+        ) {
+          return addLocation(location, country, true, gen2Or3Icon);
+        } else if (!settings.hideBlueMarkers) {
+          return addLocation(location, country, true, myIcon);
+        }
+      }
+    );
+  }
 }
 
 function addLocation(location, country, marker) {
