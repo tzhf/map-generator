@@ -250,6 +250,9 @@ import "leaflet/dist/leaflet.css";
 import "@/assets/leaflet-draw/leaflet.draw.js";
 import "@/assets/leaflet-draw/leaflet.draw.css";
 import marker from "@/assets/images/marker-icon.png";
+import marker-red from "@/assets/images/marker-icon-red.png";
+import marker-violet from "@/assets/images/marker-icon-violet.png";
+import marker-green from "@/assets/images/marker-icon-green.png";
 
 import 'leaflet.markercluster/dist/leaflet.markercluster.js';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -552,20 +555,17 @@ const myIcon = L.icon({
 });
 
 const gen1Icon = L.icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+  iconUrl: marker-green,
   iconAnchor: [12, 41],
 });
 
 const gen2Or3Icon = L.icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png",
+  iconUrl: marker-violet,
   iconAnchor: [12, 41],
 });
 
 const newLocIcon = L.icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  iconUrl: marker-red,
   iconAnchor: [12, 41],
 });
 
