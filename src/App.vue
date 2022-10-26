@@ -45,23 +45,26 @@
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			</div>
 			
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
-			<div v-if="settings.findGeneration">
-				<select v-model="settings.generation">
-					<option value="1">Gen 1</option>
-					<option value="23">Gen 2/3</option>
-					<option value="4">Gen 4</option>
-				</select>
+				<div v-if="settings.findGeneration">
+					<select v-model="settings.generation">
+						<option value="1">Gen 1</option>
+						<option value="23">Gen 2/3</option>
+						<option value="4">Gen 4</option>
+					</select>
+				</div>
+				<Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
 			</div>
-			
-			<Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
 			
 			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
 			<hr />
 
 			<h4 class="center">Location properties</h4>
 			
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
+			</div>
 			
 			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 				<div v-if="!settings.rejectDescription">
