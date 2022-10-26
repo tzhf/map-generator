@@ -75,10 +75,10 @@
 				<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
 				      Depth: {{ settings.linksDepth }}
 				</div>
+			<hr />
 			
 			<h4 class="center">Map making properties</h4>
 			<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
-			<hr />
 				
 			<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
 			<div v-if="settings.pinpointSearch" class="indent">
@@ -193,10 +193,6 @@
 			</div>
 		
 		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
-		<small>
-			This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
-			specific timeframe.
-		</small>
 			 
 		<hr />
 		<div class="customLayers">
