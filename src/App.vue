@@ -39,7 +39,7 @@
 	
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
-			<Button @click="collapsible_content" class="h4" text="Coverage properties ↓" title="Coverage properties ↓" />
+			<Button @click="collapsible_content" class="collapsible" text="Coverage properties ↓" title="Coverage properties ↓" />
 			
 			<div class="coverageType" style="display: block;">
 				<div v-if="!settings.rejectOfficial">
@@ -1273,10 +1273,7 @@ button.close {
   border: none;
   outline: none;
   display: block;
-  margin-block-start: 1.33em;
-  margin-block-end: 1.33em;
-  margin-inline-start: 0px;
-  margin-inline-end: 0px;
+  color: #fff;
   font-weight: bold;
 }
 </style>
