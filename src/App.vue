@@ -216,6 +216,7 @@
 			</div>
 		   </div>
 		</div>
+		</div>
 		
 		<Button
 			v-if="canBeStarted"
@@ -225,7 +226,7 @@
 			title="Space bar/Enter"
 		/>
 		
-	<Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
+		<Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
 	</div>
 
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
