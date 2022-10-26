@@ -331,7 +331,7 @@ const settings = reactive({
 	gen4Marker: true,
   	gen2Or3Marker: true,
   	gen1Marker: true,
-  	newRoadMarker: true
+  	newRoadMarker: true,
   	onlyOneInTimeframe: false,
   	oneCountryAtATime: false,
 	num_of_generators: 1,
