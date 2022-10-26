@@ -59,156 +59,147 @@
 				</div>
 				
 				<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
+				<hr />
 			</div>
+
+			<h4 class="center">Location properties</h4>
+			
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+			<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
+			</div>
+			
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+				<div v-if="!settings.rejectDescription">
+					<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
+				</div>
+			</div>
+				
+			<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
+			
+			<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
+				<div v-if="settings.checkLinks">
+				<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
+				      Depth: {{ settings.linksDepth }}
+				</div>
 			<hr />
 			
-			<Button @click="collapsible_content" class="collapsible" text="Location properties ↓" title="Location properties ↓" />
-			
-			<div class="locationProperties" style="display: block;">
-				<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
-				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
-				</div>
-
-				<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
-					<div v-if="!settings.rejectDescription">
-						<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
-					</div>
-				</div>
-
-				<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
-
-				<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
-					<div v-if="settings.checkLinks">
-					<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
-					      Depth: {{ settings.linksDepth }}
-					</div>
+			<h4 class="center">Map making properties</h4>
+			<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
+				
+			<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
+			<div v-if="settings.pinpointSearch" class="indent">
+			<label class="flex wrap">
+				Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
+			</label>
 			</div>
-			<hr />
 			
-			<Button @click="collapsible_content" class="collapsible" text="Map making properties ↓" title="Map making properties ↓" />
-			
-			<div class="mapMakingProperties" style="display: block;">
-				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
-
-				<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
-				<div v-if="settings.pinpointSearch" class="indent">
+			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
+			<div v-if="settings.adjustHeading" class="indent">
 				<label class="flex wrap">
-					Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
+					Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
 				</label>
-				</div>
+				<small>0° will point directly towards the road.</small>
+			</div>
 
-				<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
-				<div v-if="settings.adjustHeading" class="indent">
-					<label class="flex wrap">
-						Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
-					</label>
-					<small>0° will point directly towards the road.</small>
-				</div>
-
-				<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
-				<div v-if="settings.adjustPitch" class="indent">
-					<label class="flex wrap">
-						Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
-					</label>
-					<small>0 by default. -90° for tarmac/+90° for sky</small>
-				</div>
+			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
+			<div v-if="settings.adjustPitch" class="indent">
+				<label class="flex wrap">
+					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
+				</label>
+				<small>0 by default. -90° for tarmac/+90° for sky</small>
 			</div>
 			<hr />
 			
-			<Button @click="collapsible_content" class="collapsible" text="Markers ↓" title="Markers ↓" />
-			<div class="markersProperties" style="display: block;">
-				<Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
-			       <Checkbox
-				v-model:checked="settings.gen4Marker"
-				v-on:change="updateMarkerDisplay('gen4')"
-				label="Gen 4 Update"
-				/>
-				<Checkbox
-				 v-model:checked="settings.gen2Or3Marker"
-				 v-on:change="updateMarkerDisplay('gen2Or3')"
-				 label="Gen 2 or 3 Update"
-				/>
-				<Checkbox
-				 v-model:checked="settings.gen1Marker"
-				 v-on:change="updateMarkerDisplay('gen1')"
-				 label="Gen 1 Update"
-				/>
-				<Checkbox
-				 v-model:checked="settings.newRoadMarker"
-				 v-on:change="updateMarkerDisplay('newRoad')"
-				 label="New Road"
-				/>
-			</div>
+			<h4 class="center mb-2">Markers</h4>
+			<Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
+		       <Checkbox
+			v-model:checked="settings.gen4Marker"
+			v-on:change="updateMarkerDisplay('gen4')"
+			label="Gen 4 Update"
+		        />
+		        <Checkbox
+			 v-model:checked="settings.gen2Or3Marker"
+			 v-on:change="updateMarkerDisplay('gen2Or3')"
+			 label="Gen 2 or 3 Update"
+		        />
+		        <Checkbox
+			 v-model:checked="settings.gen1Marker"
+			 v-on:change="updateMarkerDisplay('gen1')"
+			 label="Gen 1 Update"
+		        />
+		        <Checkbox
+			 v-model:checked="settings.newRoadMarker"
+			 v-on:change="updateMarkerDisplay('newRoad')"
+			 label="New Road"
+		        />
 			<hr />
 			
-			<Button @click="collapsible_content" class="collapsible" text="General ↓" title="General ↓" />
-			<div class="generalProperties" style="display: block;">
-				<div>
-					Radius
-					<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
-					m
+			<div>
+				Radius
+				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
+				m
+			</div>
+			
+			<div>
+				Generators
+				<input type="number" v-model.number="settings.num_of_generators" />
+			</div>
+			
+			<Checkbox v-model:checked="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
+			
+			<div v-if="!settings.selectMonths">
+				<div class="flex space-between mb-2">
+					<label>From</label>
+					<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
 				</div>
-
-				<div>
-					Generators
-					<input type="number" v-model.number="settings.num_of_generators" />
+				<div class="flex space-between">
+					<label>To</label>
+					<input type="month" v-model="settings.toDate" :max="dateToday" />
 				</div>
-
-				<Checkbox v-model:checked="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
-
-				<div v-if="!settings.selectMonths">
-					<div class="flex space-between mb-2">
-						<label>From</label>
-						<input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
-					</div>
-					<div class="flex space-between">
-						<label>To</label>
-						<input type="month" v-model="settings.toDate" :max="dateToday" />
-					</div>
+			</div>
+			
+			<div v-if="!settings.rejectOfficial">
+			<Checkbox v-model:checked="settings.selectMonths" label="Filter by month" />
+				<div v-if="settings.selectMonths">
+					<select v-model="settings.fromMonth">
+						<option value="01">January</option>
+						<option value="02">February</option>
+						<option value="03">March</option>
+						<option value="04">April</option>
+						<option value="05">May</option>
+						<option value="06">June</option>
+						<option value="07">July</option>
+						<option value="08">August</option>
+						<option value="09">September</option>
+						<option value="10">October</option>
+						<option value="11">November</option>
+						<option value="12">December</option>
+					</select>
+					<label> to </label>
+					<select v-model="settings.toMonth">
+						<option value="01">January</option>
+						<option value="02">February</option>
+						<option value="03">March</option>
+						<option value="04">April</option>
+						<option value="05">May</option>
+						<option value="06">June</option>
+						<option value="07">July</option>
+						<option value="08">August</option>
+						<option value="09">September</option>
+						<option value="10">October</option>
+						<option value="11">November</option>
+						<option value="12">December</option>
+					</select>
+					<br>
+					<label> Between years </label> 
+					<input type="number" v-model.number="settings.fromYear" />
+					<label> and </label>
+					<input type="number" v-model.number="settings.toYear" />
 				</div>
-
-				<div v-if="!settings.rejectOfficial">
-				<Checkbox v-model:checked="settings.selectMonths" label="Filter by month" />
-					<div v-if="settings.selectMonths">
-						<select v-model="settings.fromMonth">
-							<option value="01">January</option>
-							<option value="02">February</option>
-							<option value="03">March</option>
-							<option value="04">April</option>
-							<option value="05">May</option>
-							<option value="06">June</option>
-							<option value="07">July</option>
-							<option value="08">August</option>
-							<option value="09">September</option>
-							<option value="10">October</option>
-							<option value="11">November</option>
-							<option value="12">December</option>
-						</select>
-						<label> to </label>
-						<select v-model="settings.toMonth">
-							<option value="01">January</option>
-							<option value="02">February</option>
-							<option value="03">March</option>
-							<option value="04">April</option>
-							<option value="05">May</option>
-							<option value="06">June</option>
-							<option value="07">July</option>
-							<option value="08">August</option>
-							<option value="09">September</option>
-							<option value="10">October</option>
-							<option value="11">November</option>
-							<option value="12">December</option>
-						</select>
-						<br>
-						<label> Between years </label> 
-						<input type="number" v-model.number="settings.fromYear" />
-						<label> and </label>
-						<input type="number" v-model.number="settings.toYear" />
-					</div>
-				</div>
-
-			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
-		</div>
+			</div>
+		
+		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
+			 
 		<hr />
 		<div class="customLayers">
 			<h4 class="center mb-2">
@@ -292,22 +283,6 @@ window.type = !0;
   };
   if (global) global.include(MarkerMixin);
 })(L.Marker);
-
-$(".coverageType").click(function () {
-    $header = $(this);
-    //getting the next element
-    $content = $header.next();
-    //open up the content needed - toggle the slide- if visible, slide up, if not slidedown.
-    $content.slideToggle(500, function () {
-        //execute this after slideToggle is done
-        //change text of header based on visibility of content div
-        $header.text(function () {
-            //change text based on condition
-            return $content.is(":visible") ? "Coverage properties ↓ " : "Coverage properties ↑";
-        });
-    });
-
-});
 
 const state = reactive({
 	started: false,
