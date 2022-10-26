@@ -1279,4 +1279,7 @@ button.close {
   outline: none;
   color: #53e0aa;
 }
+.coverageType{
+  display: block;
+}
 </style>
