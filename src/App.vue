@@ -39,7 +39,7 @@
 	
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
-			<h4 class="center">Coverage properties</h4>
+			<h4 class="center">Coverage settings</h4>
 			
 			<div v-if="!settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
@@ -60,7 +60,7 @@
 			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
 			<hr />
 
-			<h4 class="center">Location properties</h4>
+			<h4 class="center">Location settings</h4>
 			
 			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
@@ -82,7 +82,7 @@
 				
 			<hr />
 			
-			<h4 class="center">Map making properties</h4>
+			<h4 class="center">Map making settings</h4>
 			
 			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
@@ -112,7 +112,7 @@
 			</div>
 			<hr />
 			
-			<h4 class="center mb-2">Markers</h4>
+			<h4 class="center mb-2">Marker settings</h4>
 			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 				<Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
 			       <Checkbox
@@ -137,6 +137,8 @@
 				/>
 			</div>
 			<hr />
+			
+			<h4 class="center">General settings</h4>
 			
 			<div>
 				Radius
