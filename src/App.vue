@@ -143,7 +143,8 @@
 			 v-model:checked="settings.newRoadMarker"
 			 v-on:change="updateMarkerDisplay('newRoad')"
 			 label="New Road"
-		         />"/>
+		        />
+			<hr />
 			
 			<div v-if="!settings.selectMonths">
 				<div class="flex space-between mb-2">
