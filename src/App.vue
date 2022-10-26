@@ -39,28 +39,26 @@
 	
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
-			<Button @click="collapsible_content" class="collapsible" text="Coverage properties ↓" title="Coverage properties ↓" />
+			<h4 class="center">Coverage properties</h4>
 			
-			<div class="coverageType" style="display: block;">
-				<div v-if="!settings.rejectOfficial">
-				<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
-				</div>
-				
-				<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
-				<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
-					<div v-if="settings.findGeneration">
-						<select v-model="settings.generation">
-							<option value="1">Gen 1</option>
-							<option value="23">Gen 2/3</option>
-							<option value="4">Gen 4</option>
-						</select>
-					</div>
-					<Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
-				</div>
-				
-				<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
-				<hr />
+			<div v-if="!settings.rejectOfficial">
+			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			</div>
+
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+			<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
+				<div v-if="settings.findGeneration">
+					<select v-model="settings.generation">
+						<option value="1">Gen 1</option>
+						<option value="23">Gen 2/3</option>
+						<option value="4">Gen 4</option>
+					</select>
+				</div>
+				<Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
+			</div>
+
+			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
+			<hr />
 
 			<h4 class="center">Location properties</h4>
 			
@@ -744,7 +742,7 @@ async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
     if (settings.rejectUnofficial && !settings.rejectOfficial) {
-		if (res.location.pano.length != 22) return false;
+	    if (res.location.pano.length != 22) return false;
 	    if (settings.rejectNoDescription && !settings.rejectDescription && !res.location.description && !res.location.shortDescription) return false;
 	    if (settings.getIntersection && res.links.length < 3) return false;
 	    if (settings.rejectDescription && (res.location.description || res.location.shortDescription)) return false;
