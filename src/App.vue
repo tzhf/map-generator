@@ -39,7 +39,7 @@
 	
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
-			<h4 class="center" onclick="collapsible_content()">Coverage type</h4>
+			<h4 class="center" onclick="collapsible_content">Coverage type</h4>
 			
 			<div class="coverageType" style="display: block;">
 				<div v-if="!settings.rejectOfficial">
