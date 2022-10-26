@@ -41,24 +41,28 @@
 		<div v-if="!state.started" class="settings">
 			<h4 class="center">Coverage type</h4>
 			
-			<div v-if="!settings.rejectOfficial">
-			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
-			</div>
+			<Button @click="collapsible_content" class="collapsible" text="↓" title="↓" />
 			
-			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
-			<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
-				<div v-if="settings.findGeneration">
-					<select v-model="settings.generation">
-						<option value="1">Gen 1</option>
-						<option value="23">Gen 2/3</option>
-						<option value="4">Gen 4</option>
-					</select>
+			<div class="coverageType">
+				<div v-if="!settings.rejectOfficial">
+				<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 				</div>
-				<Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
+				
+				<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+				<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
+					<div v-if="settings.findGeneration">
+						<select v-model="settings.generation">
+							<option value="1">Gen 1</option>
+							<option value="23">Gen 2/3</option>
+							<option value="4">Gen 4</option>
+						</select>
+					</div>
+					<Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
+				</div>
+				
+				<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
+				<hr />
 			</div>
-			
-			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
-			<hr />
 
 			<h4 class="center">Location properties</h4>
 			
@@ -523,6 +527,26 @@ function addCustomLayer(geoJSON, name) {
     alert("Invalid GeoJSON.");
   }
 }
+
+function collapsible_content()
+{
+	// Collapisbles
+	var coll = document.getElementsByClassName("collapsible");
+	var i;
+
+	for (i = 0; i < coll.length; i++) {
+	  coll[i].addEventListener("click", function() {
+		this.classList.toggle("active");
+		var content = this.nextElementSibling;
+		if (content.style.display === "block") {
+		  content.style.display = "none";
+		} else {
+		  content.style.display = "block";
+		}
+	  });
+	}
+}
+
 
 async function changeLocationsCaps() {
   const newCap = Math.abs(parseInt(prompt("What would you like to set the locations cap to?")));
