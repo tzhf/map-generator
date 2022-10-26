@@ -39,9 +39,9 @@
 	
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
-			<h4 class="center">Coverage type</h4>
+			<h4 class="center">Coverage type <Button @click="collapsible_content" class="collapsible" text="↓" title="↓" /></h4>
 			
-			<Button @click="collapsible_content" class="collapsible" text="Coverage type ↓" title="Coverage type ↓" />
+			
 			
 			<div class="coverageType" style="display: block;">
 				<div v-if="!settings.rejectOfficial">
@@ -536,7 +536,6 @@ function collapsible_content()
 
 	for (i = 0; i < coll.length; i++) {
 		coll[i].classList.toggle("active");
-		coll[i].value.replace("↓","↑");
 		var content = coll[i].nextElementSibling;
 		if (content.style.display === "block") {
 		  content.style.display = "none";
