@@ -70,7 +70,8 @@
 			
 			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 				<div v-if="!settings.rejectDescription">
-				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
+					<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
+				</div>
 			</div>
 				
 			<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
@@ -216,7 +217,6 @@
 			<button @click="removeCustomLayer(name)" type="button" class="close" aria-label="Close">×</button>
 			</div>
 		   </div>
-		</div>
 		</div>
 		
 		<Button
