@@ -1273,4 +1273,9 @@ button.close {
 .line {
   line-height: 1.5rem;
 }
+.collapsible {
+  border: none;
+  outline: none;
+  color: #53e0aa;
+}
 </style>
