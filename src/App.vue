@@ -236,6 +236,7 @@
 			<ExportToCSV :selection="selected" />
 		</div>
 	</div>
+	</div>
 </template>
 
 <script setup>
