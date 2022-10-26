@@ -535,12 +535,11 @@ function collapsible_content()
 	var i;
 
 	for (i = 0; i < coll.length; i++) {
-		coll.classList.toggle("active");
-		var content = coll.nextElementSibling;
+		coll[i].classList.toggle("active");
+		var content = coll[i].nextElementSibling;
 		if (content.style.display === "block") {
 		  content.style.display = "none";
-		} 
-		else {
+		} else {
 		  content.style.display = "block";
 		}
 	}
