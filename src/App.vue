@@ -293,6 +293,22 @@ window.type = !0;
   if (global) global.include(MarkerMixin);
 })(L.Marker);
 
+$(".coverageType").click(function () {
+    $header = $(this);
+    //getting the next element
+    $content = $header.next();
+    //open up the content needed - toggle the slide- if visible, slide up, if not slidedown.
+    $content.slideToggle(500, function () {
+        //execute this after slideToggle is done
+        //change text of header based on visibility of content div
+        $header.text(function () {
+            //change text based on condition
+            return $content.is(":visible") ? "Coverage properties ↓ " : "Coverage properties ↑";
+        });
+    });
+
+});
+
 const state = reactive({
 	started: false,
 	polygonID: 0,
