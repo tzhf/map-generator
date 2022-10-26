@@ -39,89 +39,117 @@
 	
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
-			<h4 class="center">Settings</h4>
+			<h4 class="center">Coverage properties</h4>
 			
 			<div v-if="!settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
-			<hr />
 			</div>
-			
+
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+			<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
+				<div v-if="settings.findGeneration">
+					<select v-model="settings.generation">
+						<option value="1">Gen 1</option>
+						<option value="23">Gen 2/3</option>
+						<option value="4">Gen 4</option>
+					</select>
+				</div>
+				<Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
+			</div>
+
 			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
 			<hr />
 
+			<h4 class="center">Location properties</h4>
+			
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+			<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
+			</div>
+			
 			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 				<div v-if="!settings.rejectDescription">
-				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
-				<hr />
+					<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
 				</div>
 				
-				<Checkbox v-model:checked="settings.rejectDescription" label="Find trekkers" />
-				<hr />
-
-				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
-				<hr />
+				<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
 				
-			        <Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
-				<hr />
+				<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
+				<div v-if="settings.checkLinks">
+					<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
+					Depth: {{ settings.linksDepth }}
+				</div>
+			</div>
 				
+			<hr />
+			
+			<h4 class="center">Map making properties</h4>
+			
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
-				<hr />
-				
+
 				<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
 				<div v-if="settings.pinpointSearch" class="indent">
 				<label class="flex wrap">
 					Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
 				</label>
 				</div>
-				<hr />
-				
-				<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
-				<div v-if="settings.checkLinks">
-				<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
-				      Depth: {{ settings.linksDepth }}
+
+				<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
+				<div v-if="settings.adjustHeading" class="indent">
+					<label class="flex wrap">
+						Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
+					</label>
+					<small>0° will point directly towards the road.</small>
 				</div>
-				<hr />
+
+				<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
+				<div v-if="settings.adjustPitch" class="indent">
+					<label class="flex wrap">
+						Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
+					</label>
+					<small>0 by default. -90° for tarmac/+90° for sky</small>
+				</div>
 			</div>
+			<hr />
 			
-			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
-			<div v-if="settings.adjustHeading" class="indent">
-				<label class="flex wrap">
-					Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
-				</label>
-				<small>0° will point directly towards the road.</small>
+			<h4 class="center mb-2">Markers</h4>
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+				<Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
+			       <Checkbox
+				v-model:checked="settings.gen4Marker"
+				v-on:change="updateMarkerDisplay('gen4')"
+				label="Gen 4 Update"
+				/>
+				<Checkbox
+				 v-model:checked="settings.gen2Or3Marker"
+				 v-on:change="updateMarkerDisplay('gen2Or3')"
+				 label="Gen 2 or 3 Update"
+				/>
+				<Checkbox
+				 v-model:checked="settings.gen1Marker"
+				 v-on:change="updateMarkerDisplay('gen1')"
+				 label="Gen 1 Update"
+				/>
+				<Checkbox
+				 v-model:checked="settings.newRoadMarker"
+				 v-on:change="updateMarkerDisplay('newRoad')"
+				 label="New Road"
+				/>
 			</div>
 			<hr />
-
-			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
-			<div v-if="settings.adjustPitch" class="indent">
-				<label class="flex wrap">
-					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
-				</label>
-				<small>0 by default. -90° for tarmac/+90° for sky</small>
-			</div>
-			<hr />
-
+			
 			<div>
 				Radius
 				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
 				m
 			</div>
-			<hr />
+			
 			<div>
 				Generators
 				<input type="number" v-model.number="settings.num_of_generators" />
-				
 			</div>
-			<small>
-				Number of generators per polygon.
-			</small>
-			<hr />
 			
 			<Checkbox v-model:checked="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
-    			<hr />
-			
-		        <Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
-    			<hr />
 			
 			<div v-if="!settings.selectMonths">
 				<div class="flex space-between mb-2">
@@ -173,23 +201,8 @@
 					<input type="number" v-model.number="settings.toYear" />
 				</div>
 			</div>
-			<hr />
-			
-		<Checkbox v-model:checked="settings.findGeneration" label="Filter generation" />
-			<div v-if="settings.findGeneration">
-				<select v-model="settings.generation">
-					<option value="1">Gen 1</option>
-					<option value="23">Gen 2/3</option>
-					<option value="4">Gen 4</option>
-				</select>
-			</div>
-		<hr />
 		
 		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
-		<small>
-			This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
-			specific timeframe.
-		</small>
 			 
 		<hr />
 		<div class="customLayers">
@@ -218,7 +231,7 @@
 			title="Space bar/Enter"
 		/>
 		
-	<Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
+		<Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
 	</div>
 
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
@@ -247,6 +260,9 @@ import "leaflet/dist/leaflet.css";
 import "@/assets/leaflet-draw/leaflet.draw.js";
 import "@/assets/leaflet-draw/leaflet.draw.css";
 import marker from "@/assets/images/marker-icon.png";
+import markerRed from "@/assets/images/marker-icon-red.png";
+import markerViolet from "@/assets/images/marker-icon-violet.png";
+import markerGreen from "@/assets/images/marker-icon-green.png";
 
 import 'leaflet.markercluster/dist/leaflet.markercluster.js';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -259,6 +275,18 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
 import borders from "@/utils/borders.json";
 window.type = !0;
+
+(function(global){
+  var MarkerMixin = {
+    _updateZIndex: function (offset) {
+      this._icon.style.zIndex = this.options.forceZIndex ? (this.options.forceZIndex + (this.options.zIndexOffset || 0)) : (this._zIndex + offset);
+    },
+    setForceZIndex: function(forceZIndex) {
+      this.options.forceZIndex = forceZIndex ? forceZIndex : null;
+    }
+  };
+  if (global) global.include(MarkerMixin);
+})(L.Marker);
 
 const state = reactive({
 	started: false,
@@ -291,6 +319,10 @@ const settings = reactive({
   	markersOnImport: true,
   	checkImports: false,
 	cluster: true,
+	gen4Marker: true,
+  	gen2Or3Marker: true,
+  	gen1Marker: true,
+  	newRoadMarker: true,
   	onlyOneInTimeframe: false,
   	oneCountryAtATime: false,
 	num_of_generators: 1,
@@ -313,10 +345,30 @@ const allFoundPanoIds = new Set();
 let customLayers = {};
 
 const customPolygonsLayer = new L.FeatureGroup();
-const markerLayer = L.markerClusterGroup({
-  maxClusterRadius: 100,
-  disableClusteringAtZoom: 15,
-});
+const markerLayers = {
+  'gen4': L.markerClusterGroup({
+    maxClusterRadius: 100,
+    disableClusteringAtZoom: 15,
+  }),
+  'gen2Or3': L.markerClusterGroup({
+    maxClusterRadius: 100,
+    disableClusteringAtZoom: 15,
+  }),
+  'gen1': L.markerClusterGroup({
+    maxClusterRadius: 100,
+    disableClusteringAtZoom: 15,
+  }),
+  'newRoad': L.markerClusterGroup({
+    maxClusterRadius: 100,
+    disableClusteringAtZoom: 15,
+  }),
+}
+const preHiddenLayers = {
+  'gen4': [],
+  'gen2Or3': [],
+  'gen1': [],
+  'newRoad': []
+}
 const geojson = L.geoJson(borders, {
   style: style,
   onEachFeature: onEachFeature,
@@ -393,7 +445,9 @@ onMounted(() => {
   gsvLayer2.addTo(map);
   geojson.addTo(map);
   customPolygonsLayer.addTo(map);
-  markerLayer.addTo(map);
+  Object.values(markerLayers).forEach((markerLayer) => {
+    markerLayer.addTo(map);
+  });
   updateClusters();
   L.control.layers(baseMaps, overlayMaps, { position: "bottomleft" }).addTo(map);
   map.addControl(drawControl);
@@ -476,6 +530,24 @@ function addCustomLayer(geoJSON, name) {
   }
 }
 
+function collapsible_content()
+{
+	// Collapisbles
+	var coll = document.getElementsByClassName("collapsible");
+	var i;
+
+	for (i = 0; i < coll.length; i++) {
+		coll[i].classList.toggle("active");
+		var content = coll[i].nextElementSibling;
+		if (content.style.display === "block") {
+		  content.style.display = "none";
+		} else {
+		  content.style.display = "block";
+		}
+	}
+}
+
+
 async function changeLocationsCaps() {
   const newCap = Math.abs(parseInt(prompt("What would you like to set the locations cap to?")));
   if (!isNaN(newCap)) {
@@ -503,7 +575,7 @@ async function locationsFileProcess(e, country) {
             if (!JSONResult.customCoordinates.some(loc => loc.panoId === link)) getPano(link, country);
           }
         }
-        addLocation(location, country, settings.markersOnImport);
+        addLocation(location, country, settings.markersOnImport, gen4Icon);
       }
     } else {
       alert("Unknown file type: " + file.type + ". Only JSON may be imported.");
@@ -541,8 +613,23 @@ const handleRadiusInput = (e) => {
 
 };
 
-const myIcon = L.icon({
+const gen4Icon = L.icon({
   iconUrl: marker,
+  iconAnchor: [12, 41],
+});
+
+const gen1Icon = L.icon({
+  iconUrl: markerGreen,
+  iconAnchor: [12, 41],
+});
+
+const gen2Or3Icon = L.icon({
+  iconUrl: markerViolet,
+  iconAnchor: [12, 41],
+});
+
+const newLocIcon = L.icon({
+  iconUrl: markerRed,
   iconAnchor: [12, 41],
 });
 
@@ -607,8 +694,27 @@ top.allJSON = () => {
 };
 
 function updateClusters() {
-  if (settings.cluster) markerLayer.enableClustering();
-  else markerLayer.disableClustering();
+  Object.values(markerLayers).forEach((markerLayer) => {
+    if (settings.cluster) markerLayer.enableClustering();
+    else markerLayer.disableClustering();
+  });
+}
+
+function updateMarkerDisplay(gen) {
+  let hide = false;
+  if ((gen === "gen4" && !settings.gen4Marker)
+   || (gen === "gen2Or3" && !settings.gen2Or3Marker) 
+   || (gen === "gen1" && !settings.gen1Marker)
+   || (gen === "newRoad" && !settings.newRoadMarker)) {
+    hide = true;
+  }
+  if (hide) {
+    preHiddenLayers[gen] = markerLayers[gen];
+    map.removeLayer(markerLayers[gen]);
+  } else {
+    map.addLayer(preHiddenLayers[gen]);
+    preHiddenLayers[gen] = [];
+  }
 }
 
 const generate = async (country) => {
@@ -642,7 +748,7 @@ async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
     if (settings.rejectUnofficial && !settings.rejectOfficial) {
-		if (res.location.pano.length != 22) return false;
+	    if (res.location.pano.length != 22) return false;
 	    if (settings.rejectNoDescription && !settings.rejectDescription && !res.location.description && !res.location.shortDescription) return false;
 	    if (settings.getIntersection && res.links.length < 3) return false;
 	    if (settings.rejectDescription && (res.location.description || res.location.shortDescription)) return false;
@@ -837,7 +943,6 @@ function getPano(id, country) {
 }
 
 function getPanoDeep(id, country, depth) {
-  // console.log(id, depth);
   if (depth > settings.linksDepth) return;
   if (country.checkedPanos.has(id)) return;
   else country.checkedPanos.add(id);
@@ -900,20 +1005,68 @@ function addLoc(pano, country) {
   };
   const index = location.links.indexOf(pano.location.pano);
   if (index != -1) location.links.splice(index, 1);
-  return addLocation(location, country, true);
+  // New road
+  if (pano.time.length == 1) {
+    return addLocation(location, country, true, newLocIcon);
+  } else {
+    // Check for ari
+    let panoIndex = pano.time.length - 2;
+    let previousPano;
+    if (settings.rejectUnofficial) {
+      while (panoIndex >= 0) {
+        if (pano.time[panoIndex].pano.length == 22) {
+          previousPano = pano.time[panoIndex].pano;
+          break;
+        } else {
+          panoIndex--;
+        }
+      }
+    }
+    if (!previousPano) {
+      return addLocation(location, country, true, newLocIcon);
+    }
+    SV.getPanorama(
+      { pano: previousPano },
+      async (previousPano) => {
+        if (previousPano.tiles.worldSize.height === 1664) { // Gen 1
+          return addLocation(location, country, true, gen1Icon);
+        } else if (
+          previousPano.tiles.worldSize.height === 6656 // Gen 2 or 3
+        ) {
+          return addLocation(location, country, true, gen2Or3Icon);
+        } else { // Gen 4
+          return addLocation(location, country, true, gen4Icon);
+        }
+      }
+    );
+  }
 }
 
-function addLocation(location, country, marker) {
+function addLocation(location, country, marker, iconType) {
   if (allFoundPanoIds.has(location.panoId)) return;
   allFound.push(location);
   allFoundPanoIds.add(location.panoId);
+  let zIndex = 1;
+  let markerLayer = markerLayers["gen4"];
+  if (iconType == gen2Or3Icon) {
+    zIndex = 2;
+    markerLayer = markerLayers["gen2Or3"];
+  } else if (iconType == gen1Icon) {
+    zIndex = 3;
+    markerLayer = markerLayers["gen1"];
+  } else if (iconType == newLocIcon) {
+    zIndex = 4;
+    markerLayer = markerLayers["newRoad"];
+  }
   if (!country || country.found.length < country.nbNeeded) {
     if (country) country.found.push(location);
     if (marker) {
-      L.marker([location.lat, location.lng], { icon: myIcon })
+      L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
       .on('click', () => {
         window.open(`https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}${location.heading ? '&heading=' + location.heading : ''}${location.pitch ? '&pitch=' + location.pitch : ''}`, '_blank');
-        }).addTo(markerLayer);
+        })
+	.setZIndexOffset(zIndex)
+	.addTo(markerLayer);
       }
     }
   }
@@ -1054,7 +1207,9 @@ function getRandomColor() {
 }
 
 function clearMarkers() {
-  markerLayer.clearLayers();
+  Object.values(markerLayers).forEach((markerLayer) => {
+    markerLayer.clearLayers();
+  });
 }
 
 function clearLocations() {
@@ -1117,5 +1272,12 @@ button.close {
 }
 .line {
   line-height: 1.5rem;
+}
+.collapsible {
+  border: none;
+  outline: none;
+  display: block;
+  color: #fff;
+  font-weight: bold;
 }
 </style>
