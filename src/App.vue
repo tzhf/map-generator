@@ -123,8 +123,27 @@
 		        <Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
     			<hr />
 			
-			<Checkbox v-model:checked="settings.hideBlueMarkers" label="Don't show blue markers"/>
-			<Checkbox v-model:checked="settings.gen2Or3Markers" label="Show seperate marker for gen 2/3 update locs"/>
+		       <h4 class="center mb-2">Filter Markers</h4>
+		       <Checkbox
+			v-model:checked="settings.gen4Marker"
+			v-on:change="updateMarkerDisplay('gen4')"
+			label="Gen 4 Update"
+		        />
+		        <Checkbox
+			 v-model:checked="settings.gen2Or3Marker"
+			 v-on:change="updateMarkerDisplay('gen2Or3')"
+			 label="Gen 2 or 3 Update"
+		        />
+		        <Checkbox
+			 v-model:checked="settings.gen1Marker"
+			 v-on:change="updateMarkerDisplay('gen1')"
+			 label="Gen 1 Update"
+		        />
+		        <Checkbox
+			 v-model:checked="settings.newRoadMarker"
+			 v-on:change="updateMarkerDisplay('newRoad')"
+			 label="New Road"
+		         />"/>
 			
 			<div v-if="!settings.selectMonths">
 				<div class="flex space-between mb-2">
@@ -266,6 +285,18 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import borders from "@/utils/borders.json";
 window.type = !0;
 
+(function(global){
+  var MarkerMixin = {
+    _updateZIndex: function (offset) {
+      this._icon.style.zIndex = this.options.forceZIndex ? (this.options.forceZIndex + (this.options.zIndexOffset || 0)) : (this._zIndex + offset);
+    },
+    setForceZIndex: function(forceZIndex) {
+      this.options.forceZIndex = forceZIndex ? forceZIndex : null;
+    }
+  };
+  if (global) global.include(MarkerMixin);
+})(L.Marker);
+
 const state = reactive({
 	started: false,
 	polygonID: 0,
@@ -297,8 +328,10 @@ const settings = reactive({
   	markersOnImport: true,
   	checkImports: false,
 	cluster: true,
-	hideBlueMarkers: false,
-	gen2Or3Markers: false,
+	gen4Marker: true,
+  	gen2Or3Marker: true,
+  	gen1Marker: true,
+  	newRoadMarker: true
   	onlyOneInTimeframe: false,
   	oneCountryAtATime: false,
 	num_of_generators: 1,
@@ -321,10 +354,30 @@ const allFoundPanoIds = new Set();
 let customLayers = {};
 
 const customPolygonsLayer = new L.FeatureGroup();
-const markerLayer = L.markerClusterGroup({
-  maxClusterRadius: 100,
-  disableClusteringAtZoom: 15,
-});
+const markerLayers = {
+  'gen4': L.markerClusterGroup({
+    maxClusterRadius: 100,
+    disableClusteringAtZoom: 15,
+  }),
+  'gen2Or3': L.markerClusterGroup({
+    maxClusterRadius: 100,
+    disableClusteringAtZoom: 15,
+  }),
+  'gen1': L.markerClusterGroup({
+    maxClusterRadius: 100,
+    disableClusteringAtZoom: 15,
+  }),
+  'newRoad': L.markerClusterGroup({
+    maxClusterRadius: 100,
+    disableClusteringAtZoom: 15,
+  }),
+}
+const preHiddenLayers = {
+  'gen4': [],
+  'gen2Or3': [],
+  'gen1': [],
+  'newRoad': []
+}
 const geojson = L.geoJson(borders, {
   style: style,
   onEachFeature: onEachFeature,
@@ -401,7 +454,9 @@ onMounted(() => {
   gsvLayer2.addTo(map);
   geojson.addTo(map);
   customPolygonsLayer.addTo(map);
-  markerLayer.addTo(map);
+  Object.values(markerLayers).forEach((markerLayer) => {
+    markerLayer.addTo(map);
+  });
   updateClusters();
   L.control.layers(baseMaps, overlayMaps, { position: "bottomleft" }).addTo(map);
   map.addControl(drawControl);
@@ -511,7 +566,7 @@ async function locationsFileProcess(e, country) {
             if (!JSONResult.customCoordinates.some(loc => loc.panoId === link)) getPano(link, country);
           }
         }
-        addLocation(location, country, settings.markersOnImport);
+        addLocation(location, country, settings.markersOnImport, gen4Icon);
       }
     } else {
       alert("Unknown file type: " + file.type + ". Only JSON may be imported.");
@@ -549,7 +604,7 @@ const handleRadiusInput = (e) => {
 
 };
 
-const myIcon = L.icon({
+const gen4Icon = L.icon({
   iconUrl: marker,
   iconAnchor: [12, 41],
 });
@@ -630,8 +685,27 @@ top.allJSON = () => {
 };
 
 function updateClusters() {
-  if (settings.cluster) markerLayer.enableClustering();
-  else markerLayer.disableClustering();
+  Object.values(markerLayers).forEach((markerLayer) => {
+    if (settings.cluster) markerLayer.enableClustering();
+    else markerLayer.disableClustering();
+  });
+}
+
+function updateMarkerDisplay(gen) {
+  let hide = false;
+  if ((gen === "gen4" && !settings.gen4Marker)
+   || (gen === "gen2Or3" && !settings.gen2Or3Marker) 
+   || (gen === "gen1" && !settings.gen1Marker)
+   || (gen === "newRoad" && !settings.newRoadMarker)) {
+    hide = true;
+  }
+  if (hide) {
+    preHiddenLayers[gen] = markerLayers[gen];
+    map.removeLayer(markerLayers[gen]);
+  } else {
+    map.addLayer(preHiddenLayers[gen]);
+    preHiddenLayers[gen] = [];
+  }
 }
 
 const generate = async (country) => {
@@ -926,19 +1000,33 @@ function addLoc(pano, country) {
   if (pano.time.length == 1) {
     return addLocation(location, country, true, newLocIcon);
   } else {
+    // Check for ari
+    let panoIndex = pano.time.length - 2;
+    let previousPano;
+    if (settings.rejectUnofficial) {
+      while (panoIndex >= 0) {
+        if (pano.time[panoIndex].pano.length == 22) {
+          previousPano = pano.time[panoIndex].pano;
+          break;
+        } else {
+          panoIndex--;
+        }
+      }
+    }
+    if (!previousPano) {
+      return addLocation(location, country, true, newLocIcon);
+    }
     SV.getPanorama(
-      { pano: pano.time[pano.time.length - 2].pano },
+      { pano: previousPano },
       async (previousPano) => {
-        console.log(previousPano.tiles.worldSize.height);
-        if (previousPano.tiles.worldSize.height === 1664) {
+        if (previousPano.tiles.worldSize.height === 1664) { // Gen 1
           return addLocation(location, country, true, gen1Icon);
         } else if (
-          settings.gen2Or3Markers &&
-          previousPano.tiles.worldSize.height === 6656
+          previousPano.tiles.worldSize.height === 6656 // Gen 2 or 3
         ) {
           return addLocation(location, country, true, gen2Or3Icon);
-        } else if (!settings.hideBlueMarkers) {
-          return addLocation(location, country, true, myIcon);
+        } else { // Gen 4
+          return addLocation(location, country, true, gen4Icon);
         }
       }
     );
@@ -949,13 +1037,27 @@ function addLocation(location, country, marker, iconType) {
   if (allFoundPanoIds.has(location.panoId)) return;
   allFound.push(location);
   allFoundPanoIds.add(location.panoId);
+  let zIndex = 1;
+  let markerLayer = markerLayers["gen4"];
+  if (iconType == gen2Or3Icon) {
+    zIndex = 2;
+    markerLayer = markerLayers["gen2Or3"];
+  } else if (iconType == gen1Icon) {
+    zIndex = 3;
+    markerLayer = markerLayers["gen1"];
+  } else if (iconType == newLocIcon) {
+    zIndex = 4;
+    markerLayer = markerLayers["newRoad"];
+  }
   if (!country || country.found.length < country.nbNeeded) {
     if (country) country.found.push(location);
     if (marker) {
-      L.marker([location.lat, location.lng], { icon: iconType })
+      L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
       .on('click', () => {
         window.open(`https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}${location.heading ? '&heading=' + location.heading : ''}${location.pitch ? '&pitch=' + location.pitch : ''}`, '_blank');
-        }).addTo(markerLayer);
+        })
+	.setZIndexOffset(zIndex)
+	.addTo(markerLayer);
       }
     }
   }
@@ -1096,7 +1198,9 @@ function getRandomColor() {
 }
 
 function clearMarkers() {
-  markerLayer.clearLayers();
+  Object.values(markerLayers).forEach((markerLayer) => {
+    markerLayer.clearLayers();
+  });
 }
 
 function clearLocations() {
