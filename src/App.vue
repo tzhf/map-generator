@@ -59,8 +59,8 @@
 				</div>
 				
 				<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
-				<hr />
 			</div>
+			<hr />
 			
 			<Button @click="collapsible_content" class="collapsible" text="Location properties ↓" title="Location properties ↓" />
 			
