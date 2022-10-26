@@ -533,6 +533,7 @@ function collapsible_content()
 	// Collapisbles
 	var coll = document.getElementsByClassName("collapsible");
 	var i;
+	coll.value.replace("↓","↑");
 
 	for (i = 0; i < coll.length; i++) {
 		coll[i].classList.toggle("active");
