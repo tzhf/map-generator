@@ -39,48 +39,52 @@
 	
 	<div class="overlay top right flex-col gap">
 		<div v-if="!state.started" class="settings">
-			<h4 class="center">Settings</h4>
+			<h4 class="center">Coverage type</h4>
 			
 			<div v-if="!settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
-			<hr />
 			</div>
+			
+			<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
+			<div v-if="settings.findGeneration">
+				<select v-model="settings.generation">
+					<option value="1">Gen 1</option>
+					<option value="23">Gen 2/3</option>
+					<option value="4">Gen 4</option>
+				</select>
+			</div>
+			
+			<Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
 			
 			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
 			<hr />
 
+			<h4 class="center">Location properties</h4>
+			
+			<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
+			
 			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
 				<div v-if="!settings.rejectDescription">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
-				<hr />
-				</div>
+			</div>
 				
-				<Checkbox v-model:checked="settings.rejectDescription" label="Find trekkers" />
-				<hr />
-
-				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
-				<hr />
-				
-			        <Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
-				<hr />
-				
-				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
-				<hr />
-				
-				<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
-				<div v-if="settings.pinpointSearch" class="indent">
-				<label class="flex wrap">
-					Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
-				</label>
-				</div>
-				<hr />
-				
-				<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
+			<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
+			
+			<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
 				<div v-if="settings.checkLinks">
 				<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
 				      Depth: {{ settings.linksDepth }}
 				</div>
-				<hr />
+			
+			<h4 class="center">Map making properties</h4>
+			<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
+			<hr />
+				
+			<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
+			<div v-if="settings.pinpointSearch" class="indent">
+			<label class="flex wrap">
+				Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
+			</label>
 			</div>
 			
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
@@ -90,7 +94,6 @@
 				</label>
 				<small>0° will point directly towards the road.</small>
 			</div>
-			<hr />
 
 			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
 			<div v-if="settings.adjustPitch" class="indent">
@@ -100,30 +103,9 @@
 				<small>0 by default. -90° for tarmac/+90° for sky</small>
 			</div>
 			<hr />
-
-			<div>
-				Radius
-				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
-				m
-			</div>
-			<hr />
-			<div>
-				Generators
-				<input type="number" v-model.number="settings.num_of_generators" />
-				
-			</div>
-			<small>
-				Number of generators per polygon.
-			</small>
-			<hr />
 			
-			<Checkbox v-model:checked="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
-    			<hr />
-			
-		        <Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
-    			<hr />
-			
-		       <h4 class="center mb-2">Filter Markers</h4>
+			<h4 class="center mb-2">Markers</h4>
+			<Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
 		       <Checkbox
 			v-model:checked="settings.gen4Marker"
 			v-on:change="updateMarkerDisplay('gen4')"
@@ -145,6 +127,19 @@
 			 label="New Road"
 		        />
 			<hr />
+			
+			<div>
+				Radius
+				<input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
+				m
+			</div>
+			
+			<div>
+				Generators
+				<input type="number" v-model.number="settings.num_of_generators" />
+			</div>
+			
+			<Checkbox v-model:checked="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
 			
 			<div v-if="!settings.selectMonths">
 				<div class="flex space-between mb-2">
@@ -196,17 +191,6 @@
 					<input type="number" v-model.number="settings.toYear" />
 				</div>
 			</div>
-			<hr />
-			
-		<Checkbox v-model:checked="settings.findGeneration" label="Filter generation" />
-			<div v-if="settings.findGeneration">
-				<select v-model="settings.generation">
-					<option value="1">Gen 1</option>
-					<option value="23">Gen 2/3</option>
-					<option value="4">Gen 4</option>
-				</select>
-			</div>
-		<hr />
 		
 		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 		<small>
