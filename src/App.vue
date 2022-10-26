@@ -41,9 +41,9 @@
 		<div v-if="!state.started" class="settings">
 			<h4 class="center">Coverage type</h4>
 			
-			<Button @click="collapsible_content" class="collapsible" text="↓" title="↓" />
+			<Button @click="collapsible_content" class="collapsible" text="Coverage type ↓" title="Coverage type ↓" />
 			
-			<div class="coverageType">
+			<div class="coverageType" style="display: block;">
 				<div v-if="!settings.rejectOfficial">
 				<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 				</div>
