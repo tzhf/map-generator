@@ -70,66 +70,72 @@
 				<div v-if="!settings.rejectDescription">
 					<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
 				</div>
+				
+				<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
+				
+				<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
+				<div v-if="settings.checkLinks">
+					<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
+					Depth: {{ settings.linksDepth }}
+				</div>
 			</div>
 				
-			<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
-			
-			<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
-				<div v-if="settings.checkLinks">
-				<input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
-				      Depth: {{ settings.linksDepth }}
-				</div>
 			<hr />
 			
 			<h4 class="center">Map making properties</h4>
-			<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
-				
-			<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
-			<div v-if="settings.pinpointSearch" class="indent">
-			<label class="flex wrap">
-				Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
-			</label>
-			</div>
 			
-			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
-			<div v-if="settings.adjustHeading" class="indent">
-				<label class="flex wrap">
-					Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
-				</label>
-				<small>0° will point directly towards the road.</small>
-			</div>
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+				<Checkbox v-model:checked="settings.getIntersection" label="Find intersection locations" />
 
-			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
-			<div v-if="settings.adjustPitch" class="indent">
+				<Checkbox v-model:checked="settings.pinpointSearch" label="Find curve locations" />
+				<div v-if="settings.pinpointSearch" class="indent">
 				<label class="flex wrap">
-					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
+					Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{ settings.pinpointAngle }}°)
 				</label>
-				<small>0 by default. -90° for tarmac/+90° for sky</small>
+				</div>
+
+				<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
+				<div v-if="settings.adjustHeading" class="indent">
+					<label class="flex wrap">
+						Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
+					</label>
+					<small>0° will point directly towards the road.</small>
+				</div>
+
+				<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
+				<div v-if="settings.adjustPitch" class="indent">
+					<label class="flex wrap">
+						Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
+					</label>
+					<small>0 by default. -90° for tarmac/+90° for sky</small>
+				</div>
 			</div>
 			<hr />
 			
 			<h4 class="center mb-2">Markers</h4>
-			<Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
-		       <Checkbox
-			v-model:checked="settings.gen4Marker"
-			v-on:change="updateMarkerDisplay('gen4')"
-			label="Gen 4 Update"
-		        />
-		        <Checkbox
-			 v-model:checked="settings.gen2Or3Marker"
-			 v-on:change="updateMarkerDisplay('gen2Or3')"
-			 label="Gen 2 or 3 Update"
-		        />
-		        <Checkbox
-			 v-model:checked="settings.gen1Marker"
-			 v-on:change="updateMarkerDisplay('gen1')"
-			 label="Gen 1 Update"
-		        />
-		        <Checkbox
-			 v-model:checked="settings.newRoadMarker"
-			 v-on:change="updateMarkerDisplay('newRoad')"
-			 label="New Road"
-		        />
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+				<Checkbox v-model:checked="settings.cluster" v-on:change="updateClusters" label="Cluster markers" title="For lag reduction." />
+			       <Checkbox
+				v-model:checked="settings.gen4Marker"
+				v-on:change="updateMarkerDisplay('gen4')"
+				label="Gen 4 Update"
+				/>
+				<Checkbox
+				 v-model:checked="settings.gen2Or3Marker"
+				 v-on:change="updateMarkerDisplay('gen2Or3')"
+				 label="Gen 2 or 3 Update"
+				/>
+				<Checkbox
+				 v-model:checked="settings.gen1Marker"
+				 v-on:change="updateMarkerDisplay('gen1')"
+				 label="Gen 1 Update"
+				/>
+				<Checkbox
+				 v-model:checked="settings.newRoadMarker"
+				 v-on:change="updateMarkerDisplay('newRoad')"
+				 label="New Road"
+				/>
+			</div>
 			<hr />
 			
 			<div>
