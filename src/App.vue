@@ -384,7 +384,7 @@ const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
 const cartoLightLayer = L.tileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png", { subdomains: ["a", "b", "c"] });
 const cartoDarkLayer = L.tileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png", { subdomains: ["a", "b", "c"] });
 const gsvLayer = L.tileLayer("https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m8!1e2!2ssvv!4m2!1scb_client!2sapiv3!4m2!1scc!2s*211m3*211e3*212b1*213e2*211m3*211e2*212b1*213e2!3m3!3sUS!12m1!1e68!4e0");
-const gsvLayer2 = L.tileLayer("https://{s}.google.com/mapslt?lyrs=svv&x={x}&y={y}&z={z}&w=256&h=256&hl=en&style=40,18", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
+const gsvLayer2 = L.tileLayer("https://{s}.googleapis.com/vt?hl=en-US&lyrs=svv|cb_client:app&style=5,8&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
 const gsvLayer3 = L.tileLayer("https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m8!1e2!2ssvv!4m2!1scb_client!2sapiv3!4m2!1scc!2s*211m3*211e3*212b1*213e2*211m3*211e2*212b1*213e2!3m3!3sUS!12m1!1e68!4e0", { minZoom: 12, minNativeZoom: 14 });
 const baseMaps = {
   Roadmap: roadmapLayer,
