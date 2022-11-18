@@ -320,7 +320,7 @@ const settings = reactive({
 	linksDepth: 2,
   	markersOnImport: true,
   	checkImports: false,
-	cluster: true,
+	cluster: false,
 	gen4Marker: true,
   	gen2Or3Marker: true,
   	gen1Marker: true,
