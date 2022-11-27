@@ -202,7 +202,12 @@
 					<label> and </label>
 					<input type="number" v-model.number="settings.toYear" />
 				</div>
-			</div>
+		</div>
+		
+		<Checkbox v-model:checked="settings.findRegions" label="Filter by distance from locations" />
+		<div v-if="settings.findRegions">
+			<input type="number" v-model.number="settings.regionRadius" />
+		</div>
 		
 		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			 
@@ -334,6 +339,8 @@ const settings = reactive({
 	pinpointSearch: false,
 	pinpointAngle: 145,
 	selectMonths: false,
+	findRegions: false,
+	regionRadius: 100,
 });
 
 const select = ref("Select a country or draw a polygon");
@@ -780,11 +787,13 @@ async function getLoc(loc, country) {
 	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
-
-	if (allFound.length > 0){
-		for (let i = 0; i < allFound.length; i++){
-			if (distance(allFound[i], loc) < 300*1000){
-				return false;
+	
+	if (settings.findRegions){
+		if (allFound.length > 0){
+			for (let i = 0; i < allFound.length; i++){
+				if (distance(allFound[i], loc) < settings.regionRadius * 1000){
+					return false;
+				}
 			}
 		}
 	}
