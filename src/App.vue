@@ -802,9 +802,11 @@ async function getLoc(loc, country) {
 	if (settings.findRegions){
 		var i = 0, len = allFound.length;
 		while (i < len){
-			if (distance(allFound[i], loc) < settings.regionRadius * 1000){
+			if (distance(allFound[i], loc) < settings.regionRadius * 1000) {
 				return false;
 			}
+			console.log(allFound[i]);
+			console.log(loc);
 			console.log(distance(allFound[i], loc));
 			i++;
 		}
