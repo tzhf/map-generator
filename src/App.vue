@@ -746,6 +746,28 @@ function getCameraGeneration(res){
 	}
 }
 
+function distance(coords1, coords2)
+{
+  // var R = 6.371; // km
+  var R = 6371000;
+  var dLat = toRad(coords2.lat-coords1.lat);
+  var dLon = toRad(coords2.lng-coords1.lng);
+  var lat1 = toRad(coords1.lat);
+  var lat2 = toRad(coords2.lat);
+
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c;
+  return d;
+}
+
+// Converts numeric degrees to radians
+function toRad(Value)
+{
+    return Value * Math.PI / 180;
+}
+
 async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
@@ -758,6 +780,12 @@ async function getLoc(loc, country) {
 	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
+
+	for (i in AllFound){
+		if (distance(i, loc) < 300*1000){
+			return false;
+		}
+	}
     
     if (settings.rejectOfficial) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
