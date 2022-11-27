@@ -793,16 +793,13 @@ async function getLoc(loc, country) {
     }
 	
 	if (settings.findRegions){
-		if (allFound.length > 0){
-			var i = 0, len = allFound.length;
-			while (i < len){
-				if (distance(allFound[i], loc) < settings.regionRadius * 1000){
-					return false;
-				}
-				i++;
-				sleep(2000);
-				len = allFound.length;
+		var i = 0, len = allFound.length;
+		while (i < len){
+			if (distance(allFound[i], loc) < settings.regionRadius * 1000){
+				return false;
 			}
+			i++;
+			sleep(2000);
 		}
 	}
     
