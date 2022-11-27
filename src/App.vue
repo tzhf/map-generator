@@ -805,6 +805,7 @@ async function getLoc(loc, country) {
 			if (distance(allFound[i], loc) < settings.regionRadius * 1000){
 				return false;
 			}
+			console.log(distance(allFound[i], loc));
 			i++;
 		}
 	}
