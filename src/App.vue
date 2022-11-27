@@ -783,7 +783,7 @@ async function getLoc(loc, country) {
 
 	if (allFound.length > 0){
 		for (let i = 0; i < allFound.length; i++){
-			if (distance(allFound[i], loc) < 100){
+			if (distance(allFound[i], loc) < 300*1000){
 				return false;
 			}
 		}
