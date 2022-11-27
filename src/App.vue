@@ -781,11 +781,13 @@ async function getLoc(loc, country) {
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
 
-	for (i in AllFound){
-		console.log(i);
-		console.log(distance(i,loc));
-		if (distance(i, loc) < 300*1000){
-			return false;
+	if (allFound.length > 0){
+		for (i in AllFound){
+			console.log(i);
+			console.log(distance(i,loc));
+			if (distance(i, loc) < 300*1000){
+				return false;
+			}
 		}
 	}
     
