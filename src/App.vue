@@ -781,13 +781,13 @@ async function getLoc(loc, country) {
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
 
-	//if (allFound.length > 0){
-		//for (i in AllFound){
-			//if (distance(i, loc) < 100){
-				//return false;
-			//}
-		//}
-	//}
+	if (allFound.length > 0){
+		for (let i = 0; i < allFound.length; i++){
+			if (distance(allFound[i], loc) < 100){
+				return false;
+			}
+		}
+	}
     
     if (settings.rejectOfficial) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
