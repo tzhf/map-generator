@@ -800,6 +800,7 @@ async function getLoc(loc, country) {
     }
 	
 	if (settings.findRegions){
+		settings.checkAllDates = false;
 		var i = 0, len = country.found.length;
 		while (i < len){
 			if (distance(country.found[i], loc) < settings.regionRadius * 1000) {
