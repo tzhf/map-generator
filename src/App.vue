@@ -775,6 +775,10 @@ function toRad(Value)
     return Value * Math.PI / 180;
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
@@ -790,7 +794,7 @@ async function getLoc(loc, country) {
 	
 	if (settings.findRegions){
 		if (allFound.length > 0){
-			await new Promise(r => setTimeout(r, 100));
+			sleep(100);
 			var i = 0, len = allFound.length;
 			while (i < len){
 				if (distance(allFound[i], loc) < settings.regionRadius * 1000){
