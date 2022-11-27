@@ -790,10 +790,12 @@ async function getLoc(loc, country) {
 	
 	if (settings.findRegions){
 		if (allFound.length > 0){
-			for (let i = 0; i < allFound.length; i++){
+			var i = 0, len = allFound.length;
+			while (i < len){
 				if (distance(allFound[i], loc) < settings.regionRadius * 1000){
 					return false;
 				}
+				i++;
 			}
 		}
 	}
