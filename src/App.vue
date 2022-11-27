@@ -206,7 +206,7 @@
 		
 		<Checkbox v-model:checked="settings.findRegions" label="Filter by distance from locations" />
 		<div v-if="settings.findRegions">
-			<input type="number" v-model.number="settings.regionRadius" />
+			<input type="number" v-model.number="settings.regionRadius" /> <label> km </label>
 		</div>
 		
 		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
@@ -736,9 +736,16 @@ const generate = async (country) => {
       const point = randomPointInPoly(country);
       if (booleanPointInPolygon([point.lng, point.lat], country.feature)) randomCoords.push(point);
     }
-    for (const locationGroup of randomCoords.chunk(1)) {
-      await Promise.allSettled(locationGroup.map((l) => getLoc(l, country)));
-    }
+	if (!settings.findRegions){
+		for (const locationGroup of randomCoords.chunk(75)) {
+		  await Promise.allSettled(locationGroup.map((l) => getLoc(l, country)));
+		}
+	}
+	else if (settings.findRegions){
+		for (const locationGroup of randomCoords.chunk(1)) {
+		  await Promise.allSettled(locationGroup.map((l) => getLoc(l, country)));
+		}
+	}
   }
   country.isProcessing = false;
 };
@@ -796,10 +803,8 @@ async function getLoc(loc, country) {
 		var i = 0, len = allFound.length;
 		while (i < len){
 			if (distance(allFound[i], loc) < settings.regionRadius * 1000){
-				console.log("loc: " + loc.lat + " " + distance(allFound[i],loc));
 				return false;
 			}
-			console.log("OK loc: " + loc.lat + " " + distance(allFound[i],loc));
 			i++;
 		}
 	}
