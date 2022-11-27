@@ -736,7 +736,7 @@ const generate = async (country) => {
       const point = randomPointInPoly(country);
       if (booleanPointInPolygon([point.lng, point.lat], country.feature)) randomCoords.push(point);
     }
-    for (const locationGroup of randomCoords.chunk(75)) {
+    for (const locationGroup of randomCoords.chunk(1)) {
       await Promise.allSettled(locationGroup.map((l) => getLoc(l, country)));
     }
   }
