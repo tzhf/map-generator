@@ -782,6 +782,8 @@ async function getLoc(loc, country) {
     }
 
 	for (i in AllFound){
+		console.log(i);
+		console.log(distance(i,loc));
 		if (distance(i, loc) < 300*1000){
 			return false;
 		}
