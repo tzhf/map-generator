@@ -800,7 +800,7 @@ async function getLoc(loc, country) {
 					return false;
 				}
 				i++;
-				sleep(100);
+				sleep(2000);
 				len = allFound.length;
 			}
 		}
