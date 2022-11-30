@@ -202,7 +202,12 @@
 					<label> and </label>
 					<input type="number" v-model.number="settings.toYear" />
 				</div>
-			</div>
+		</div>
+		
+		<Checkbox v-model:checked="settings.findRegions" label="Filter by distance from locations" />
+		<div v-if="settings.findRegions">
+			<input type="number" v-model.number="settings.regionRadius" /> <label> km </label>
+		</div>
 		
 		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			 
@@ -278,6 +283,12 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import borders from "@/utils/borders.json";
 window.type = !0;
 
+window.onbeforeunload = function(e) {
+	if (state.started){
+		return 'Are you sure you want to stop the generator?';
+	}
+};
+
 (function(global){
   var MarkerMixin = {
     _updateZIndex: function (offset) {
@@ -334,6 +345,8 @@ const settings = reactive({
 	pinpointSearch: false,
 	pinpointAngle: 145,
 	selectMonths: false,
+	findRegions: false,
+	regionRadius: 100,
 });
 
 const select = ref("Select a country or draw a polygon");
@@ -729,9 +742,16 @@ const generate = async (country) => {
       const point = randomPointInPoly(country);
       if (booleanPointInPolygon([point.lng, point.lat], country.feature)) randomCoords.push(point);
     }
-    for (const locationGroup of randomCoords.chunk(75)) {
-      await Promise.allSettled(locationGroup.map((l) => getLoc(l, country)));
-    }
+	if (!settings.findRegions){
+		for (const locationGroup of randomCoords.chunk(75)) {
+		  await Promise.allSettled(locationGroup.map((l) => getLoc(l, country)));
+		}
+	}
+	else if (settings.findRegions){
+		for (const locationGroup of randomCoords.chunk(1)) {
+		  await Promise.allSettled(locationGroup.map((l) => getLoc(l, country)));
+		}
+	}
   }
   country.isProcessing = false;
 };
@@ -746,6 +766,32 @@ function getCameraGeneration(res){
 	}
 }
 
+function distance(coords1, coords2)
+{
+  // var R = 6.371; // km
+  var R = 6371000;
+  var dLat = toRad(coords2.lat-coords1.lat);
+  var dLon = toRad(coords2.lng-coords1.lng);
+  var lat1 = toRad(coords1.lat);
+  var lat2 = toRad(coords2.lat);
+
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c;
+  return d;
+}
+
+// Converts numeric degrees to radians
+function toRad(Value)
+{
+    return Value * Math.PI / 180;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function getLoc(loc, country) {
   return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
@@ -758,6 +804,17 @@ async function getLoc(loc, country) {
 	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
+	
+	if (settings.findRegions){
+		settings.checkAllDates = false;
+		var i = 0, len = country.found.length;
+		while (i < len){
+			if (distance(country.found[i], loc) < settings.regionRadius * 1000) {
+				return false;
+			}
+			i++;
+		}
+	}
     
     if (settings.rejectOfficial) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
