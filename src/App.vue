@@ -282,8 +282,16 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
 import borders from "@/utils/borders.json";
 window.type = !0;
-window.onbeforeunload = function(){
-    return "Are you sure you want to close the generator?";
+
+window.onbeforeunload = function (event) {
+  var message = 'Sure you want to leave?';
+  if (typeof event == 'undefined') {
+    event = window.event;
+  }
+  if (event) {
+    event.returnValue = message;
+  }
+  return message;
 }
 
 (function(global){
