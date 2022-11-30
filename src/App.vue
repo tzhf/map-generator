@@ -282,6 +282,9 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
 import borders from "@/utils/borders.json";
 window.type = !0;
+window.onbeforeunload = function(){
+    return "Are you sure you want to close the generator?";
+}
 
 (function(global){
   var MarkerMixin = {
