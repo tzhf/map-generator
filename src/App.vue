@@ -284,7 +284,9 @@ import borders from "@/utils/borders.json";
 window.type = !0;
 
 window.onbeforeunload = function(e) {
-    return 'Please press the Logout button to logout.';
+	if (state.started){
+		return 'Are you sure you want to stop the generator?';
+	}
 };
 
 (function(global){
