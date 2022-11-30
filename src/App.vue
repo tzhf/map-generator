@@ -204,7 +204,7 @@
 				</div>
 		</div>
 		
-		<Checkbox v-model:checked="settings.findRegions" label="Filter by distance from locations" />
+		<Checkbox v-model:checked="settings.findRegions" label="Filter by minimum distance from locations" />
 		<div v-if="settings.findRegions">
 			<input type="number" v-model.number="settings.regionRadius" /> <label> km </label>
 		</div>
