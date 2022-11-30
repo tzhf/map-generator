@@ -283,12 +283,6 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import borders from "@/utils/borders.json";
 window.type = !0;
 
-window.onbeforeunload = function(e) {
-	if (state.started){
-		return 'Are you sure you want to stop the generator?';
-	}
-};
-
 (function(global){
   var MarkerMixin = {
     _updateZIndex: function (offset) {
@@ -358,6 +352,12 @@ let map;
 const allFound = [];
 const allFoundPanoIds = new Set();
 let customLayers = {};
+
+window.onbeforeunload = function(e) {
+	if (allFound.length > 0){
+		return 'Are you sure you want to stop the generator?';
+	}
+};
 
 const customPolygonsLayer = new L.FeatureGroup();
 const markerLayers = {
