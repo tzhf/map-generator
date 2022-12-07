@@ -311,7 +311,7 @@ const settings = reactive({
 	rejectDateless: true,
 	adjustHeading: true,
 	headingDeviation: 0,
-	adjustPitch: true,
+	adjustPitch: false,
 	pitchDeviation: 10,
 	rejectByYear: false,
 	fromDate: "2009-01",
