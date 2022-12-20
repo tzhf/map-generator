@@ -573,7 +573,7 @@ async function changeLocationsCaps() {
 }
 
 async function changePolygonName(country){
-  if (!country.feature.properties.code.length > 0){
+  if (!country.feature.properties.code.length == 2){
 	let newName = prompt("New name for polygon: ");
 	country.feature.properties.name = newName;
   }
