@@ -20,12 +20,14 @@
 	       <div v-for="country of selected" class="line flex space-between">
 		<div class="flex-center">
 		  <span v-if="country.feature.properties.code" :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>
-		  {{ getName(country) }}
+		  <label for="countryNameInput" @click="changePolygonName(country)"> 
+			{{ getName(country) }}
+		  </label>
 		  <Spinner v-if="state.started && country.isProcessing" class="ml-2" />
 		</div>
 		<label class="smallbtn bg-success">
 		  <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
-		  Import Locations
+		  Import locations
 		</label>
 		<div> 
 		  {{ country.found ? country.found.length : "0" }} / 
@@ -569,6 +571,16 @@ async function changeLocationsCaps() {
     for (const polygon of selected.value) polygon.nbNeeded = newCap;
   }
 }
+
+async function changePolygonName(country){
+  if (typeof country.feature.properties.code == 'undefined'){
+	let newName = prompt("New name for polygon: ");
+	country.feature.properties.name = newName;
+	//let countryCode = prompt("Country code (optional): ");
+	//country.feature.properties.code = countryCode;
+  }
+}
+
 
 async function locationsFileProcess(e, country) {
   for (const file of e.target.files) {
