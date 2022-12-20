@@ -20,7 +20,7 @@
 	       <div v-for="country of selected" class="line flex space-between">
 		<div class="flex-center">
 		  <span v-if="country.feature.properties.code" :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>
-		  <label> 
+		  <label for="countryNameInput" onclick="changePolygonName(country)"> 
 			{{ getName(country) }}
 		  </label>
 		  <Spinner v-if="state.started && country.isProcessing" class="ml-2" />
