@@ -9,7 +9,7 @@
 				<Button v-if="selected.length" @click="deselectAll" class="bg-danger" text="Deselect all" title="Deselect all" />
 			</div>
 		</div>
-		
+
 		<div v-if="selected.length" class="selected">
 			<h4 class="center mb-2">Countries/Territories ({{ selected.length }})</h4>
 			<Checkbox v-model:checked="settings.markersOnImport" label="Add markers to imported locations" title="This may affect performance." />
@@ -574,9 +574,8 @@ async function changeLocationsCaps() {
 
 async function changePolygonName(country){
   const newName = prompt("New name for polygon: ");
-  if (country.feature.properties.code = null){
+  if (country.feature.properties.code.length == 0)
 	country.feature.properties.name = newName;
-  } 
 }
 
 
