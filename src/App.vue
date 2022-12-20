@@ -950,10 +950,14 @@ function isPanoGood(pano) {
     }
   }
   
+  
   if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
 	if (!pano.time?.length) return false;
 	if (settings.findGeneration){
 		if (getCameraGeneration(pano) != settings.generation) return false;	
+	}
+	if (settings.rejectGen1){
+		if (getCameraGeneration(pano) == 1) return false;
 	}
 	let dateWithin = false;
 	for (var i = 0; i < pano.time.length; i++) {
