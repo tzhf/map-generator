@@ -29,7 +29,7 @@
 		  <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
 		  Import
 		</label>
-		<div> 
+		<div>
 		  {{ country.found ? country.found.length : "0" }} / 
 		  <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
 		</div>
