@@ -576,8 +576,8 @@ async function changePolygonName(country){
   if (typeof country.feature.properties.code == 'undefined'){
 	let newName = prompt("New name for polygon: ");
 	country.feature.properties.name = newName;
-	let countryCode = prompt("Country code (optional): ");
-	country.feature.properties.code = countryCode;
+	//let countryCode = prompt("Country code (optional): ");
+	//country.feature.properties.code = countryCode;
   }
 }
 
