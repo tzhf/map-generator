@@ -45,9 +45,11 @@
 			
 			<div v-if="!settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
+			<Checkbox v-model:checked="settings.rejectGen1" label="Reject gen 1" />
 			</div>
+			
 
-			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial && !settings.rejectGen1">
 			<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
 				<div v-if="settings.findGeneration">
 					<select v-model="settings.generation">
@@ -307,6 +309,7 @@ const dateToday = new Date().getFullYear() + "-" + String(new Date().getMonth() 
 const settings = reactive({
 	radius: 500,
 	rejectUnofficial: true,
+	rejectGen1: false,
 	rejectOfficial: false,
 	rejectNoDescription: true,
 	rejectDescription: false,
@@ -833,6 +836,10 @@ async function getLoc(loc, country) {
     if (settings.rejectOfficial) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
     }
+	
+	if (settings.rejectGen1){
+		if (getCameraGeneration(res) == 1) return false;
+	}
 	
 	if (settings.findGeneration && (!settings.checkAllDates || settings.selectMonths)){
 		if (getCameraGeneration(res) != settings.generation) return false;	
