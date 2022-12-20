@@ -26,7 +26,7 @@
 		<Button @click="changePolygonName(country)" class="smallbtn bg-success" title="Set name" text="Set name" />
 		<label class="smallbtn bg-success">
 		  <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
-		  Import Locations
+		  Import
 		</label>
 		<div> 
 		  {{ country.found ? country.found.length : "0" }} / 
@@ -34,7 +34,7 @@
 		</div>
 	      </div>
 	    </div>
-	    <Button @click="clearMarkers" class="bg-warning" text="Clear markers" optText="(for performance, this won't erase your generated locations)" title="Clear markers" />
+	    <Button @click="clearMarkers" class="bg-warning" text="Clear markers" title="Clear markers" />
 	    <Button @click="clearLocations" class="bg-warning" text="Erase generated locations" title="Erase generated locations" />
   	</div>
 	
