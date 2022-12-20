@@ -53,7 +53,7 @@
 					<select v-model="settings.generation">
 						<option value="1">Gen 1</option>
 						<option value="23">Gen 2/3</option>
-						<option value="(23 || 4)">Gen 2/3/4</option>
+						<option value="23|4">Gen 2/3/4</option>
 						<option value="4">Gen 4</option>
 					</select>
 				</div>
