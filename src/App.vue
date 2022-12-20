@@ -25,7 +25,6 @@
 		  </label>
 		  <Spinner v-if="state.started && country.isProcessing" class="ml-2" />
 		</div>
-		<Button @click="changePolygonName(country)" class="smallbtn bg-success" title="Set name" text="Set name" />
 		<label class="smallbtn bg-success">
 		  <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
 		  Import
