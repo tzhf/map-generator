@@ -27,9 +27,9 @@
 		</div>
 		<label class="smallbtn bg-success">
 		  <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
-		  Import
+		  Import locations
 		</label>
-		<div>
+		<div> 
 		  {{ country.found ? country.found.length : "0" }} / 
 		  <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
 		</div>
@@ -574,7 +574,9 @@ async function changeLocationsCaps() {
 
 async function changePolygonName(country){
   const newName = prompt("New name for polygon: ");
-  country.feature.properties.name = newName;
+  if (country.feature.properties.code = null){
+	country.feature.properties.name = newName;
+  } 
 }
 
 
