@@ -574,7 +574,7 @@ async function changeLocationsCaps() {
 async function changePolygonName(country){
   const newName = Math.abs(parseInt(prompt("New name for polygon: ")));
   if (!isNaN(newName)) {
-	country.feature.properties.name = newName;
+	country.feature.properties.name = `tetsets`;
   }
 }
 
