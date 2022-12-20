@@ -45,9 +45,9 @@
 			
 			<div v-if="!settings.rejectOfficial">
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
+			<Checkbox v-model:checked="settings.rejectGen1" label="Reject gen 1" />
 			</div>
 			
-			<Checkbox v-model:checked="settings.rejectGen1" label="Reject gen 1" />
 
 			<div v-if="settings.rejectUnofficial && !settings.rejectOfficial && !settings.rejectGen1">
 			<Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
