@@ -23,6 +23,7 @@
 		  {{ getName(country) }}
 		  <Spinner v-if="state.started && country.isProcessing" class="ml-2" />
 		</div>
+		<Button @click="changePolygonName(country)" class="smallbtn bg-success" title="Set polygon name" text="Set polygon name" />
 		<label class="smallbtn bg-success">
 		  <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
 		  Import Locations
@@ -569,6 +570,14 @@ async function changeLocationsCaps() {
     for (const polygon of selected.value) polygon.nbNeeded = newCap;
   }
 }
+
+async function changePolygonName(country){
+  const newName = Math.abs(parseInt(prompt("New name for polygon: ")));
+  if (!isNaN(newName)) {
+	country.feature.properties.name = newName;
+  }
+}
+
 
 async function locationsFileProcess(e, country) {
   for (const file of e.target.files) {
