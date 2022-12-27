@@ -101,7 +101,7 @@
 				<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 				<div v-if="settings.adjustHeading" class="indent">
 					<label class="flex wrap">
-						Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
+						Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="90" /> (+/- {{ settings.headingDeviation }}°)
 					</label>
 					<small>0° will point directly towards the road.</small>
 				</div>
