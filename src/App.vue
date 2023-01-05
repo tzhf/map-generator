@@ -324,7 +324,7 @@ const settings = reactive({
 	fromMonth: "01",
 	toMonth: "12",
 	fromYear: "2007",
-	toYear: "2022",
+	toYear: "2023",
 	checkAllDates: true,
 	checkLinks: false,
 	linksDepth: 2,
