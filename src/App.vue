@@ -858,7 +858,6 @@ async function getLoc(loc, country) {
           // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
           dateWithin = true;
           getPano(loc.pano, country);
-		  break;
         }
       }
       if (!dateWithin) return false;
