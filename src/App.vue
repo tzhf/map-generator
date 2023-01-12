@@ -885,14 +885,12 @@ async function getLoc(loc, country) {
 			if (fromMonth <= toMonth){
 				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear >= fromYear && iDateYear <= toYear) {
 					dateWithin = true;
-					getPano(res.time[i].pano, country);
 					break;
 				}
 			}
 			else {
 				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear >= fromYear && iDateYear <= toYear) {
 					dateWithin = true;
-					getPano(res.time[i].pano, country);
 					break;
 				}
 			}
