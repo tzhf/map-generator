@@ -868,46 +868,44 @@ async function getLoc(loc, country) {
     }
     
     if (settings.selectMonths && !settings.rejectOfficial) {
-	if (!res.time?.length) return false;
-	let dateWithin = false;
-	const fromMonth = settings.fromMonth;
-	const toMonth = settings.toMonth;
-	const fromYear = settings.fromYear;
-	const toYear = settings.toYear;
-	if (settings.checkAllDates){
-		for (var i = 0; i < res.time.length; i++) {
-			const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
+		if (!res.time?.length) return false;
+		let dateWithin = false;
+		const fromMonth = settings.fromMonth;
+		const toMonth = settings.toMonth;
+		const fromYear = settings.fromYear;
+		const toYear = settings.toYear;
+		if (settings.checkAllDates){
+			for (var i = 0; i < res.time.length; i++) {
+				const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val));
 
-			if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if res ID is 22 characters long. Otherwise, it's an Ari
-			const iDateMonth = timeframeDate.getMonth() + 1;
-			const iDateYear = timeframeDate.getFullYear(); 
+				if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue; // Checks if res ID is 22 characters long. Otherwise, it's an Ari
+				const iDateMonth = timeframeDate.getMonth() + 1;
+				const iDateYear = timeframeDate.getFullYear(); 
 
-			if (fromMonth <= toMonth){
-				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear >= fromYear && iDateYear <= toYear) {
-					dateWithin = true;
-					getPano(res.time[i].pano, country);
-					break;
+				if (fromMonth <= toMonth){
+					if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear >= fromYear && iDateYear <= toYear) {
+						dateWithin = true;
+						getPano(res.time[i].pano, country);
+					}
 				}
-			}
-			else {
-				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear >= fromYear && iDateYear <= toYear) {
-					dateWithin = true;
-					getPano(res.time[i].pano, country);
-					break;
+				else {
+					if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear >= fromYear && iDateYear <= toYear) {
+						dateWithin = true;
+						getPano(res.time[i].pano, country);
+					}
 				}
-			}
-		} 
-		if (!dateWithin) return false;
-	}
-	else{
-		if (res.imageDate.slice(0, 4) < fromYear || res.imageDate.slice(0, 4) > toYear) return false;
-		if (fromMonth <= toMonth){
-			if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return false;
+			} 
+			if (!dateWithin) return false;
 		}
 		else{
-			if (res.imageDate.slice(5) < fromMonth && res.imageDate.slice(5) > toMonth) return false;
+			if (res.imageDate.slice(0, 4) < fromYear || res.imageDate.slice(0, 4) > toYear) return false;
+			if (fromMonth <= toMonth){
+				if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return false;
+			}
+			else{
+				if (res.imageDate.slice(5) < fromMonth && res.imageDate.slice(5) > toMonth) return false;
+			}
 		}
-	}
     }
 
     return true;
