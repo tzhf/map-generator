@@ -885,12 +885,14 @@ async function getLoc(loc, country) {
 			if (fromMonth <= toMonth){
 				if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear >= fromYear && iDateYear <= toYear) {
 					dateWithin = true;
+					getPano(res.time[i].pano, country);
 					break;
 				}
 			}
 			else {
 				if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear >= fromYear && iDateYear <= toYear) {
 					dateWithin = true;
+					getPano(res.time[i].pano, country);
 					break;
 				}
 			}
@@ -1038,7 +1040,7 @@ function getPanoDeep(id, country, depth) {
     if (!pano) console.log(status, pano);
     const inCountry = booleanPointInPolygon([pano.location.latLng.lng(), pano.location.latLng.lat()], country.feature);
     const isPanoGoodAndInCountry = isPanoGood(pano) && inCountry;
-    if (settings.checkAllDates && pano.time) {
+    if (settings.checkAllDates && !settings.selectMonths && pano.time) {
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
       for (const loc of pano.time) {
