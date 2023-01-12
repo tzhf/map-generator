@@ -894,8 +894,8 @@ async function getLoc(loc, country) {
 					break;
 				}
 			}
-			if (!dateWithin) return false;
 		} 
+		if (!dateWithin) return false;
 	}
 	else{
 		if (res.imageDate.slice(0, 4) < fromYear || res.imageDate.slice(0, 4) > toYear) return false;
