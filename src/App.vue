@@ -6,7 +6,8 @@
 			<h4 class="select mb-2">{{ select }}</h4>
 			<div class="flex gap">
 				<Button @click="selectAll" class="bg-success" text="Select all" title="Select all" />
-				<Button v-if="selected.length" @click="deselectAll" class="bg-danger" text="Deselect all" title="Deselect all" />
+				<Button v-if="selected.length" @click="deselectAll" class="bg-danger" text="Deselect all"
+					title="Deselect all" />
 			</div>
 		</div>
 
@@ -14,22 +15,19 @@
 			<h4 class="center mb-2">Countries/Territories ({{ selected.length }})</h4>
 			<div v-for="country of selected" class="line flex space-between">
 				<div class="flex-center">
-					<span v-if="country.feature.properties.code" :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>
+					<span v-if="country.feature.properties.code"
+						:class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"></span>
 					{{ country.feature.properties.name }}
 					<Spinner v-if="state.started && country.isProcessing" class="ml-2" />
 				</div>
 				<div>
-					{{ country.found ? country.found.length : "0" }} / <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
+					{{ country.found ? country.found.length : "0" }} / <input type="number"
+						:min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
 				</div>
 			</div>
 		</div>
-		<Button
-			@click="clearMarkers"
-			class="bg-warning"
-			text="Clear markers"
-			optText="(for performance, this won't erase your generated locations)"
-			title="Clear markers"
-		/>
+		<Button @click="clearMarkers" class="bg-warning" text="Clear markers"
+			optText="(for performance, this won't erase your generated locations)" title="Clear markers" />
 	</div>
 
 	<div class="overlay top right flex-col gap">
@@ -40,10 +38,9 @@
 
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
-				<small
-					>This might prevent trekkers in most cases, but can reject regular streetview without description. (eg. Mongolia/South Korea panoramas mostly don't
-					have description)</small
-				>
+				<small>This might prevent trekkers in most cases, but can reject regular streetview without description.
+					(eg. Mongolia/South Korea panoramas mostly don't
+					have description)</small>
 				<hr />
 
 				<Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
@@ -57,16 +54,20 @@
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 			<div v-if="settings.adjustHeading" class="indent">
 				<label class="flex wrap">
-					Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="50" /> (+/- {{ settings.headingDeviation }}°)
+					Deviation <input type="range" v-model.number="settings.headingDeviation" min="-90" max="90" /> ({{
+							settings.headingDeviation
+					}}°)
 				</label>
 				<small>0° will point directly towards the road.</small>
+				<Checkbox v-model:checked="settings.randomHeadingDeviation" label="Randomize in range" />
 			</div>
 			<hr />
 
 			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
 			<div v-if="settings.adjustPitch" class="indent">
 				<label class="flex wrap">
-					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{ settings.pitchDeviation }}°)
+					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" />
+					({{ settings.pitchDeviation }}°)
 				</label>
 				<small>0 by default. -90° for tarmac/+90° for sky</small>
 			</div>
@@ -79,7 +80,8 @@
 			</div>
 			<small>
 				Radius in which to search for a panorama.<br />
-				Keep it between 100-1000m for best results. Increase it for poorly covered territories/intersections/specific search cases.
+				Keep it between 100-1000m for best results. Increase it for poorly covered
+				territories/intersections/specific search cases.
 			</small>
 			<hr />
 			<div>
@@ -101,18 +103,14 @@
 
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
 			<small>
-				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock icon). This is helpful for finding coverage within a
+				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock
+				icon). This is helpful for finding coverage within a
 				specific timeframe.
 			</small>
 		</div>
 
-		<Button
-			v-if="canBeStarted"
-			@click="handleClickStart"
-			:class="state.started ? 'bg-danger' : 'bg-success'"
-			:text="state.started ? 'Pause' : 'Start'"
-			title="Space bar/Enter"
-		/>
+		<Button v-if="canBeStarted" @click="handleClickStart" :class="state.started ? 'bg-danger' : 'bg-success'"
+			:text="state.started ? 'Pause' : 'Start'" title="Space bar/Enter" />
 	</div>
 
 	<div v-if="!state.started && hasResults" class="overlay export bottom right">
@@ -163,6 +161,7 @@ const settings = reactive({
 	rejectDateless: true,
 	adjustHeading: true,
 	headingDeviation: 0,
+	randomHeadingDeviation: false,
 	adjustPitch: true,
 	pitchDeviation: 10,
 	rejectByYear: false,
@@ -442,16 +441,20 @@ function clearMarkers() {
 
 <style>
 @import "@/assets/main.css";
+
 #map {
 	z-index: 0;
 	height: 100vh;
 }
+
 .leaflet-container {
 	background-color: #2c2c2c;
 }
+
 .overlay {
 	position: absolute;
 }
+
 .select,
 .selected,
 .settings,
@@ -461,18 +464,22 @@ function clearMarkers() {
 	background: rgba(0, 0, 0, 0.7);
 	box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
 }
+
 .selected {
 	max-height: calc(100vh - 390px);
 	overflow: auto;
 }
+
 .settings {
 	max-width: 375px;
 	max-height: calc(100vh - 180px);
 	overflow: auto;
 }
+
 .export {
 	min-width: 375px;
 }
+
 .line {
 	line-height: 1.5rem;
 }
