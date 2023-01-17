@@ -36,6 +36,9 @@
 			<Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
 			<hr />
 
+			<Checkbox v-model:checked="settings.rejectDuplicates" label="Reject exact duplicates" />
+			<hr />
+
 			<div v-if="settings.rejectUnofficial">
 				<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
 				<small>This might prevent trekkers in most cases, but can reject regular streetview without description.
@@ -159,6 +162,7 @@ const settings = reactive({
 	rejectUnofficial: true,
 	rejectNoDescription: true,
 	rejectDateless: true,
+	rejectDuplicates: true,
 	adjustHeading: true,
 	headingDeviation: 0,
 	randomHeadingDeviation: false,
@@ -176,6 +180,7 @@ const select = ref("Select a country or draw a polygon");
 const selected = ref([]);
 const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded));
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
+const hashCoords = (res) => {return res.lat + "," + res.lng};
 
 let map;
 const customPolygonsLayer = new L.FeatureGroup();
@@ -224,6 +229,7 @@ onMounted(() => {
 		const polygon = e.layer;
 		polygon.feature = e.layer.toGeoJSON();
 		polygon.found = [];
+		polygon.coordSet = new Set();
 		polygon.nbNeeded = 100;
 		polygon.feature.properties.name = `Custom polygon ${state.polygonID}`;
 		polygon.setStyle(customPolygonStyle());
@@ -316,17 +322,21 @@ const generate = async (country) => {
 				const responses = await Promise.allSettled(locationGroup.map((l) => SVreq(l, settings)));
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
-						country.found.push(res.value);
-						L.marker([res.value.lat, res.value.lng], { icon: myIcon })
-							.on("click", () => {
-								window.open(
-									`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}
-									${res.value.heading ? "&heading=" + res.value.heading : ""}
-									${res.value.pitch ? "&pitch=" + res.value.pitch : ""}`,
-									"_blank"
-								);
-							})
-							.addTo(markerLayer);
+						let locHash = hashCoords(res.value);
+						if(!country.coordSet.has(locHash) || !settings.rejectDuplicates){
+							country.found.push(res.value);
+							country.coordSet.add(locHash);
+							L.marker([res.value.lat, res.value.lng], { icon: myIcon })
+								.on("click", () => {
+									window.open(
+										`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}
+										${res.value.heading ? "&heading=" + res.value.heading : ""}
+										${res.value.pitch ? "&pitch=" + res.value.pitch : ""}`,
+										"_blank"
+									);
+								})
+								.addTo(markerLayer);
+						}
 					}
 				}
 			}
@@ -363,6 +373,7 @@ function selectCountry(e) {
 	const index = selected.value.findIndex((x) => x.feature.properties.name === country.feature.properties.name);
 	if (index == -1) {
 		if (!country.found) country.found = [];
+		if (!country.coordSet) country.coordSet = new Set();
 		if (!country.nbNeeded) country.nbNeeded = 100;
 		country.setStyle(highlighted());
 
@@ -376,6 +387,7 @@ function selectCountry(e) {
 function selectAll() {
 	selected.value = geojson.getLayers().map((country) => {
 		if (!country.found) country.found = [];
+		if (!country.coordSet) country.coordSet = new Set();
 		if (!country.nbNeeded) country.nbNeeded = 100;
 		return country;
 	});
