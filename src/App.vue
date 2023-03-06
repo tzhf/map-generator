@@ -62,6 +62,11 @@
 			</div>
 
 			<Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
+			
+			<div v-if="settings.rejectOfficial">	
+				<Checkbox v-model:checked="settings.findDrones" label="Find drone photospheres" />	
+			</div>
+			
 			<hr />
 
 			<h4 class="center">Location settings</h4>
@@ -208,9 +213,11 @@
 				</div>
 		</div>
 		
-		<Checkbox v-model:checked="settings.findRegions" label="Filter by minimum distance from locations" />
-		<div v-if="settings.findRegions">
-			<input type="number" v-model.number="settings.regionRadius" /> <label> km </label>
+		<div v-if="!settings.rejectOfficial">	
+			<Checkbox v-model:checked="settings.findRegions" label="Filter by minimum distance from locations" />	
+			<div v-if="settings.findRegions">	
+				<input type="number" v-model.number="settings.regionRadius" /> <label> km </label>	
+			</div>	
 		</div>
 		
 		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
@@ -837,6 +844,7 @@ async function getLoc(loc, country) {
     
     if (settings.rejectOfficial) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
+		if (settings.findDrones && (res.tiles.worldSize.height != 2048 || res.links.length > 1)) return false;
     }
 	
 	if (settings.rejectGen1){
