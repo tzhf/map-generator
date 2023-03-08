@@ -844,7 +844,7 @@ async function getLoc(loc, country) {
     
     if (settings.rejectOfficial) {
 		if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false;
-		if (settings.findDrones && (res.tiles.worldSize.height != 2048 || res.links.length > 1)) return false;
+		if (settings.findDrones && (![2048,7200].includes(res.tiles.worldSize.height) || res.links.length > 1)) return false;
     }
 	
 	if (settings.rejectGen1){
