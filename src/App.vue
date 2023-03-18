@@ -156,8 +156,8 @@
 			</div>
 			
 			<div>
-				Generators
-				<input type="number" v-model.number="settings.num_of_generators" />
+				Generators: {{ settings.num_of_generators }}
+				<input type="range" v-model.number="settings.num_of_generators" min="1" max="10" />
 			</div>
 			
 			<Checkbox v-model:checked="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
