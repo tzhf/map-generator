@@ -58,7 +58,7 @@
 			<div v-if="settings.adjustHeading" class="indent">
 				<label class="flex wrap">
 					Deviation <input type="range" v-model.number="settings.headingDeviation" min="-90" max="90" /> ({{
-							settings.headingDeviation
+						settings.headingDeviation
 					}}°)
 				</label>
 				<small>0° will point directly towards the road.</small>
@@ -180,7 +180,7 @@ const select = ref("Select a country or draw a polygon");
 const selected = ref([]);
 const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded));
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0));
-const hashCoords = (res) => {return res.lat + "," + res.lng};
+const hashCoords = (res) => { return res.lat + "," + res.lng };
 
 let map;
 const customPolygonsLayer = new L.FeatureGroup();
@@ -189,6 +189,26 @@ const geojson = L.geoJson(borders, {
 	style: style,
 	onEachFeature: onEachFeature,
 });
+
+const roadmapLayer = L.tileLayer("https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
+const googleSatelliteLayer = L.tileLayer("http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
+const googleTerrainLayer = L.tileLayer("http://mt0.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"] });
+const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
+const gsvLayer = L.tileLayer("https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e2*212b1*213e2*211m3*211e3*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b1!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0");
+const gsvLayer2 = L.tileLayer("https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e2*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b1!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0");
+const gsvLayer4 = L.tileLayer("https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e3*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b1!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0");
+const baseMaps = {
+	Roadmap: roadmapLayer,
+	Satellite: googleSatelliteLayer,
+	Terrain: googleTerrainLayer,
+	OSM: osmLayer
+};
+const overlayMaps = {
+	"Google Street View": gsvLayer,
+	"Google Street View Official Only": gsvLayer2,
+	"Unofficial coverage only": gsvLayer4,
+};
+
 const drawControl = new L.Control.Draw({
 	position: "bottomleft",
 	draw: {
@@ -216,11 +236,15 @@ onMounted(() => {
 		zoom: 2,
 		zoomControl: false,
 		worldCopyJump: true,
-		layers: [L.tileLayer("https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"], type: "roadmap" })],
+		// layers: [L.tileLayer("https://{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}", { subdomains: ["mt0", "mt1", "mt2", "mt3"], type: "roadmap" })],
 	});
 
 	geojson.addTo(map);
 	customPolygonsLayer.addTo(map);
+	roadmapLayer.addTo(map);
+	gsvLayer2.addTo(map);
+	L.control.layers(baseMaps, overlayMaps, { position: "bottomleft" }).addTo(map);
+
 	markerLayer.addTo(map);
 	map.addControl(drawControl);
 
@@ -323,7 +347,7 @@ const generate = async (country) => {
 				for (let res of responses) {
 					if (res.status === "fulfilled" && country.found.length < country.nbNeeded) {
 						let locHash = hashCoords(res.value);
-						if(!country.coordSet.has(locHash) || !settings.rejectDuplicates){
+						if (!country.coordSet.has(locHash) || !settings.rejectDuplicates) {
 							country.found.push(res.value);
 							country.coordSet.add(locHash);
 							L.marker([res.value.lat, res.value.lng], { icon: myIcon })
