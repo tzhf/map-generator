@@ -332,7 +332,7 @@ const settings = reactive({
 	toMonth: "12",
 	fromYear: "2007",
 	toYear: "2023",
-	checkAllDates: true,
+	checkAllDates: false,
 	checkLinks: false,
 	linksDepth: 2,
   	markersOnImport: true,
