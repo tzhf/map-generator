@@ -50,11 +50,13 @@
 				<small>This will prevent the local business tripod coverage that doesn't have a date.</small>
 				<hr />
 
-				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
+				<Checkbox @change="settings.getIntersection ? settings.deadEndsOnly = false : true"
+					v-model:checked="settings.getIntersection" label="Prefer intersections" />
 				<hr />
 
-				<Checkbox v-model:checked="settings.deadEndsOnly" label="Dead ends only (end of coverage)" />
-				<div class="indent">
+				<Checkbox @change="settings.deadEndsOnly ? settings.getIntersection = false : true"
+					v-model:checked="settings.deadEndsOnly" label="Dead ends only (end of coverage)" />
+				<div v-if="settings.deadEndsOnly" class="indent">
 					<Checkbox v-model:checked="settings.lookBackwards" label="Look backwards" />
 				</div>
 				<hr />
@@ -134,7 +136,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, reactive, computed } from "vue";
+import { onMounted, ref, watch, reactive, computed } from "vue";
 import Button from "@/components/Elements/Button.vue";
 import Checkbox from "@/components/Elements/Checkbox.vue";
 import Spinner from "@/components/Elements/Spinner.vue";
