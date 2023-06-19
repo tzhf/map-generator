@@ -54,6 +54,9 @@
 				<hr />
 
 				<Checkbox v-model:checked="settings.deadEndsOnly" label="Dead ends only (end of coverage)" />
+				<div class="indent">
+					<Checkbox v-model:checked="settings.lookBackwards" label="Look backwards" />
+				</div>
 				<hr />
 			</div>
 
@@ -178,6 +181,7 @@ const settings = reactive({
 	num_of_generators: 1,
 	getIntersection: false,
 	deadEndsOnly: false,
+	lookBackwards: false,
 });
 
 const select = ref("Select a country or draw a polygon");

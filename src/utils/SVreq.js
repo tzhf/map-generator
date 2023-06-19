@@ -48,12 +48,18 @@ export default function SVreq(loc, settings) {
             if (settings.adjustHeading && res.links.length > 0) {
                 if (settings.randomHeadingDeviation) {
                     loc.heading =
-                        parseInt(settings.deadEndsOnly ? res.links[0].heading - 180 : res.links[0].heading) +
-                        randomInRange(-settings.headingDeviation, settings.headingDeviation);
+                        parseInt(
+                            settings.deadEndsOnly && settings.lookBackwards
+                                ? res.links[0].heading - 180
+                                : res.links[0].heading
+                        ) + randomInRange(-settings.headingDeviation, settings.headingDeviation);
                 } else {
                     loc.heading =
-                        parseInt(settings.deadEndsOnly ? res.links[0].heading - 180 : res.links[0].heading) +
-                        settings.headingDeviation;
+                        parseInt(
+                            settings.deadEndsOnly && settings.lookBackwards
+                                ? res.links[0].heading - 180
+                                : res.links[0].heading
+                        ) + settings.headingDeviation;
                 }
             }
 
