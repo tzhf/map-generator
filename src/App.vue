@@ -52,6 +52,9 @@
 
 				<Checkbox v-model:checked="settings.getIntersection" label="Prefer intersections" />
 				<hr />
+
+				<Checkbox v-model:checked="settings.deadEndsOnly" label="Dead ends only (end of coverage)" />
+				<hr />
 			</div>
 
 			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
@@ -174,6 +177,7 @@ const settings = reactive({
 	checkAllDates: false,
 	num_of_generators: 1,
 	getIntersection: false,
+	deadEndsOnly: false,
 });
 
 const select = ref("Select a country or draw a polygon");
