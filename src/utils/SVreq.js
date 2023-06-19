@@ -40,6 +40,7 @@ export default function SVreq(loc, settings) {
                 if (!dateWithin) return reject();
             } else {
                 if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
+                loc.panoId = res.time[res.time.length - 1].pano;
             }
 
             loc.lat = res.location.latLng.lat();
