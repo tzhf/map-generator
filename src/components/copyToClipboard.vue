@@ -16,7 +16,7 @@ const copyToClipboard = () => {
 	const data = [];
 	props.selection.map((country) => data.push(...country.found));
 	navigator.clipboard
-		.writeText(JSON.stringify({ customCoordinates: data }))
+		.writeText(JSON.stringify(data))
 		.then(() => {
 			text.value = "Copied";
 			setTimeout(() => {
