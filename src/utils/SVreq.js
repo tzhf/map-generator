@@ -33,20 +33,20 @@ export default function SVreq(loc, settings) {
 
                     if (iDate >= fromDate && iDate <= toDate) {
                         dateWithin = true;
-                        loc.panoId = res.time[i].pano;
+                        if (settings.exportPanoId) loc.panoId = res.time[i].pano;
                         break;
                     }
                 }
                 if (!dateWithin) return reject();
             } else {
                 if (Date.parse(res.imageDate) < fromDate || Date.parse(res.imageDate) > toDate) return reject();
-                loc.panoId = res.time[res.time.length - 1].pano;
+                if (settings.exportPanoId) loc.panoId = res.time[res.time.length - 1].pano;
             }
 
             loc.lat = res.location.latLng.lat();
             loc.lng = res.location.latLng.lng();
 
-            if (settings.adjustHeading && res.links.length > 0) {
+            if (settings.setHeading && res.links.length > 0) {
                 if (settings.randomHeadingDeviation) {
                     loc.heading =
                         parseInt(
@@ -64,7 +64,9 @@ export default function SVreq(loc, settings) {
                 }
             }
 
-            if (settings.adjustPitch) loc.pitch = settings.pitchDeviation;
+            if (settings.setPitch) loc.pitch = settings.pitchDeviation;
+
+            if (settings.setZoom) loc.zoom = settings.zoom;
 
             resolve(loc);
         }).catch((e) => reject(e.message));

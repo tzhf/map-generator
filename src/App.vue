@@ -62,8 +62,8 @@
 				<hr />
 			</div>
 
-			<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
-			<div v-if="settings.adjustHeading" class="indent">
+			<Checkbox v-model:checked="settings.setHeading" label="Set heading" />
+			<div v-if="settings.setHeading" class="indent">
 				<label class="flex wrap">
 					Deviation <input type="range" v-model.number="settings.headingDeviation" min="-90" max="90" /> ({{
 						settings.headingDeviation
@@ -74,13 +74,23 @@
 			</div>
 			<hr />
 
-			<Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
-			<div v-if="settings.adjustPitch" class="indent">
+			<Checkbox v-model:checked="settings.setPitch" label="Set pitch" />
+			<div v-if="settings.setPitch" class="indent">
 				<label class="flex wrap">
 					Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" />
 					({{ settings.pitchDeviation }}°)
 				</label>
 				<small>0 by default. -90° for tarmac/+90° for sky</small>
+			</div>
+			<hr />
+
+			<Checkbox v-model:checked="settings.setZoom" label="Set zoom" />
+			<div v-if="settings.setZoom" class="indent">
+				<label class="flex wrap">
+					<input type="range" v-model.number="settings.zoom" min="0" max="4" step="0.5" /> ({{
+						settings.zoom
+					}})
+				</label>
 			</div>
 			<hr />
 
@@ -97,7 +107,7 @@
 			<hr />
 			<div>
 				Generators
-				<input type="number" v-model.number="settings.num_of_generators" />
+				<input type="number" v-model.number="settings.numOfGenerators" min="1" max="10" />
 			</div>
 			<small> Number of generators per polygon. </small>
 			<hr />
@@ -113,10 +123,11 @@
 			<hr />
 
 			<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
+			<hr />
+
+			<Checkbox v-model:checked="settings.exportPanoId" label="Export panoID" />
 			<small>
-				This will check the dates of nearby coverage (the dates shown when you click the time machine/clock
-				icon). This is helpful for finding coverage within a
-				specific timeframe.
+				GeoGuessr fails to publish 100k+ maps with panoID
 			</small>
 		</div>
 
@@ -171,19 +182,22 @@ const settings = reactive({
 	rejectNoDescription: true,
 	rejectDateless: true,
 	rejectDuplicates: true,
-	adjustHeading: true,
+	setHeading: true,
 	headingDeviation: 0,
 	randomHeadingDeviation: false,
-	adjustPitch: true,
-	pitchDeviation: 10,
+	setPitch: true,
+	pitchDeviation: 0,
+	setZoom: true,
+	zoom: 0,
 	rejectByYear: false,
 	fromDate: "2009-01",
 	toDate: dateToday,
 	checkAllDates: false,
-	num_of_generators: 1,
+	numOfGenerators: 1,
 	getIntersection: false,
 	deadEndsOnly: false,
 	lookBackwards: false,
+	exportPanoId: true
 });
 
 const select = ref("Select a country or draw a polygon");
@@ -341,7 +355,7 @@ const handleClickStart = () => {
 const start = async () => {
 	const generator = [];
 	for (let polygon of selected.value) {
-		for (let i = 0; i < settings.num_of_generators; i++) {
+		for (let i = 0; i < settings.numOfGenerators; i++) {
 			generator.push(generate(polygon));
 		}
 	}
@@ -381,7 +395,8 @@ const generate = async (country) => {
 									window.open(
 										`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${res.value.lng}
 										${res.value.heading ? "&heading=" + res.value.heading : ""}
-										${res.value.pitch ? "&pitch=" + res.value.pitch : ""}`,
+										${res.value.pitch ? "&pitch=" + res.value.pitch : ""}
+										${res.value.zoom ? "&fov=" + 180 / Math.pow(2, res.value.zoom) : ""}`,
 										"_blank"
 									);
 								})
