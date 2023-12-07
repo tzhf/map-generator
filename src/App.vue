@@ -80,7 +80,7 @@
 					<Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
 				</div>
 				
-				<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one location in timeframe" title="Only allow locations that don't have other nearby coverage in timeframe." />
+				<Checkbox v-model:checked="settings.onlyOneInTimeframe" label="Only one panorama on location" title="Only allow locations that don't have other nearby coverage in timeframe." />
 				
 				<Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
 				<div v-if="settings.checkLinks">
