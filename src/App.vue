@@ -144,6 +144,7 @@
 				 v-on:change="updateMarkerDisplay('newRoad')"
 				 label="New Road"
 				/>
+        <Checkbox v-model:checked="settings.checkBlueLines" label="Highlight locations without blue line" />
 			</div>
 			<hr />
 			
@@ -281,6 +282,7 @@ import marker from "@/assets/images/marker-icon.png";
 import markerRed from "@/assets/images/marker-icon-red.png";
 import markerViolet from "@/assets/images/marker-icon-violet.png";
 import markerGreen from "@/assets/images/marker-icon-green.png";
+import markerPink from "@/assets/images/marker-icon-pink.png";
 
 import 'leaflet.markercluster/dist/leaflet.markercluster.js';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -289,6 +291,7 @@ import 'leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable.js'
 import "leaflet-contextmenu/dist/leaflet.contextmenu.js";
 import "leaflet-contextmenu/dist/leaflet.contextmenu.css";
 
+import { llToPX } from "web-merc-projection";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 
 import borders from "@/utils/borders.json";
@@ -314,45 +317,46 @@ const state = reactive({
 const dateToday = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0");
 
 const settings = reactive({
-	radius: 500,
-	rejectUnofficial: true,
-	rejectGen1: false,
-	rejectOfficial: false,
-	rejectNoDescription: true,
-	rejectDescription: false,
-	rejectDateless: true,
-	adjustHeading: true,
-	headingDeviation: 0,
-	adjustPitch: false,
-	pitchDeviation: 10,
-	rejectByYear: false,
-	fromDate: "2009-01",
-	toDate: dateToday,
-	fromMonth: "01",
-	toMonth: "12",
-	fromYear: "2007",
-	toYear: "2023",
-	checkAllDates: false,
-	checkLinks: false,
-	linksDepth: 2,
-  	markersOnImport: true,
-  	checkImports: false,
-	cluster: false,
-	gen4Marker: true,
-  	gen2Or3Marker: true,
-  	gen1Marker: true,
-  	newRoadMarker: true,
-  	onlyOneInTimeframe: false,
-  	oneCountryAtATime: false,
-	num_of_generators: 1,
-	findGeneration: false,
-	generation: 1,
-	getIntersection: false,
-	pinpointSearch: false,
-	pinpointAngle: 145,
-	selectMonths: false,
-	findRegions: false,
-	regionRadius: 100,
+  radius: 500,
+  rejectUnofficial: true,
+  rejectGen1: false,
+  rejectOfficial: false,
+  rejectNoDescription: true,
+  rejectDescription: false,
+  rejectDateless: true,
+  adjustHeading: true,
+  headingDeviation: 0,
+  adjustPitch: false,
+  pitchDeviation: 10,
+  rejectByYear: false,
+  fromDate: "2009-01",
+  toDate: dateToday,
+  fromMonth: "01",
+  toMonth: "12",
+  fromYear: "2007",
+  toYear: "2023",
+  checkAllDates: false,
+  checkLinks: false,
+  linksDepth: 2,
+  markersOnImport: true,
+  checkImports: false,
+  cluster: false,
+  checkBlueLines: false,
+  gen4Marker: true,
+  gen2Or3Marker: true,
+  gen1Marker: true,
+  newRoadMarker: true,
+  onlyOneInTimeframe: false,
+  oneCountryAtATime: false,
+  num_of_generators: 1,
+  findGeneration: false,
+  generation: 1,
+  getIntersection: false,
+  pinpointSearch: false,
+  pinpointAngle: 145,
+  selectMonths: false,
+  findRegions: false,
+  regionRadius: 100,
 });
 
 const select = ref("Select a country or draw a polygon");
@@ -665,6 +669,11 @@ const handleRadiusInput = (e) => {
   else if (value > 1000000) settings.radius = 1000000;
 
 };
+
+const newLineIcon = L.icon({
+  iconUrl: markerPink,
+  iconAnchor: [12, 41],
+});
 
 const gen4Icon = L.icon({
   iconUrl: marker,
@@ -1087,7 +1096,9 @@ function getPanoDeep(id, country, depth) {
         }
       }
     }
-    if (isPanoGoodAndInCountry) addLoc(pano, country);
+    if (isPanoGoodAndInCountry) {
+      addLoc(pano, country);
+    }
     return pano;
   });
 }
@@ -1097,6 +1108,33 @@ const isDate = (date) => {
 };
 
 const randomInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+const blueLineCanvas = document.createElement("canvas");
+async function checkHasBlueLine(latLng) {
+  const tileSize = 256;
+  // We stay somewhat zoomed out so the blue lines extend a bit more, as panoramas
+  // are often not *exactly* on the road
+  const zoom = 12;
+  const [pixelX, pixelY] = llToPX([latLng.lng, latLng.lat], zoom, undefined, tileSize);
+  const tileX = Math.floor(pixelX / tileSize);
+  const tileY = Math.floor(pixelY / tileSize);
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+  image.src = `https://mts1.googleapis.com/vt?hl=en-US&lyrs=svv|cb_client:app&style=5,8&x=${tileX}&y=${tileY}&z=${zoom}`;
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = reject;
+  });
+  blueLineCanvas.width = 256;
+  blueLineCanvas.height = 256;
+  const ctx = blueLineCanvas.getContext("2d");
+  ctx.drawImage(image, 0, 0);
+  // Check the pixel where the pano is
+  const imageData = ctx.getImageData(pixelX - tileX * tileSize, pixelY - tileY * tileSize, 1, 1);
+  const alpha = imageData.data[3];
+  // Only 1 pixel, RGBA order
+  return alpha > 0;
+}
 
 function addLoc(pano, country) {
   const location = {
@@ -1110,41 +1148,32 @@ function addLoc(pano, country) {
   };
   const index = location.links.indexOf(pano.location.pano);
   if (index != -1) location.links.splice(index, 1);
+  // Remove ari
+  const time = settings.rejectUnofficial ? pano.time.filter((entry) => entry.pano.length === 22) : pano.time;
+  const previousPano = time[time.length - 2];
   // New road
-  if (pano.time.length == 1) {
-    return addLocation(location, country, true, newLocIcon);
-  } else {
-    // Check for ari
-    let panoIndex = pano.time.length - 2;
-    let previousPano;
-    if (settings.rejectUnofficial) {
-      while (panoIndex >= 0) {
-        if (pano.time[panoIndex].pano.length == 22) {
-          previousPano = pano.time[panoIndex].pano;
-          break;
-        } else {
-          panoIndex--;
-        }
-      }
+  if (!previousPano) {
+    if (settings.checkBlueLines) {
+      checkHasBlueLine(pano.location.latLng.toJSON()).then((hasBlueLine) => {
+        addLocation(location, country, true, hasBlueLine ? newLocIcon : newLineIcon);
+      })
+    } else {
+      addLocation(location, country, true, newLocIcon);
     }
-    if (!previousPano) {
-      return addLocation(location, country, true, newLocIcon);
-    }
-    SV.getPanorama(
-      { pano: previousPano },
-      async (previousPano) => {
-        if (previousPano.tiles.worldSize.height === 1664) { // Gen 1
-          return addLocation(location, country, true, gen1Icon);
-        } else if (
-          previousPano.tiles.worldSize.height === 6656 // Gen 2 or 3
-        ) {
-          return addLocation(location, country, true, gen2Or3Icon);
-        } else { // Gen 4
-          return addLocation(location, country, true, gen4Icon);
-        }
-      }
-    );
+    return
   }
+  SV.getPanorama(
+    { pano: previousPano },
+    (previousPano) => {
+      if (previousPano.tiles.worldSize.height === 1664) { // Gen 1
+        return addLocation(location, country, true, gen1Icon);
+      } else if (previousPano.tiles.worldSize.height === 6656) { // Gen 2 or 3
+        return addLocation(location, country, true, gen2Or3Icon);
+      } else { // Gen 4
+        return addLocation(location, country, true, gen4Icon);
+      }
+    }
+  );
 }
 
 function addLocation(location, country, marker, iconType) {
@@ -1159,7 +1188,7 @@ function addLocation(location, country, marker, iconType) {
   } else if (iconType == gen1Icon) {
     zIndex = 3;
     markerLayer = markerLayers["gen1"];
-  } else if (iconType == newLocIcon) {
+  } else if (iconType == newLocIcon || iconType === newLineIcon) {
     zIndex = 4;
     markerLayer = markerLayers["newRoad"];
   }
