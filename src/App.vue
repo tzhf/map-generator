@@ -1150,7 +1150,7 @@ function addLoc(pano, country) {
   if (index != -1) location.links.splice(index, 1);
   // Remove ari
   const time = settings.rejectUnofficial ? pano.time.filter((entry) => entry.pano.length === 22) : pano.time;
-  const previousPano = time[time.length - 2];
+  const previousPano = time[time.length - 2]?.pano
   // New road
   if (!previousPano) {
     if (settings.checkBlueLines) {
