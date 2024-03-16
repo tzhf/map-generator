@@ -315,6 +315,7 @@ const state = reactive({
 });
 
 const dateToday = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0");
+const yearToday = new Date().getFullYear();
 
 const settings = reactive({
   radius: 500,
@@ -334,7 +335,7 @@ const settings = reactive({
   fromMonth: "01",
   toMonth: "12",
   fromYear: "2007",
-  toYear: "2023",
+  toYear: yearToday,
   checkAllDates: false,
   checkLinks: false,
   linksDepth: 2,
