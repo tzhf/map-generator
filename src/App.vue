@@ -841,10 +841,15 @@ function sleep(ms) {
 }
 
 async function getLoc(loc, country) {
-  return SV.getPanoramaByLocation(new google.maps.LatLng(loc.lat, loc.lng), settings.radius, (res, status) => {
+  return SV.getPanorama({
+    location: { lat: loc.lat, lng: loc.lng },
+    sources: [
+      settings.rejectUnofficial ? google.maps.StreetViewSource.GOOGLE : google.maps.StreetViewSource.DEFAULT,
+    ],
+    radius: settings.radius,
+  }, (res, status) => {
     if (status != google.maps.StreetViewStatus.OK) return false;
     if (settings.rejectUnofficial && !settings.rejectOfficial) {
-	    if (res.location.pano.length != 22) return false;
 	    if (settings.rejectNoDescription && !settings.rejectDescription && !res.location.description && !res.location.shortDescription) return false;
 	    if (settings.getIntersection && res.links.length < 3) return false;
 	    if (settings.rejectDescription && (res.location.description || res.location.shortDescription)) return false;
