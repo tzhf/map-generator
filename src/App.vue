@@ -105,6 +105,9 @@
 
 				<Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
 				<div v-if="settings.adjustHeading" class="indent">
+					<label><input type="radio" v-model="settings.headingReference" value="link"> Along road</label><br>
+					<label><input type="radio" v-model="settings.headingReference" value="forward"> To front of car</label><br>
+					<label><input type="radio" v-model="settings.headingReference" value="backward"> To back of car</label>
 					<label class="flex wrap">
 						Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="360" /> (+/- {{ settings.headingDeviation }}°)
 					</label>
@@ -326,6 +329,7 @@ const settings = reactive({
   rejectDescription: false,
   rejectDateless: true,
   adjustHeading: true,
+  headingReference: "link",
   headingDeviation: 0,
   adjustPitch: false,
   pitchDeviation: 10,
@@ -1143,11 +1147,22 @@ async function checkHasBlueLine(latLng) {
 }
 
 function addLoc(pano, country) {
+  let heading = 0;
+  if (settings.adjustHeading) {
+    if (settings.headingReference === "forward") {
+      heading = pano.tiles.centerHeading;
+    } else if (settings.headingReference === "backward") {
+      heading = (pano.tiles.centerHeading + 180) % 360;
+    } else if (settings.headingReference === "link" && pano.links.length > 0) {
+      heading = parseInt(pano.links[0].heading);
+    }
+    heading += randomInRange(-settings.headingDeviation, settings.headingDeviation);
+  }
   const location = {
     panoId: pano.location.pano,
     lat: pano.location.latLng.lat(),
     lng: pano.location.latLng.lng(),
-    heading: settings.adjustHeading && pano.links.length > 0 ? parseInt(pano.links[0].heading) + randomInRange(-settings.headingDeviation, settings.headingDeviation) : 0,
+    heading,
     pitch: settings.adjustPitch ? settings.pitchDeviation : 0,
     imageDate: pano.imageDate,
     links: [...new Set(pano.links.map(loc => loc.pano).concat(pano.time.map(loc => loc.pano)))].sort()
