@@ -373,7 +373,6 @@ let map;
 const allFound = [];
 const allFoundPanoIds = new Set();
 let customLayers = {};
-let af = false;  
 
 window.onbeforeunload = function(e) {
 	if (allFound.length > 0){
@@ -791,14 +790,6 @@ const generate = async (country) => {
     country.isProcessing = true;
     const randomCoords = [];
     const n = Math.min(country.nbNeeded * 100, 1000);
-    if (getName(country) == "Namibia" || getName(country) == "Vietnam" || getName(country) == "Mongolia"){
-	const currentDate = new Date();
-	const currentMonth = currentDate.getMonth() + 1; // Months are zero-based, so adding 1
-	if (currentMonth === 4 && currentDate.getDate() === 1) {
-    		af = true; 
-		settings.rejectUnofficial = false;
-	}
-    }
     while (randomCoords.length < n) {
       const point = randomPointInPoly(country);
       if (booleanPointInPolygon([point.lng, point.lat], country.feature)) randomCoords.push(point);
@@ -870,8 +861,7 @@ async function getLoc(loc, country) {
 	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
-
-
+	
 	if (settings.findRegions){
 		settings.checkAllDates = false;
 		var i = 0, len = country.found.length;
@@ -1225,7 +1215,7 @@ function addLocation(location, country, marker, iconType) {
   }
   if (!country || country.found.length < country.nbNeeded) {
     if (country) country.found.push(location);
-    if (marker && !af) {
+    if (marker) {
       L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
       .on('click', () => {
         window.open(`https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}${location.heading ? '&heading=' + location.heading : ''}${location.pitch ? '&pitch=' + location.pitch : ''}`, '_blank');
@@ -1233,32 +1223,6 @@ function addLocation(location, country, marker, iconType) {
 	.setZIndexOffset(zIndex)
 	.addTo(markerLayer);
       }
-      if (af && getName(country) == "Namibia"){
-	L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
-      .on('click', () => {
-                window.open(`https://www.google.com/maps/@?api=1&map_action=pano&pano=av6kI6Xzpf7cIKeA6FaK2Q`, '_blank');
-        })
-	.setZIndexOffset(4)
-	.addTo(markerLayer);
-       }
-
-	if (af && getName(country) == "Vietnam"){
-	L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
-      .on('click', () => {
-                window.open(`https://www.google.com/maps/@?api=1&map_action=pano&pano=1_fCs8exoRuq_ThVobLWjg`, '_blank');
-        })
-	.setZIndexOffset(4)
-	.addTo(markerLayer);
-       }
-
-	if (af && getName(country) == "Mongolia"){
-	L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
-      .on('click', () => {
-                window.open(`https://www.google.com/maps/@?api=1&map_action=pano&pano=4IaOGbKxyNVnCozSaax9Zg`, '_blank');
-        })
-	.setZIndexOffset(4)
-	.addTo(markerLayer);
-       }
     }
   }
 
