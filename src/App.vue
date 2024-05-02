@@ -6,13 +6,7 @@
             <h4 class="select mb-2">{{ select }}</h4>
             <div class="flex gap">
                 <Button @click="selectAll" class="bg-success" text="Select all" title="Select all" />
-                <Button
-                    v-if="selected.length"
-                    @click="deselectAll"
-                    class="bg-danger"
-                    text="Deselect all"
-                    title="Deselect all"
-                />
+                <Button v-if="selected.length" @click="deselectAll" class="bg-danger" text="Deselect all" title="Deselect all" />
             </div>
         </div>
 
@@ -54,8 +48,8 @@
             <div v-if="settings.rejectUnofficial">
                 <Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
                 <small
-                    >This might prevent trekkers in most cases, but can reject regular streetview without description.
-                    (eg. Mongolia/South Korea panoramas mostly don't have description)</small
+                    >This might prevent trekkers in most cases, but can reject regular streetview without description. (eg.
+                    Mongolia/South Korea panoramas mostly don't have description)</small
                 >
                 <hr />
 
@@ -108,22 +102,20 @@
             <Checkbox v-model:checked="settings.setZoom" label="Set zoom" />
             <div v-if="settings.setZoom" class="indent">
                 <label class="flex wrap">
-                    <input type="range" v-model.number="settings.zoom" min="0" max="4" step="0.5" /> ({{
-                        settings.zoom
-                    }})
+                    <input type="range" v-model.number="settings.zoom" min="0" max="4" step="0.5" /> ({{ settings.zoom }})
                 </label>
             </div>
             <hr />
 
             <div>
                 Radius
-                <input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
+                <input type="number" v-model.number="settings.radius" min="10" max="1000000" @change="handleRadiusInput" />
                 m
             </div>
             <small>
                 Radius in which to search for a panorama.<br />
-                Keep it between 100-1000m for best results. Increase it for poorly covered
-                territories/intersections/specific search cases.
+                Keep it between 50-1000m for best results. Increase it for poorly covered territories/intersections/specific
+                search cases.
             </small>
             <hr />
             <div>
@@ -372,8 +364,8 @@ onMounted(() => {
 
 const handleRadiusInput = (e) => {
     const value = parseInt(e.target.value);
-    if (!value || value < 50) {
-        settings.radius = 50;
+    if (!value || value < 10) {
+        settings.radius = 10;
     } else if (value > 1000000) {
         settings.radius = 1000000;
     }
@@ -436,9 +428,9 @@ const generate = async (country) => {
                             L.marker([res.value.lat, res.value.lng], { icon: myIcon })
                                 .on("click", () => {
                                     window.open(
-                                        `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${
-                                            res.value.lat
-                                        },${res.value.lng}
+                                        `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${res.value.lat},${
+                                            res.value.lng
+                                        }
 										${res.value.heading ? "&heading=" + res.value.heading : ""}
 										${res.value.pitch ? "&pitch=" + res.value.pitch : ""}
 										${res.value.zoom ? "&fov=" + 180 / Math.pow(2, res.value.zoom) : ""}`,
