@@ -670,7 +670,7 @@ function exportDrawnLayer() {
 
 const handleRadiusInput = (e) => {
   const value = parseInt(e.target.value);
-  if (!value || value < 50)  settings.radius = 50;
+  if (!value || value < 10)  settings.radius = 10;
   else if (value > 1000000) settings.radius = 1000000;
 
 };
