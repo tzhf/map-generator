@@ -904,13 +904,17 @@ async function getLoc(loc, country) {
         }
       }
       if (!dateWithin) return false;
-    } else {
-      if (settings.rejectDateless && !res.imageDate) return false;
-      if (settings.randomInTimeline){
+    } 
+    else if (settings.randomInTimeline){
 	let randomIndex = Math.floor(Math.random() * res.time.length);
 	let pano_test = res.time[randomIndex];
-	console.log(pano_test);
-      }
+	console.log(pano_test.gx);
+	if (Date.parse(pano_test.gx) < Date.parse(settings.fromDate) || Date.parse(pano_test.gx) > Date.parse(settings.toDate)) return false;
+	getPano(pano_test.pano, country);
+    }
+    else {
+      console.log(res.location.pano);
+      if (settings.rejectDateless && !res.imageDate) return false;
       if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return false;
       getPano(res.location.pano, country);
     }
