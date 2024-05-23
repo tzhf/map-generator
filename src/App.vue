@@ -122,7 +122,7 @@
 					<small>0 by default. -90° for tarmac/+90° for sky</small>
 				</div>
 
-				<Checkbox v-model:checked="settings.randomInTimeline" label="Random location in timeframe" />
+				<Checkbox v-model:checked="settings.randomInTimeline" label="Choose random date in timerange" />
 			</div>
 			<hr />
 			
