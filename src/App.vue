@@ -864,7 +864,6 @@ async function getLoc(loc, country) {
 	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
-	if (settings.randomInTimeline) settings.checkAllDates = true;
 	if (settings.findRegions){
 		settings.checkAllDates = false;
 		var i = 0, len = country.found.length;
@@ -905,7 +904,14 @@ async function getLoc(loc, country) {
         }
       }
       if (!dateWithin) return false;
-    } else {
+    } 
+    else if (settings.randomInTimeline){
+	let randomIndex = Math.floor(Math.random() * res.time.length);
+	let pano_test = res.time[randomIndex];
+	if (Date.parse(pano_test.gx) < Date.parse(settings.fromDate) || Date.parse(pano_test.gx) > Date.parse(settings.toDate)) return false;
+	getPano(pano_test.pano, country);
+    }
+    else {
       if (settings.rejectDateless && !res.imageDate) return false;
       if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return false;
       getPano(res.location.pano, country);
@@ -1085,10 +1091,7 @@ function getPanoDeep(id, country, depth) {
     if (settings.checkAllDates && !settings.selectMonths && pano.time) {
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
-      if (settings.randomInTimeline){
-	let randomIndex = Math.floor(Math.random() * pano.time.length);
-	pano.time = pano.time.filter((_, index) => index === randomIndex);
-      }
+
       for (const loc of pano.time) {
         if (settings.rejectUnofficial && loc.pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
         const date = Object.values(loc).find((val) => val instanceof Date);
