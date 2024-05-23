@@ -361,6 +361,7 @@ const settings = reactive({
   pinpointAngle: 145,
   selectMonths: false,
   findRegions: false,
+  randomInTimeline: true,
   regionRadius: 100,
 });
 
@@ -885,7 +886,12 @@ async function getLoc(loc, country) {
 	if (settings.findGeneration && (!settings.checkAllDates || settings.selectMonths)){
 		if (getCameraGeneration(res) != settings.generation) return false;	
 	}
-	
+
+    if (settings.randomInTimeline){
+	let randomIndex = Math.floor(Math.random() * res.time.length);
+	res.time = res.time[randomIndex];
+    }
+	  
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
