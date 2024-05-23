@@ -888,14 +888,6 @@ async function getLoc(loc, country) {
 	if (settings.findGeneration && (!settings.checkAllDates || settings.selectMonths)){
 		if (getCameraGeneration(res) != settings.generation) return false;	
 	}
-
-    if (settings.randomInTimeline){
-	let randomIndex = Math.floor(Math.random() * res.time.length);
-	console.log(randomIndex);
-	console.log(res.time);
-	res.time = res.time.filter((_, index) => index === randomIndex);
-        console.log(res.time);
-    }
 	  
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
       if (!res.time.length) return false;
@@ -903,7 +895,6 @@ async function getLoc(loc, country) {
       const toDate = Date.parse(settings.toDate);
       let dateWithin = false;
       for (const loc of res.time) {
-        console.log(res.time);
         if (settings.rejectUnofficial && loc.pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
         const date = Object.values(loc).find((val) => val instanceof Date);
         const iDate = Date.parse(date.getFullYear() + "-" + (date.getMonth() > 8 ? "" : "0") + (date.getMonth() + 1)); // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
