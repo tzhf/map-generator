@@ -121,6 +121,8 @@
 					</label>
 					<small>0 by default. -90° for tarmac/+90° for sky</small>
 				</div>
+
+				<Checkbox v-model:checked="settings.randomInTimeline" label="Random location in timeframe" />
 			</div>
 			<hr />
 			
@@ -361,7 +363,7 @@ const settings = reactive({
   pinpointAngle: 145,
   selectMonths: false,
   findRegions: false,
-  randomInTimeline: true,
+  randomInTimeline: false,
   regionRadius: 100,
 });
 
@@ -889,10 +891,7 @@ async function getLoc(loc, country) {
 
     if (settings.randomInTimeline){
 	let randomIndex = Math.floor(Math.random() * res.time.length);
-	console.log(randomIndex);
-	console.log(res.time);
 	res.time = res.time.filter((_, index) => index === randomIndex);
-        console.log(res.time);
     }
 	  
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
