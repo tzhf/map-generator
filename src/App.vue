@@ -891,7 +891,10 @@ async function getLoc(loc, country) {
 
     if (settings.randomInTimeline){
 	let randomIndex = Math.floor(Math.random() * res.time.length);
+	console.log(randomIndex);
+	console.log(res.time);
 	res.time = res.time.filter((_, index) => index === randomIndex);
+        console.log(res.time);
     }
 	  
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
