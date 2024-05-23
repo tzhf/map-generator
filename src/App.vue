@@ -864,7 +864,7 @@ async function getLoc(loc, country) {
 	    if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false;
 	    if (settings.pinpointSearch && (res.links.length == 2 && Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle)) return false;
     }
-	
+	if (settings.randomInTimeline) settings.checkAllDates = true;
 	if (settings.findRegions){
 		settings.checkAllDates = false;
 		var i = 0, len = country.found.length;
