@@ -1085,6 +1085,7 @@ function getPanoDeep(id, country, depth) {
     if (settings.checkAllDates && !settings.selectMonths && pano.time) {
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
+      let pano_backup = pano;
       if (settings.randomInTimeline){
 	let randomIndex = Math.floor(Math.random() * pano.time.length);
 	pano.time = pano.time.filter((_, index) => index === randomIndex);
@@ -1113,6 +1114,7 @@ function getPanoDeep(id, country, depth) {
         }
       }
     }
+    if (settings.randomInTimeline) pano = pano_backup;
     if (isPanoGoodAndInCountry) {
       addLoc(pano, country);
     }
