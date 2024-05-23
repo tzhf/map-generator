@@ -909,8 +909,6 @@ async function getLoc(loc, country) {
 	let randomIndex = Math.floor(Math.random() * res.time.length);
 	let pano_test = res.time[randomIndex];
 	if (Date.parse(pano_test.gx) < Date.parse(settings.fromDate) || Date.parse(pano_test.gx) > Date.parse(settings.toDate)) return false;
-	console.log(res.time[randomIndex]);
-	console.log(res.time[res.time.length]);
 	getPano(pano_test.pano, country);
     }
     else {
