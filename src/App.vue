@@ -121,6 +121,8 @@
 					</label>
 					<small>0 by default. -90° for tarmac/+90° for sky</small>
 				</div>
+
+				<Checkbox v-model:checked="settings.randomInTimeline" label="Random location in timeframe" />
 			</div>
 			<hr />
 			
@@ -361,6 +363,7 @@ const settings = reactive({
   pinpointAngle: 145,
   selectMonths: false,
   findRegions: false,
+  randomInTimeline: false,
   regionRadius: 100,
 });
 
@@ -885,7 +888,7 @@ async function getLoc(loc, country) {
 	if (settings.findGeneration && (!settings.checkAllDates || settings.selectMonths)){
 		if (getCameraGeneration(res) != settings.generation) return false;	
 	}
-	
+	  
     if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
@@ -1082,6 +1085,10 @@ function getPanoDeep(id, country, depth) {
     if (settings.checkAllDates && !settings.selectMonths && pano.time) {
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
+      if (settings.randomInTimeline){
+	let randomIndex = Math.floor(Math.random() * pano.time.length);
+	pano.time = pano.time.filter((_, index) => index === randomIndex);
+      }
       for (const loc of pano.time) {
         if (settings.rejectUnofficial && loc.pano.length != 22) continue; // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
         const date = Object.values(loc).find((val) => val instanceof Date);
