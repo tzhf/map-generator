@@ -1086,7 +1086,6 @@ function getPanoDeep(id, country, depth) {
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
       if (settings.randomInTimeline){
-	settings.checkAllDates = true;
 	let randomIndex = Math.floor(Math.random() * pano.time.length);
 	pano.time = pano.time.filter((_, index) => index === randomIndex);
       }
