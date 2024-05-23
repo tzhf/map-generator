@@ -1101,6 +1101,7 @@ function getPanoDeep(id, country, depth) {
           // if(settings.onlyOneLoc)break;
         }
       }
+      pano.time = pano_backup;
     }
     if (settings.checkLinks) {
       if (pano.links) {
@@ -1114,7 +1115,6 @@ function getPanoDeep(id, country, depth) {
         }
       }
     }
-    if (settings.randomInTimeline) pano.time = pano_backup;
     if (isPanoGoodAndInCountry) {
       addLoc(pano, country);
     }
