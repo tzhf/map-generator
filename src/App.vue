@@ -887,8 +887,15 @@ async function getLoc(loc, country) {
 	if (settings.findGeneration && (!settings.checkAllDates || settings.selectMonths)){
 		if (getCameraGeneration(res) != settings.generation) return false;	
 	}
+
+    if (settings.randomInTimeline){
+	let randomIndex = Math.floor(Math.random() * res.time.length);
+	let pano_test = res.time[randomIndex];
+	if (Date.parse(pano_test.gx) < Date.parse(settings.fromDate) || Date.parse(pano_test.gx) > Date.parse(settings.toDate)) return false;
+	getPano(pano_test.pano, country);
+    }
 	  
-    if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial) {
+    if (settings.checkAllDates && res.time && !settings.selectMonths && !settings.rejectOfficial && !settings.randomInTimeline) {
       if (!res.time.length) return false;
       const fromDate = Date.parse(settings.fromDate);
       const toDate = Date.parse(settings.toDate);
@@ -905,12 +912,6 @@ async function getLoc(loc, country) {
       }
       if (!dateWithin) return false;
     } 
-    else if (settings.randomInTimeline){
-	let randomIndex = Math.floor(Math.random() * res.time.length);
-	let pano_test = res.time[randomIndex];
-	if (Date.parse(pano_test.gx) < Date.parse(settings.fromDate) || Date.parse(pano_test.gx) > Date.parse(settings.toDate)) return false;
-	getPano(pano_test.pano, country);
-    }
     else {
       if (settings.rejectDateless && !res.imageDate) return false;
       if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate)) return false;
