@@ -227,6 +227,7 @@
 		</div>
 		
 		<Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
+		<Checkbox v-model:checked="settings.onlyCheckBlueLines" label="Only check in areas with blue lines" title="Significatly speeds up generation in areas with sparse coverage density. May negatively affect speeds if generating locations exclusively in areas with very dense coverage. (Official coverage only)" />
 			 
 		<hr />
 		<div class="customLayers">
@@ -302,6 +303,8 @@ import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import borders from "@/utils/borders.json";
 window.type = !0;
 
+import { blueLineDetector } from "@/composables/blueLineDetector.js";
+
 (function(global){
   var MarkerMixin = {
     _updateZIndex: function (offset) {
@@ -343,6 +346,7 @@ const settings = reactive({
   fromYear: "2007",
   toYear: yearToday,
   checkAllDates: false,
+  onlyCheckBlueLines: false,
   checkLinks: false,
   linksDepth: 2,
   markersOnImport: true,
@@ -788,6 +792,13 @@ function updateMarkerDisplay(gen) {
 }
 
 const generate = async (country) => {
+  let detector;
+  if(settings.onlyCheckBlueLines) {
+    const boundsNW = {lat: country._bounds._northEast.lat, lng: country._bounds._southWest.lng};
+    const boundsSE = {lat: country._bounds._southWest.lat, lng: country._bounds._northEast.lng};
+    detector = await blueLineDetector(boundsNW, boundsSE);
+  }
+
   while (country.found.length < country.nbNeeded) {
     if (!state.started) return;
     country.isProcessing = true;
@@ -795,7 +806,11 @@ const generate = async (country) => {
     const n = Math.min(country.nbNeeded * 100, 1000);
     while (randomCoords.length < n) {
       const point = randomPointInPoly(country);
-      if (booleanPointInPolygon([point.lng, point.lat], country.feature)) randomCoords.push(point);
+      if (booleanPointInPolygon([point.lng, point.lat], country.feature)) {
+	if(!settings.onlyCheckBlueLines || detector(point.lat, point.lng, settings.radius)) {
+	  randomCoords.push(point);
+	}
+      }
     }
 	if (!settings.findRegions){
 		for (const locationGroup of randomCoords.chunk(75)) {
