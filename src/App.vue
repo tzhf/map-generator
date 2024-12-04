@@ -1141,7 +1141,7 @@ async function checkHasBlueLine(latLng) {
   const tileY = Math.floor(pixelY / tileSize);
   const image = new Image();
   image.crossOrigin = "anonymous";
-  image.src = `https://mts1.googleapis.com/vt?hl=en-US&lyrs=svv|cb_client:app&style=5,8&x=${tileX}&y=${tileY}&z=${zoom}`;
+  image.src = `https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i${zoom}!2i${tileX}!3i${tileY}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e2*212b1*213e2*211m3*211e3*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b0!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0`;
   await new Promise((resolve, reject) => {
     image.onload = resolve;
     image.onerror = reject;
