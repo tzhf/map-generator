@@ -97,8 +97,8 @@
       <div class="flex justify-between">
         Generators :
         <div class="flex items-center gap-2">
-          {{ settings.num_of_generators }}
-          <input type="range" v-model.number="settings.num_of_generators" min="1" max="10" />
+          {{ settings.numOfGenerators }}
+          <input type="range" v-model.number="settings.numOfGenerators" min="1" max="10" />
         </div>
       </div>
 
@@ -119,7 +119,7 @@
 
       <div v-if="!settings.rejectOfficial">
         <Checkbox v-model="settings.findRegions" label="Minimum distance between locations" />
-        <div v-if="settings.findRegions" class="ml-8">
+        <div v-if="settings.findRegions" class="ml-6">
           <input type="number" v-model.number="settings.regionRadius" /> <label> km </label>
         </div>
       </div>
@@ -130,17 +130,19 @@
 
       <div v-if="!settings.rejectOfficial">
         <Checkbox v-model="settings.rejectUnofficial" label="Reject unofficial" />
-        <Checkbox v-model="settings.rejectGen1" label="Reject gen 1" />
       </div>
 
-      <div v-if="settings.rejectUnofficial && !settings.rejectOfficial && !settings.rejectGen1">
-        <Checkbox v-model="settings.findGeneration" label="Find generation" />
-        <div v-if="settings.findGeneration">
-          <select v-model="settings.generation">
+      <div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
+        <Checkbox v-model="settings.findByGeneration" label="Find by generation" />
+        <div v-if="settings.findByGeneration" class="ml-6">
+          <!-- <select v-model="settings.generation">
             <option value="1">Gen 1</option>
             <option value="23">Gen 2/3</option>
             <option value="4">Gen 4</option>
-          </select>
+          </select> -->
+          <Checkbox v-model="settings.filterByGen[1]" label="Gen 1" />
+          <Checkbox v-model="settings.filterByGen[23]" label="Gen 2 & 3" />
+          <Checkbox v-model="settings.filterByGen[4]" label="Gen 4" />
         </div>
         <Checkbox v-model="settings.rejectDescription" label="Find trekker coverage" />
       </div>
@@ -236,7 +238,7 @@
         />
 
         <Checkbox v-model="settings.checkLinks" label="Check linked panos" />
-        <div v-if="settings.checkLinks" class="flex items-center justify-between ml-8">
+        <div v-if="settings.checkLinks" class="flex items-center justify-between ml-6">
           Depth :
           <div class="flex items-center gap-2">
             {{ settings.linksDepth }}
@@ -259,7 +261,7 @@
           v-model="settings.deadEndsOnly"
           label="Dead ends only (end of coverage)"
         />
-        <div v-if="settings.deadEndsOnly" class="ml-8">
+        <div v-if="settings.deadEndsOnly" class="ml-6">
           <Checkbox v-model="settings.deadEndsLookBackwards" label="Look towards dead end" />
         </div>
 
@@ -274,7 +276,7 @@
           v-model="settings.pinpointSearch"
           label="Find curve locations"
         />
-        <div v-if="settings.pinpointSearch" class="ml-8">
+        <div v-if="settings.pinpointSearch" class="ml-6">
           <label class="flex items-center justify-between">
             Pinpointable angle ({{ settings.pinpointAngle }}°)
             <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" />
@@ -282,7 +284,7 @@
         </div>
 
         <Checkbox v-model="settings.adjustHeading" label="Adjust heading" />
-        <div v-if="settings.adjustHeading" class="ml-8">
+        <div v-if="settings.adjustHeading" class="ml-6">
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="radio" v-model="settings.headingReference" value="link" />
             Along road
@@ -303,7 +305,7 @@
         </div>
 
         <Checkbox v-model="settings.adjustPitch" label="Adjust pitch" />
-        <div v-if="settings.adjustPitch" class="ml-8">
+        <div v-if="settings.adjustPitch" class="ml-6">
           <label class="flex items-center justify-between">
             Deviation ({{ settings.pitchDeviation }}°)
             <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" />
@@ -397,8 +399,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref, reactive, computed } from 'vue'
+import { onMounted, ref, reactive, computed, watch } from 'vue'
 import { useStorage } from '@vueuse/core'
+// import { usePersistentReactive } from '@/composables/usePersistentReactive.js'
 
 import Button from '@/components/Elements/Button.vue'
 import Checkbox from '@/components/Elements/Checkbox.vue'
@@ -458,18 +461,28 @@ const dateToday = new Date().getFullYear() + '-' + String(new Date().getMonth() 
 const yearToday = new Date().getFullYear()
 
 const storedSettings = useStorage('map_generator_settings', {
+  numOfGenerators: 1,
   radius: 500,
+  oneCountryAtATime: false,
+  onlyCheckBlueLines: false,
+  findRegions: false,
+  regionRadius: 100,
+
   rejectUnofficial: true,
   rejectOfficial: false,
+  findByGeneration: true,
+  filterByGen: {
+    1: false,
+    23: true,
+    4: true,
+  },
+  rejectDateless: true,
   rejectNoDescription: true,
   rejectDescription: false,
-  rejectGen1: true,
-  rejectDateless: true,
-  adjustHeading: true,
-  headingReference: 'link',
-  headingDeviation: 0,
-  adjustPitch: false,
-  pitchDeviation: 0,
+  onlyOneInTimeframe: false,
+  checkLinks: false,
+  linksDepth: 2,
+
   rejectByYear: false,
   fromDate: '2009-01',
   toDate: dateToday,
@@ -477,32 +490,30 @@ const storedSettings = useStorage('map_generator_settings', {
   toMonth: '12',
   fromYear: '2007',
   toYear: yearToday,
+  selectMonths: false,
   checkAllDates: false,
-  onlyCheckBlueLines: false,
-  checkLinks: false,
-  linksDepth: 2,
-  markersOnImport: true,
-  checkImports: false,
+  randomInTimeline: false,
+
+  deadEndsOnly: false,
+  deadEndsLookBackwards: false,
+  getIntersection: false,
+  pinpointSearch: false,
+  pinpointAngle: 145,
+  adjustHeading: true,
+  headingReference: 'link',
+  headingDeviation: 0,
+  adjustPitch: false,
+  pitchDeviation: 0,
+
   cluster: false,
   checkBlueLines: false,
   gen4Marker: true,
   gen2Or3Marker: true,
   gen1Marker: true,
   newRoadMarker: true,
-  onlyOneInTimeframe: false,
-  oneCountryAtATime: false,
-  num_of_generators: 1,
-  findGeneration: false,
-  generation: 1,
-  getIntersection: false,
-  deadEndsOnly: false,
-  deadEndsLookBackwards: false,
-  pinpointSearch: false,
-  pinpointAngle: 145,
-  selectMonths: false,
-  findRegions: false,
-  randomInTimeline: false,
-  regionRadius: 100,
+
+  markersOnImport: true,
+  checkImports: false,
 })
 
 const settings = reactive(storedSettings.value)
@@ -875,7 +886,7 @@ const start = async () => {
   if (settings.oneCountryAtATime) for (const polygon of selected.value) await generate(polygon)
   const generator = []
   for (let polygon of selected.value) {
-    for (let i = 0; i < settings.num_of_generators; i++) {
+    for (let i = 0; i < settings.numOfGenerators; i++) {
       generator.push(generate(polygon))
     }
   }
@@ -1076,12 +1087,8 @@ async function getLoc(loc, country) {
           return false
       }
 
-      if (settings.rejectGen1) {
-        if (getCameraGeneration(res) == 1) return false
-      }
-
-      if (settings.findGeneration && (!settings.checkAllDates || settings.selectMonths)) {
-        if (getCameraGeneration(res) != settings.generation) return false
+      if (settings.findByGeneration && (!settings.checkAllDates || settings.selectMonths)) {
+        if (!settings.filterByGen[getCameraGeneration(res)]) return false
       }
 
       if (settings.randomInTimeline) {
@@ -1235,12 +1242,10 @@ function isPanoGood(pano) {
 
   if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
     if (!pano.time?.length) return false
-    if (settings.findGeneration) {
-      if (getCameraGeneration(pano) != settings.generation) return false
+    if (settings.findByGeneration) {
+      if (!settings.filterByGen[getCameraGeneration(pano)]) return false
     }
-    if (settings.rejectGen1) {
-      if (getCameraGeneration(pano) == 1) return false
-    }
+
     let dateWithin = false
     for (let i = 0; i < pano.time.length; i++) {
       const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val))
@@ -1326,7 +1331,7 @@ function getPanoDeep(id, country, depth) {
       return getPanoDeep(id, country, depth)
     } else if (status != google.maps.StreetViewStatus.OK) return
     //successfulRequests++
-    if (!pano) console.log(status, pano)
+    // if (!pano) console.log(status, pano)
     const inCountry = booleanPointInPolygon(
       [pano.location.latLng.lng(), pano.location.latLng.lat()],
       country.feature
