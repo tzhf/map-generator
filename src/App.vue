@@ -1,79 +1,140 @@
 <template>
   <div id="map"></div>
-  <div class="overlay top left flex-col gap">
-    <Logo class="mb-2" />
-    <div v-if="!state.started">
-      <h4 class="select mb-2">{{ select }}</h4>
-      <div class="flex gap">
-        <Button @click="selectAll" class="bg-success" text="Select all" title="Select all" />
-        <Button v-if="selected.length" @click="deselectAll" class="bg-danger" text="Deselect all" title="Deselect all" />
+
+  <div class="absolute top-2 left-2 flex flex-col gap-2">
+    <Logo />
+
+    <div v-if="!state.started" class="flex flex-col gap-2 min-w-80">
+      <div class="select">
+        <p class="font-bold text-center">{{ select }}</p>
+      </div>
+
+      <div class="flex gap-2">
+        <Button class="w-full" title="Select all" @click="selectAll">Select all</Button>
+        <Button
+          v-if="selected.length"
+          class="w-full"
+          variant="danger"
+          title="Deselect all"
+          @click="deselectAll"
+        >
+          Deselect all
+        </Button>
       </div>
     </div>
 
     <div v-if="selected.length" class="selected">
-      <h4 class="center mb-2">Countries/Territories ({{ selected.length }})</h4>
-      <Checkbox
-        v-model:checked="settings.markersOnImport"
-        label="Add markers to imported locations"
-        title="This may affect performance."
-      />
-      <Checkbox
-        v-model:checked="settings.checkImports"
-        label="Check imported locations"
-        title="Useful for comprehensive datasets."
-      />
-      <br />
-      <Button
-        @click="changeLocationsCaps"
-        class="smallbtn bg-success"
-        title="Change locations cap for all selected"
-        text="Change locations cap for all selected"
-      />
+      <h4>Countries/Territories ({{ selected.length }})</h4>
+      <div class="flex flex-col">
+        <Checkbox
+          v-model="settings.markersOnImport"
+          label="Add markers to imported locations"
+          title="This may affect performance."
+        />
+        <Checkbox
+          class="mb-2"
+          v-model="settings.checkImports"
+          label="Check imported locations"
+          title="Useful for comprehensive datasets."
+        />
+
+        <Button
+          @click="changeLocationsCaps"
+          class="ml-auto"
+          size="sm"
+          title="Change locations cap for all selected"
+          >Change locations cap for all
+        </Button>
+      </div>
       <hr />
 
-      <div v-for="country of selected" class="line flex space-between">
-        <div class="flex-center">
-          <span
-            v-if="country.feature.properties.code"
-            :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"
-          ></span>
-          <label for="countryNameInput" @click="changePolygonName(country)">
-            {{ getName(country) }}
-          </label>
-          <Spinner v-if="state.started && country.isProcessing" class="ml-2" />
-        </div>
-        <label class="smallbtn bg-success">
-          <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
-          Import locations
-        </label>
-        <div>
-          {{ country.found ? country.found.length : '0' }} /
-          <input type="number" :min="country.found ? country.found.length : 0" v-model="country.nbNeeded" />
+      <div class="flex flex-col gap-1">
+        <div v-for="country of selected" class="flex gap-2">
+          <div class="flex items-center gap-2">
+            <span
+              v-if="country.feature.properties.code"
+              :class="`flag-icon flag-` + country.feature.properties.code.toLowerCase()"
+            ></span>
+
+            <label for="countryNameInput" @click="changePolygonName(country)">
+              {{ getName(country) }}
+            </label>
+
+            <Spinner v-if="state.started && country.isProcessing" />
+          </div>
+
+          <div class="ml-auto flex items-center gap-1">
+            {{ country.found.length }}
+            <span>/</span>
+            <input
+              type="number"
+              :min="country.found ? country.found.length : 0"
+              v-model="country.nbNeeded"
+            />
+            <label class="cursor-pointer" title="Import locations">
+              <input type="file" @change="locationsFileProcess($event, country)" accept=".json" hidden />
+              <FileImportIcon class="w-5 h-5" />
+            </label>
+          </div>
         </div>
       </div>
     </div>
 
-    <Button
-      @click="clearMarkers"
-      class="bg-warning"
-      text="Clear markers"
-      optText="(for performance, this won't erase your generated locations)"
-      title="Clear markers"
-    />
-    <Button @click="clearLocations" class="bg-warning" text="Erase generated locations" title="Erase generated locations" />
+    <div v-if="hasResults" class="flex flex-col gap-2">
+      <Button @click="clearMarkers" variant="warning" title="Clear markers">
+        Clear markers
+        <!-- <div class="text-xs">(for performance, this won't erase your generated locations)</div> -->
+      </Button>
+      <Button @click="clearLocations" variant="danger" title="Erase generated locations">
+        Erase generated locations
+      </Button>
+    </div>
   </div>
 
-  <div class="overlay top right flex-col gap">
+  <div class="absolute top-2 right-2 flex flex-col gap-2">
     <div v-if="!state.started" class="settings">
-      <h4 class="center">Coverage settings</h4>
+      <h4>General settings</h4>
+      <div class="flex justify-between">
+        Generators :
+        <div class="flex items-center gap-2">
+          {{ settings.num_of_generators }}
+          <input type="range" v-model.number="settings.num_of_generators" min="1" max="10" />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        Radius :
+        <span>
+          <input type="number" v-model.number="settings.radius" @change="handleRadiusInput" /> m
+        </span>
+      </div>
+
+      <Checkbox v-model="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
+
+      <Checkbox
+        v-model="settings.onlyCheckBlueLines"
+        label="Only check in areas with blue lines"
+        title="Significatly speeds up generation in areas with sparse coverage density. May negatively affect speeds if generating locations exclusively in areas with very dense coverage. (Official coverage only)"
+      />
 
       <div v-if="!settings.rejectOfficial">
-        <Checkbox v-model:checked="settings.rejectUnofficial" label="Reject unofficial" />
-        <Checkbox v-model:checked="settings.rejectGen1" label="Reject gen 1" />
+        <Checkbox v-model="settings.findRegions" label="Minimum distance between locations" />
+        <div v-if="settings.findRegions" class="ml-8">
+          <input type="number" v-model.number="settings.regionRadius" /> <label> km </label>
+        </div>
+      </div>
+
+      <hr />
+
+      <h4>Coverage settings</h4>
+
+      <div v-if="!settings.rejectOfficial">
+        <Checkbox v-model="settings.rejectUnofficial" label="Reject unofficial" />
+        <Checkbox v-model="settings.rejectGen1" label="Reject gen 1" />
       </div>
 
       <div v-if="settings.rejectUnofficial && !settings.rejectOfficial && !settings.rejectGen1">
-        <Checkbox v-model:checked="settings.findGeneration" label="Find generation" />
+        <Checkbox v-model="settings.findGeneration" label="Find generation" />
         <div v-if="settings.findGeneration">
           <select v-model="settings.generation">
             <option value="1">Gen 1</option>
@@ -81,201 +142,215 @@
             <option value="4">Gen 4</option>
           </select>
         </div>
-        <Checkbox v-model:checked="settings.rejectDescription" label="Find trekker coverage" />
+        <Checkbox v-model="settings.rejectDescription" label="Find trekker coverage" />
       </div>
 
-      <Checkbox v-model:checked="settings.rejectOfficial" label="Find unofficial coverage" />
+      <Checkbox v-model="settings.rejectOfficial" label="Find unofficial coverage" />
 
       <div v-if="settings.rejectOfficial">
-        <Checkbox v-model:checked="settings.findDrones" label="Find drone photospheres" />
+        <Checkbox v-model="settings.findDrones" label="Find drone photospheres" />
       </div>
+
+      <div v-if="!settings.selectMonths" class="flex flex-col gap-0.5">
+        <div class="flex justify-between">
+          <label>From :</label>
+          <input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
+        </div>
+        <div class="flex justify-between">
+          <label>To :</label>
+          <input type="month" v-model="settings.toDate" min="2007-01" :max="dateToday" />
+        </div>
+      </div>
+
+      <div v-if="!settings.rejectOfficial">
+        <Checkbox v-model="settings.selectMonths" label="Filter by month" />
+        <div v-if="settings.selectMonths" class="flex flex-col gap-0.5">
+          <div>
+            <select v-model="settings.fromMonth">
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <label> to </label>
+            <select v-model="settings.toMonth">
+              <option value="01">January</option>
+              <option value="02">February</option>
+              <option value="03">March</option>
+              <option value="04">April</option>
+              <option value="05">May</option>
+              <option value="06">June</option>
+              <option value="07">July</option>
+              <option value="08">August</option>
+              <option value="09">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </div>
+          <div>
+            <label> Between years </label>
+            <input type="number" v-model.number="settings.fromYear" min="2007" />
+            <label> and </label>
+            <input type="number" v-model.number="settings.toYear" min="2007" />
+          </div>
+        </div>
+      </div>
+
+      <Checkbox v-model="settings.checkAllDates" label="Check all dates" />
+
+      <Checkbox
+        v-if="settings.rejectUnofficial && !settings.rejectOfficial"
+        v-model="settings.randomInTimeline"
+        label="Choose random date in time range"
+      />
 
       <hr />
 
-      <h4 class="center">Location settings</h4>
+      <h4>Location settings</h4>
 
       <div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
-        <Checkbox v-model:checked="settings.rejectDateless" label="Reject locations without date" />
+        <Checkbox v-model="settings.rejectDateless" label="Reject locations without date" />
       </div>
 
       <div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
         <div v-if="!settings.rejectDescription">
-          <Checkbox v-model:checked="settings.rejectNoDescription" label="Reject locations without description" />
+          <Checkbox
+            v-model="settings.rejectNoDescription"
+            label="Reject locations without description"
+          />
         </div>
 
         <Checkbox
-          v-model:checked="settings.onlyOneInTimeframe"
+          v-model="settings.onlyOneInTimeframe"
           label="Only one panorama on location"
           title="Only allow locations that don't have other nearby coverage in timeframe."
         />
 
-        <Checkbox v-model:checked="settings.checkLinks" label="Check linked panos" />
-        <div v-if="settings.checkLinks">
-          <input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
-          Depth: {{ settings.linksDepth }}
+        <Checkbox v-model="settings.checkLinks" label="Check linked panos" />
+        <div v-if="settings.checkLinks" class="flex items-center justify-between ml-8">
+          Depth :
+          <div class="flex items-center gap-2">
+            {{ settings.linksDepth }}
+            <input type="range" v-model.number="settings.linksDepth" min="1" max="10" />
+          </div>
         </div>
       </div>
 
       <hr />
 
-      <h4 class="center">Map making settings</h4>
+      <h4>Map making settings</h4>
 
       <div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
         <Checkbox
-          @change="settings.deadEndsOnly ? (settings.getIntersection = false) || (settings.pinpointSearch = false) : true"
-          v-model:checked="settings.deadEndsOnly"
+          @change="
+            settings.deadEndsOnly
+              ? (settings.getIntersection = false) || (settings.pinpointSearch = false)
+              : true
+          "
+          v-model="settings.deadEndsOnly"
           label="Dead ends only (end of coverage)"
         />
-        <div v-if="settings.deadEndsOnly" class="indent">
-          <Checkbox v-model:checked="settings.deadEndsLookBackwards" label="Look towards dead end" />
+        <div v-if="settings.deadEndsOnly" class="ml-8">
+          <Checkbox v-model="settings.deadEndsLookBackwards" label="Look towards dead end" />
         </div>
 
         <Checkbox
           @change="settings.getIntersection ? (settings.deadEndsOnly = false) : true"
-          v-model:checked="settings.getIntersection"
+          v-model="settings.getIntersection"
           label="Find intersection locations"
         />
 
         <Checkbox
           @change="settings.pinpointSearch ? (settings.deadEndsOnly = false) : true"
-          v-model:checked="settings.pinpointSearch"
+          v-model="settings.pinpointSearch"
           label="Find curve locations"
         />
-        <div v-if="settings.pinpointSearch" class="indent">
-          <label class="flex wrap">
-            Pinpointable angle <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" /> ({{
-              settings.pinpointAngle
-            }}°)
+        <div v-if="settings.pinpointSearch" class="ml-8">
+          <label class="flex items-center justify-between">
+            Pinpointable angle ({{ settings.pinpointAngle }}°)
+            <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" />
           </label>
         </div>
 
-        <Checkbox v-model:checked="settings.adjustHeading" label="Adjust heading" />
-        <div v-if="settings.adjustHeading" class="indent">
-          <label><input type="radio" v-model="settings.headingReference" value="link" /> Along road</label><br />
-          <label><input type="radio" v-model="settings.headingReference" value="forward" /> To front of car</label><br />
-          <label><input type="radio" v-model="settings.headingReference" value="backward" /> To back of car</label>
-          <label class="flex wrap">
-            Deviation <input type="range" v-model.number="settings.headingDeviation" min="0" max="360" /> (+/-
-            {{ settings.headingDeviation }}°)
+        <Checkbox v-model="settings.adjustHeading" label="Adjust heading" />
+        <div v-if="settings.adjustHeading" class="ml-8">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" v-model="settings.headingReference" value="link" />
+            Along road
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" v-model="settings.headingReference" value="forward" />
+            To front of car
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" v-model="settings.headingReference" value="backward" />
+            To back of car
+          </label>
+          <label class="flex items-center justify-between">
+            Deviation (+/- {{ settings.headingDeviation }}°)
+            <input type="range" v-model.number="settings.headingDeviation" min="0" max="360" />
           </label>
           <small>0° will point directly towards the road.</small>
         </div>
 
-        <Checkbox v-model:checked="settings.adjustPitch" label="Adjust pitch" />
-        <div v-if="settings.adjustPitch" class="indent">
-          <label class="flex wrap">
-            Pitch deviation <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" /> ({{
-              settings.pitchDeviation
-            }}°)
+        <Checkbox v-model="settings.adjustPitch" label="Adjust pitch" />
+        <div v-if="settings.adjustPitch" class="ml-8">
+          <label class="flex items-center justify-between">
+            Deviation ({{ settings.pitchDeviation }}°)
+            <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" />
           </label>
           <small>0 by default. -90° for tarmac/+90° for sky</small>
         </div>
 
-        <Checkbox v-model:checked="settings.randomInTimeline" label="Choose random date in time range" />
+        <!-- <Checkbox v-model="settings.randomInTimeline" label="Choose random date in time range" /> -->
       </div>
+
       <hr />
 
-      <h4 class="center mb-2">Marker settings</h4>
+      <h4>Marker settings</h4>
       <div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
         <Checkbox
-          v-model:checked="settings.cluster"
+          v-model="settings.cluster"
           v-on:change="updateClusters"
           label="Cluster markers"
           title="For lag reduction."
         />
-        <Checkbox v-model:checked="settings.gen4Marker" v-on:change="updateMarkerDisplay('gen4')" label="Gen 4 Update" />
         <Checkbox
-          v-model:checked="settings.gen2Or3Marker"
+          v-model="settings.gen4Marker"
+          v-on:change="updateMarkerDisplay('gen4')"
+          label="Gen 4 Update"
+        />
+        <Checkbox
+          v-model="settings.gen2Or3Marker"
           v-on:change="updateMarkerDisplay('gen2Or3')"
           label="Gen 2 or 3 Update"
         />
-        <Checkbox v-model:checked="settings.gen1Marker" v-on:change="updateMarkerDisplay('gen1')" label="Gen 1 Update" />
-        <Checkbox v-model:checked="settings.newRoadMarker" v-on:change="updateMarkerDisplay('newRoad')" label="New Road" />
-        <Checkbox v-model:checked="settings.checkBlueLines" label="Highlight locations without blue line" />
+        <Checkbox
+          v-model="settings.gen1Marker"
+          v-on:change="updateMarkerDisplay('gen1')"
+          label="Gen 1 Update"
+        />
+        <Checkbox
+          v-model="settings.newRoadMarker"
+          v-on:change="updateMarkerDisplay('newRoad')"
+          label="New Road"
+        />
+        <Checkbox v-model="settings.checkBlueLines" label="Highlight locations without blue line" />
       </div>
+
       <hr />
 
-      <h4 class="center">General settings</h4>
-
-      <div>
-        Radius
-        <input type="number" v-model.number="settings.radius" @change="handleRadiusInput" />
-        m
-      </div>
-
-      <div class="flex flex-center">
-        Generators: {{ settings.num_of_generators }}
-        <input type="range" v-model.number="settings.num_of_generators" min="1" max="10" />
-      </div>
-
-      <Checkbox v-model:checked="settings.oneCountryAtATime" label="Only check one country/polygon at a time." />
-
-      <div v-if="!settings.selectMonths">
-        <div class="flex space-between mb-2">
-          <label>From</label>
-          <input type="month" v-model="settings.fromDate" min="2007-01" :max="dateToday" />
-        </div>
-        <div class="flex space-between">
-          <label>To</label>
-          <input type="month" v-model="settings.toDate" :max="dateToday" />
-        </div>
-      </div>
-
-      <div v-if="!settings.rejectOfficial">
-        <Checkbox v-model:checked="settings.selectMonths" label="Filter by month" />
-        <div v-if="settings.selectMonths">
-          <select v-model="settings.fromMonth">
-            <option value="01">January</option>
-            <option value="02">February</option>
-            <option value="03">March</option>
-            <option value="04">April</option>
-            <option value="05">May</option>
-            <option value="06">June</option>
-            <option value="07">July</option>
-            <option value="08">August</option>
-            <option value="09">September</option>
-            <option value="10">October</option>
-            <option value="11">November</option>
-            <option value="12">December</option>
-          </select>
-          <label> to </label>
-          <select v-model="settings.toMonth">
-            <option value="01">January</option>
-            <option value="02">February</option>
-            <option value="03">March</option>
-            <option value="04">April</option>
-            <option value="05">May</option>
-            <option value="06">June</option>
-            <option value="07">July</option>
-            <option value="08">August</option>
-            <option value="09">September</option>
-            <option value="10">October</option>
-            <option value="11">November</option>
-            <option value="12">December</option>
-          </select>
-          <br />
-          <label> Between years </label>
-          <input type="number" v-model.number="settings.fromYear" />
-          <label> and </label>
-          <input type="number" v-model.number="settings.toYear" />
-        </div>
-      </div>
-
-      <div v-if="!settings.rejectOfficial">
-        <Checkbox v-model:checked="settings.findRegions" label="Filter by minimum distance from locations" />
-        <div v-if="settings.findRegions"><input type="number" v-model.number="settings.regionRadius" /> <label> km </label></div>
-      </div>
-
-      <Checkbox v-model:checked="settings.checkAllDates" label="Check all dates" />
-      <Checkbox
-        v-model:checked="settings.onlyCheckBlueLines"
-        label="Only check in areas with blue lines"
-        title="Significatly speeds up generation in areas with sparse coverage density. May negatively affect speeds if generating locations exclusively in areas with very dense coverage. (Official coverage only)"
-      />
-      <hr />
-
-      <div class="customLayers">
-        <h4 class="center mb-2">Custom Layers ({{ Object.keys(customLayers).length }})</h4>
+      <h4>Custom Layers ({{ Object.keys(customLayers).length }})</h4>
+      <div class="flex flex-col gap-2">
         <input type="file" @change="customLayerFileProcess" accept=".txt,.json,.geojson" />
         <select @change="importLayer">
           <option value=""></option>
@@ -283,10 +358,17 @@
           <option value="/geojson/urban_areas.geojson">Urban Areas</option>
         </select>
 
-        <div v-for="(value, name) of customLayers" class="line flex space-between">
-          <div class="flex-center">{{ name }}</div>
-          <a @click="selectAllLayer(value)" class="smallbtn bg-success" style="width: 25%">Select All</a>
-          <button @click="removeCustomLayer(name)" type="button" class="close" aria-label="Close">×</button>
+        <div v-for="(value, name) of customLayers" class="flex items-center gap-2">
+          {{ name }}
+          <Button @click="selectAllLayer(value)" size="sm" class="ml-auto">Select All</Button>
+          <button
+            @click="removeCustomLayer(name)"
+            type="button"
+            class="cursor-pointer text-2xl leading-1"
+            aria-label="Close"
+          >
+            ×
+          </button>
         </div>
       </div>
     </div>
@@ -294,17 +376,19 @@
     <Button
       v-if="canBeStarted"
       @click="handleClickStart"
-      :class="state.started ? 'bg-danger' : 'bg-success'"
-      :text="state.started ? 'Pause' : 'Start'"
+      :variant="state.started ? 'danger' : 'primary'"
       title="Space bar/Enter"
-    />
+      >{{ state.started ? 'Pause' : 'Start' }}
+    </Button>
 
-    <Button @click="exportDrawnLayer" text="Export Drawn Layer" style="background-color: #005cc8" />
+    <Button @click="exportDrawnLayer" style="background-color: #005cc8; color: white"
+      >Export Drawn Layer</Button
+    >
   </div>
 
-  <div v-if="!state.started && hasResults" class="overlay export bottom right">
-    <h4 class="center mb-2">Export selection to</h4>
-    <div class="flex gap">
+  <div v-if="!state.started && hasResults" class="absolute export bottom-2 right-2">
+    <h4>Export selection to</h4>
+    <div class="flex gap-2">
       <CopyToClipboard :selection="selected" />
       <ExportToJSON :selection="selected" />
       <ExportToCSV :selection="selected" />
@@ -314,10 +398,13 @@
 
 <script setup>
 import { onMounted, ref, reactive, computed } from 'vue'
+import { useStorage } from '@vueuse/core'
+
 import Button from '@/components/Elements/Button.vue'
 import Checkbox from '@/components/Elements/Checkbox.vue'
 import Spinner from '@/components/Elements/Spinner.vue'
 import Logo from '@/components/Elements/Logo.vue'
+import FileImportIcon from '@/assets/icons/file-import.svg'
 
 import CopyToClipboard from '@/components/copyToClipboard.vue'
 import ExportToJSON from '@/components/exportToJSON.vue'
@@ -370,7 +457,7 @@ const state = reactive({
 const dateToday = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0')
 const yearToday = new Date().getFullYear()
 
-const settings = reactive({
+const storedSettings = useStorage('map_generator_settings', {
   radius: 500,
   rejectUnofficial: true,
   rejectOfficial: false,
@@ -382,7 +469,7 @@ const settings = reactive({
   headingReference: 'link',
   headingDeviation: 0,
   adjustPitch: false,
-  pitchDeviation: 10,
+  pitchDeviation: 0,
   rejectByYear: false,
   fromDate: '2009-01',
   toDate: dateToday,
@@ -418,9 +505,13 @@ const settings = reactive({
   regionRadius: 100,
 })
 
+const settings = reactive(storedSettings.value)
+
 const select = ref('Select a country or draw a polygon')
 const selected = ref([])
-const canBeStarted = computed(() => selected.value.some((country) => country.found.length < country.nbNeeded))
+const canBeStarted = computed(() =>
+  selected.value.some((country) => country.found.length < country.nbNeeded)
+)
 const hasResults = computed(() => selected.value.some((country) => country.found.length > 0))
 
 let map
@@ -489,12 +580,18 @@ const terrainLayer = L.layerGroup([terrainBaseLayer, terrainLabelsLayer])
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 })
-const cartoLightLayer = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
-  subdomains: ['a', 'b', 'c'],
-})
-const cartoDarkLayer = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png', {
-  subdomains: ['a', 'b', 'c'],
-})
+const cartoLightLayer = L.tileLayer(
+  'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
+  {
+    subdomains: ['a', 'b', 'c'],
+  }
+)
+const cartoDarkLayer = L.tileLayer(
+  'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
+  {
+    subdomains: ['a', 'b', 'c'],
+  }
+)
 const gsvLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e2*212b1*213e2*211m3*211e3*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b1!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0'
 )
@@ -549,7 +646,9 @@ const copyCoords = (e) => {
 }
 
 const openNearestPano = (e) => {
-  open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + e.latlng.lat + ',' + e.latlng.lng)
+  open(
+    'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + e.latlng.lat + ',' + e.latlng.lng
+  )
 }
 
 onMounted(() => {
@@ -659,23 +758,8 @@ function addCustomLayer(geoJSON, name) {
   }
 }
 
-// function collapsible_content() {
-//   // Collapisbles
-//   const coll = document.getElementsByClassName('collapsible')
-
-//   for (let i = 0; i < coll.length; i++) {
-//     coll[i].classList.toggle('active')
-//     const content = coll[i].nextElementSibling
-//     if (content.style.display === 'block') {
-//       content.style.display = 'none'
-//     } else {
-//       content.style.display = 'block'
-//     }
-//   }
-// }
-
 async function changeLocationsCaps() {
-  const newCap = Math.abs(parseInt(prompt('What would you like to set the locations cap to?')))
+  const newCap = Math.abs(parseInt(prompt('What would you like to set the locations cap to ?')))
   if (!isNaN(newCap)) {
     for (const polygon of selected.value) polygon.nbNeeded = newCap
   }
@@ -735,7 +819,9 @@ function removeCustomLayer(name) {
 }
 
 function exportDrawnLayer() {
-  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(customPolygonsLayer.toGeoJSON()))
+  const dataUri =
+    'data:application/json;charset=utf-8,' +
+    encodeURIComponent(JSON.stringify(customPolygonsLayer.toGeoJSON()))
   const fileName = 'DrawnLayer.geojson'
   const linkElement = document.createElement('a')
   linkElement.href = dataUri
@@ -826,7 +912,9 @@ top.allCSV = function () {
 }
 
 top.allJSON = () => {
-  const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({ customCoordinates: allFound }))
+  const dataUri =
+    'data:application/json;charset=utf-8,' +
+    encodeURIComponent(JSON.stringify({ customCoordinates: allFound }))
   const fileName = `Generated map (${allFound.length} location${allFound.length > 1 ? 's' : ''}).json`
   const linkElement = document.createElement('a')
   linkElement.href = dataUri
@@ -916,7 +1004,9 @@ function distance(coords1, coords2) {
   const lat1 = toRad(coords1.lat)
   const lat2 = toRad(coords2.lat)
 
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   const d = R * c
   return d
@@ -935,7 +1025,11 @@ async function getLoc(loc, country) {
   return SV.getPanorama(
     {
       location: { lat: loc.lat, lng: loc.lng },
-      sources: [settings.rejectUnofficial ? google.maps.StreetViewSource.GOOGLE : google.maps.StreetViewSource.DEFAULT],
+      sources: [
+        settings.rejectUnofficial
+          ? google.maps.StreetViewSource.GOOGLE
+          : google.maps.StreetViewSource.DEFAULT,
+      ],
       radius: settings.radius,
     },
     (res, status) => {
@@ -950,7 +1044,8 @@ async function getLoc(loc, country) {
           return false
         if (settings.deadEndsOnly && res.links.length > 1) return false
         if (settings.getIntersection && res.links.length < 3) return false
-        if (settings.rejectDescription && (res.location.description || res.location.shortDescription)) return false
+        if (settings.rejectDescription && (res.location.description || res.location.shortDescription))
+          return false
         if (settings.pinpointSearch && res.links.length < 2) return false
         if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3) return false
         if (
@@ -974,7 +1069,11 @@ async function getLoc(loc, country) {
 
       if (settings.rejectOfficial) {
         if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false
-        if (settings.findDrones && (![2048, 7200].includes(res.tiles.worldSize.height) || res.links.length > 1)) return false
+        if (
+          settings.findDrones &&
+          (![2048, 7200].includes(res.tiles.worldSize.height) || res.links.length > 1)
+        )
+          return false
       }
 
       if (settings.rejectGen1) {
@@ -988,7 +1087,10 @@ async function getLoc(loc, country) {
       if (settings.randomInTimeline) {
         let randomIndex = Math.floor(Math.random() * res.time.length)
         let pano_test = res.time[randomIndex]
-        if (Date.parse(pano_test.gx) < Date.parse(settings.fromDate) || Date.parse(pano_test.gx) > Date.parse(settings.toDate))
+        if (
+          Date.parse(pano_test.gx) < Date.parse(settings.fromDate) ||
+          Date.parse(pano_test.gx) > Date.parse(settings.toDate)
+        )
           return false
         getPano(pano_test.pano, country)
       }
@@ -1007,7 +1109,9 @@ async function getLoc(loc, country) {
         for (const loc of res.time) {
           if (settings.rejectUnofficial && loc.pano.length != 22) continue // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
           const date = Object.values(loc).find((val) => val instanceof Date)
-          const iDate = Date.parse(date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1)) // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
+          const iDate = Date.parse(
+            date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1)
+          ) // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
           if (iDate >= fromDate && iDate <= toDate) {
             // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
             dateWithin = true
@@ -1017,7 +1121,10 @@ async function getLoc(loc, country) {
         if (!dateWithin) return false
       } else {
         if (settings.rejectDateless && !res.imageDate) return false
-        if (Date.parse(res.imageDate) < Date.parse(settings.fromDate) || Date.parse(res.imageDate) > Date.parse(settings.toDate))
+        if (
+          Date.parse(res.imageDate) < Date.parse(settings.fromDate) ||
+          Date.parse(res.imageDate) > Date.parse(settings.toDate)
+        )
           return false
         getPano(res.location.pano, country)
       }
@@ -1038,12 +1145,21 @@ async function getLoc(loc, country) {
             const iDateYear = timeframeDate.getFullYear()
 
             if (fromMonth <= toMonth) {
-              if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear >= fromYear && iDateYear <= toYear) {
+              if (
+                iDateMonth >= fromMonth &&
+                iDateMonth <= toMonth &&
+                iDateYear >= fromYear &&
+                iDateYear <= toYear
+              ) {
                 dateWithin = true
                 break
               }
             } else {
-              if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear >= fromYear && iDateYear <= toYear) {
+              if (
+                (iDateMonth >= fromMonth || iDateMonth <= toMonth) &&
+                iDateYear >= fromYear &&
+                iDateYear <= toYear
+              ) {
                 dateWithin = true
                 break
               }
@@ -1078,7 +1194,8 @@ function isPanoGood(pano) {
       return false
     if (settings.deadEndsOnly && pano.links.length > 1) return false
     if (settings.getIntersection && pano.links.length < 3) return false
-    if (settings.rejectDescription && (pano.location.description || pano.location.shortDescription)) return false
+    if (settings.rejectDescription && (pano.location.description || pano.location.shortDescription))
+      return false
     if (settings.pinpointSearch && pano.links.length < 2) return false
     if (settings.getIntersection && !settings.pinpointSearch && pano.links.length < 3) return false
     if (
@@ -1109,7 +1226,9 @@ function isPanoGood(pano) {
       if (settings.rejectUnofficial && loc.pano.length != 22) continue
       if (loc.pano == pano.location.pano) continue
       const date = Object.values(loc).find((val) => val instanceof Date)
-      const iDate = Date.parse(date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1))
+      const iDate = Date.parse(
+        date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1)
+      )
       if (iDate >= fromDate && iDate <= toDate) return false
     }
   }
@@ -1128,7 +1247,10 @@ function isPanoGood(pano) {
 
       if (settings.rejectUnofficial && pano.time[i].pano.length != 22) continue // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
       const iDate = Date.parse(
-        timeframeDate.getFullYear() + '-' + (timeframeDate.getMonth() > 8 ? '' : '0') + (timeframeDate.getMonth() + 1)
+        timeframeDate.getFullYear() +
+          '-' +
+          (timeframeDate.getMonth() > 8 ? '' : '0') +
+          (timeframeDate.getMonth() + 1)
       )
 
       if (iDate >= fromDate && iDate <= toDate) {
@@ -1152,12 +1274,21 @@ function isPanoGood(pano) {
         const iDateYear = timeframeDate.getFullYear()
 
         if (fromMonth <= toMonth) {
-          if (iDateMonth >= fromMonth && iDateMonth <= toMonth && iDateYear >= fromYear && iDateYear <= toYear) {
+          if (
+            iDateMonth >= fromMonth &&
+            iDateMonth <= toMonth &&
+            iDateYear >= fromYear &&
+            iDateYear <= toYear
+          ) {
             dateWithin = true
             break
           }
         } else {
-          if ((iDateMonth >= fromMonth || iDateMonth <= toMonth) && iDateYear >= fromYear && iDateYear <= toYear) {
+          if (
+            (iDateMonth >= fromMonth || iDateMonth <= toMonth) &&
+            iDateYear >= fromYear &&
+            iDateYear <= toYear
+          ) {
             dateWithin = true
             break
           }
@@ -1196,7 +1327,10 @@ function getPanoDeep(id, country, depth) {
     } else if (status != google.maps.StreetViewStatus.OK) return
     //successfulRequests++
     if (!pano) console.log(status, pano)
-    const inCountry = booleanPointInPolygon([pano.location.latLng.lng(), pano.location.latLng.lat()], country.feature)
+    const inCountry = booleanPointInPolygon(
+      [pano.location.latLng.lng(), pano.location.latLng.lat()],
+      country.feature
+    )
     const isPanoGoodAndInCountry = isPanoGood(pano) && inCountry
     if (settings.checkAllDates && !settings.selectMonths && pano.time) {
       const fromDate = Date.parse(settings.fromDate)
@@ -1205,7 +1339,9 @@ function getPanoDeep(id, country, depth) {
       for (const loc of pano.time) {
         if (settings.rejectUnofficial && loc.pano.length != 22) continue // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
         const date = Object.values(loc).find((val) => val instanceof Date)
-        const iDate = Date.parse(date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1)) // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
+        const iDate = Date.parse(
+          date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1)
+        ) // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
         if (iDate >= fromDate && iDate <= toDate) {
           // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
           getPanoDeep(loc.pano, country, isPanoGoodAndInCountry ? 1 : depth + 1)
@@ -1275,7 +1411,9 @@ function addLoc(pano, country) {
       heading = (pano.tiles.centerHeading + 180) % 360
     } else if (settings.headingReference === 'link' && pano.links.length > 0) {
       heading = parseInt(
-        settings.deadEndsOnly && settings.deadEndsLookBackwards ? pano.links[0].heading - 180 : pano.links[0].heading
+        settings.deadEndsOnly && settings.deadEndsLookBackwards
+          ? pano.links[0].heading - 180
+          : pano.links[0].heading
       )
     }
     heading += randomInRange(-settings.headingDeviation, settings.headingDeviation)
@@ -1288,13 +1426,17 @@ function addLoc(pano, country) {
     heading,
     pitch: settings.adjustPitch ? settings.pitchDeviation : 0,
     imageDate: pano.imageDate,
-    links: [...new Set(pano.links.map((loc) => loc.pano).concat(pano.time.map((loc) => loc.pano)))].sort(),
+    links: [
+      ...new Set(pano.links.map((loc) => loc.pano).concat(pano.time.map((loc) => loc.pano))),
+    ].sort(),
   }
 
   const index = location.links.indexOf(pano.location.pano)
   if (index != -1) location.links.splice(index, 1)
   // Remove ari
-  const time = settings.rejectUnofficial ? pano.time.filter((entry) => entry.pano.length === 22) : pano.time
+  const time = settings.rejectUnofficial
+    ? pano.time.filter((entry) => entry.pano.length === 22)
+    : pano.time
   const previousPano = time[time.length - 2]?.pano
   // New road
   if (!previousPano) {
@@ -1363,7 +1505,8 @@ const randomPointInPoly = (polygon) => {
   const y_max = bounds.getNorth()
   const lat =
     (Math.asin(
-      Math.random() * (Math.sin((y_max * Math.PI) / 180) - Math.sin((y_min * Math.PI) / 180)) + Math.sin((y_min * Math.PI) / 180)
+      Math.random() * (Math.sin((y_max * Math.PI) / 180) - Math.sin((y_min * Math.PI) / 180)) +
+        Math.sin((y_min * Math.PI) / 180)
     ) *
       180) /
     Math.PI
@@ -1459,7 +1602,9 @@ function highlightFeature(e) {
 
 function resetHighlight(e) {
   const layer = e.target
-  if (!selected.value.some((x) => L.Util.stamp(x) === L.Util.stamp(layer))) layer.setStyle(removeHighlight())
+  if (!selected.value.some((x) => L.Util.stamp(x) === L.Util.stamp(layer))) {
+    layer.setStyle(removeHighlight())
+  }
   select.value = 'Select a country or draw a polygon'
 }
 
@@ -1505,29 +1650,11 @@ function clearMarkers() {
 
 function clearLocations() {
   for (const polygon of selected.value) polygon.found.length = 0
+  clearMarkers()
 }
 </script>
 
 <style>
-@import '@/assets/main.css';
-.smallbtn {
-  color: #000;
-  display: block;
-  padding: 0.2rem;
-  text-align: center;
-  border-radius: 4px;
-  cursor: pointer;
-  user-select: none;
-  box-shadow: 0 0 2px rgb(0 0 0 / 40%);
-}
-button.close {
-  padding: 0;
-  background-color: transparent;
-  border: 0;
-  font-size: 25px;
-  color: red;
-  cursor: pointer;
-}
 #map {
   z-index: 0;
   height: 100vh;
@@ -1535,38 +1662,31 @@ button.close {
 .leaflet-container {
   background-color: #2c2c2c;
 }
-.overlay {
-  position: absolute;
-}
+
 .select,
 .selected,
 .settings,
 .export {
-  padding: var(--space-2);
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.7);
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
 }
+.select {
+  padding: 0.5rem;
+}
 .selected {
-  max-height: calc(100vh - 390px);
+  padding: 0.75rem;
+  max-height: calc(100vh - 410px);
   overflow: auto;
 }
 .settings {
-  max-width: 375px;
-  max-height: calc(100vh - 180px);
+  padding: 0.75rem;
+  width: 360px;
+  max-height: calc(100vh - 200px);
   overflow: auto;
 }
 .export {
-  min-width: 375px;
-}
-.line {
-  line-height: 1.5rem;
-}
-.collapsible {
-  border: none;
-  outline: none;
-  display: block;
-  color: #fff;
-  font-weight: bold;
+  padding: 0.75rem;
+  width: 360px;
 }
 </style>
