@@ -91,9 +91,9 @@
             </div>
 
             <div class="flex gap-1">
-              <Clipboard :selection="[polygon as Polygon]" :disabled="!polygon.found.length" />
-              <ExportToJSON :selection="[polygon as Polygon]" :disabled="!polygon.found.length" />
-              <ExportToCSV :selection="[polygon as Polygon]" :disabled="!polygon.found.length" />
+              <Clipboard :selection="[polygon]" :disabled="!polygon.found.length" />
+              <ExportToJSON :selection="[polygon]" :disabled="!polygon.found.length" />
+              <ExportToCSV :selection="[polygon]" :disabled="!polygon.found.length" />
               <Button
                 size="sm"
                 squared
@@ -121,9 +121,9 @@
           >Edit cap for all
         </Button>
         <div class="flex gap-1">
-          <Clipboard :selection="selected as Polygon[]" :disabled="!totalLocs" />
-          <ExportToJSON :selection="selected as Polygon[]" :disabled="!totalLocs" />
-          <ExportToCSV :selection="selected as Polygon[]" :disabled="!totalLocs" />
+          <Clipboard :selection="selected" :disabled="!totalLocs" />
+          <ExportToJSON :selection="selected" :disabled="!totalLocs" />
+          <ExportToCSV :selection="selected" :disabled="!totalLocs" />
           <Button
             size="sm"
             squared
