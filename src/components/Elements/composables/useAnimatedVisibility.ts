@@ -1,4 +1,4 @@
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, type Ref, watch, onUnmounted } from 'vue'
 
 function isElementAnimated(el: HTMLElement): boolean {
   const { animationName, animationDuration } = getComputedStyle(el)

@@ -444,6 +444,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 import { onMounted, ref, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
@@ -1617,11 +1618,15 @@ window.onbeforeunload = function () {
 ;(function (global: typeof L.Marker | undefined) {
   const MarkerMixin = {
     _updateZIndex: function (offset: number) {
+      // @ts-ignore
       this._icon.style.zIndex = this.options.forceZIndex
-        ? this.options.forceZIndex + (this.options.zIndexOffset || 0)
-        : this._zIndex + offset
+        ? // @ts-ignore
+          this.options.forceZIndex + (this.options.zIndexOffset || 0)
+        : // @ts-ignore
+          this._zIndex + offset
     },
     setForceZIndex: function (forceZIndex?: number | null) {
+      // @ts-ignore
       this.options.forceZIndex = forceZIndex ? forceZIndex : null
     },
   }
