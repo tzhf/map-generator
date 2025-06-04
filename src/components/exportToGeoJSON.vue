@@ -4,7 +4,7 @@
   >
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Button from './Elements/Button.vue'
 
 const props = defineProps({
@@ -20,7 +20,7 @@ const exportToGeoJson = () => {
           type: 'Point',
           coordinates: [lng, lat],
         },
-      }))
+      })),
     )
     .flat()
 
@@ -30,7 +30,7 @@ const exportToGeoJson = () => {
       JSON.stringify({
         type: 'FeatureCollection',
         features: features,
-      })
+      }),
     )
   const fileName = `Generated map (${features.length} location${features.length > 1 ? 's' : ''}).geojson`
   const linkElement = document.createElement('a')

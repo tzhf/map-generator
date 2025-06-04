@@ -1,21 +1,32 @@
 <template>
-  <Button @click="exportToJson()" variant="bordered" class="w-full" title="Export as JSON">JSON</Button>
+  <Button size="sm" squared :disabled title="Export to JSON" @click="handleExport">
+    <FileExportIcon class="w-5 h-5" />
+  </Button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Button from './Elements/Button.vue'
+import FileExportIcon from '@/assets/icons/file-export.svg'
 
-const props = defineProps({
-  selection: Array,
-})
+const props = defineProps<{
+  selection: Polygon[]
+  disabled?: boolean
+}>()
 
-const exportToJson = () => {
-  let data = []
-  props.selection.forEach((country) => (data = data.concat(country.found)))
+function handleExport() {
+  let data: Panorama[] = []
+  props.selection.forEach((polygon) => (data = data.concat(polygon.found)))
   const dataUri =
     'data:application/json;charset=utf-8,' +
     encodeURIComponent(JSON.stringify({ customCoordinates: data }))
-  const fileName = `Generated map (${data.length} location${data.length > 1 ? 's' : ''}).json`
+
+  const name =
+    props.selection.length === 1 && props.selection[0].feature.properties.name
+      ? props.selection[0].feature.properties.name
+      : 'Generated map'
+
+  const fileName = `${name} (${data.length} locations).json`
+
   const linkElement = document.createElement('a')
   linkElement.href = dataUri
   linkElement.download = fileName

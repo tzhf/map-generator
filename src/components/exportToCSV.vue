@@ -1,19 +1,23 @@
 <template>
-  <Button @click="exportToCSV()" variant="bordered" class="w-full" title="Export as CSV">CSV</Button>
+  <Button size="sm" squared :disabled title="Export to CSV" @click="handleExport">
+    <FileCSV class="w-5 h-5" />
+  </Button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Button from './Elements/Button.vue'
+import FileCSV from '@/assets/icons/file-csv.svg'
 
-const props = defineProps({
-  selection: Array,
-})
+const props = defineProps<{
+  selection: Polygon[]
+  disabled?: boolean
+}>()
 
-const exportToCSV = () => {
+function handleExport() {
   let csv = ''
   let nbLocs = 0
-  props.selection.forEach((country) => {
-    country.found.forEach((coords) => {
+  props.selection.forEach((polygon) => {
+    polygon.found.forEach((coords) => {
       csv += `${coords.lat},${coords.lng},\n`
       nbLocs++
     })

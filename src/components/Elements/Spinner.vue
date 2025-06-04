@@ -3,7 +3,7 @@ import GeoIcon from '@/assets/icons/geoicon.svg'
 const { size } = defineProps({
   size: {
     type: String,
-    default: '1.5',
+    default: '1',
   },
 })
 </script>

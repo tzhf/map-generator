@@ -16,8 +16,8 @@ body {
   color: #fff;
 }
 
-h4 {
-  @apply text-center font-bold mb-2;
+h2 {
+  @apply text-center font-bold;
 }
 
 a {
@@ -88,12 +88,44 @@ hr {
 }
 
 ::-webkit-scrollbar {
-  width: 0.5rem;
+  width: 0.25rem;
 }
 ::-webkit-scrollbar-track {
   background: #1a1a1a;
 }
 ::-webkit-scrollbar-thumb {
   border-radius: 2px;
-  background: var(--color-primary);
+  background: rgb(255, 255, 255);
+}
+
+/* Collapsible */
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--height);
+  }
+}
+@keyframes slideUp {
+  from {
+    height: var(--height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* Collapsible */
+[data-scope='collapsible'][data-state='open'] {
+  animation: slideDown 250ms ease-in-out;
+}
+[data-scope='collapsible'][data-state='closed'] {
+  animation: slideUp 200ms ease-in-out;
+}
+.collapsible-indicator {
+  @apply w-5 h-5 transform duration-150;
+}
+.container:has([data-scope='collapsible'][data-state='open']) .collapsible-indicator {
+  @apply rotate-180;
 }

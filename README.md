@@ -1,6 +1,6 @@
 # MapGenerator
 
-Geoguessr map generator
+GeoGuessr map generator
 
 ```shell
 $ npm install
