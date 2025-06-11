@@ -15,7 +15,11 @@
           class="flex flex-col gap-1 max-h-[140px] overflow-y-auto mt-2 p-1"
         >
           <div v-for="layer in availableLayers" :key="layer.key" class="flex gap-1 justify-between">
-            <Checkbox v-model="layer.visible" @change="toggleLayer(layer)" class="truncate">
+            <Checkbox
+              v-model="layer.visible"
+              @change="toggleLayer(layer as LayerMeta)"
+              class="truncate"
+            >
               <span class="truncate">{{ layer.label }}</span>
             </Checkbox>
             <div class="flex gap-1">
@@ -23,7 +27,12 @@
               <Button size="sm" variant="danger" @click="deselectLayer(layer.key)">
                 Deselect All
               </Button>
-              <Button squared size="sm" @click="exportLayer(layer)">
+              <Button
+                squared
+                size="sm"
+                title="Export layer"
+                @click="exportLayer(layer as LayerMeta)"
+              >
                 <FileExportIcon class="w-5 h-5" />
               </Button>
             </div>
@@ -63,7 +72,7 @@
                   type="file"
                   accept=".json"
                   hidden
-                  @change="importLocations($event, polygon)"
+                  @change="importLocations($event, polygon as Polygon)"
                 />
                 <FileImportIcon class="w-5 h-5" />
               </label>
@@ -91,9 +100,9 @@
             </div>
 
             <div class="flex gap-1">
-              <Clipboard :selection="[polygon]" :disabled="!polygon.found.length" />
-              <ExportToJSON :selection="[polygon]" :disabled="!polygon.found.length" />
-              <ExportToCSV :selection="[polygon]" :disabled="!polygon.found.length" />
+              <Clipboard :data="[polygon as Polygon]" :disabled="!polygon.found.length" />
+              <ExportToJSON :data="[polygon as Polygon]" :disabled="!polygon.found.length" />
+              <ExportToCSV :data="[polygon as Polygon]" :disabled="!polygon.found.length" />
               <Button
                 size="sm"
                 squared
@@ -121,9 +130,9 @@
           >Edit cap for all
         </Button>
         <div class="flex gap-1">
-          <Clipboard :selection="selected" :disabled="!totalLocs" />
-          <ExportToJSON :selection="selected" :disabled="!totalLocs" />
-          <ExportToCSV :selection="selected" :disabled="!totalLocs" />
+          <Clipboard :data="selected as Polygon[]" :disabled="!totalLocs" />
+          <ExportToJSON :data="selected as Polygon[]" :disabled="!totalLocs" />
+          <ExportToCSV :data="selected as Polygon[]" :disabled="!totalLocs" />
           <Button
             size="sm"
             squared
@@ -325,7 +334,7 @@
             <Checkbox
               @change="
                 settings.getDeadEnds
-                  ? (settings.getIntersection = false) || (settings.pinpointSearch = false)
+                  ? (settings.getIntersection = false) || (settings.getCurve = false)
                   : true
               "
               v-model="settings.getDeadEnds"
@@ -342,15 +351,15 @@
             >
 
             <Checkbox
-              @change="settings.pinpointSearch ? (settings.getDeadEnds = false) : true"
-              v-model="settings.pinpointSearch"
+              @change="settings.getCurve ? (settings.getDeadEnds = false) : true"
+              v-model="settings.getCurve"
             >
               Find curve locations
             </Checkbox>
 
-            <label v-if="settings.pinpointSearch" class="ml-6 flex items-center justify-between">
-              Pinpointable angle ({{ settings.pinpointAngle }}°)
-              <input type="range" v-model.number="settings.pinpointAngle" min="45" max="180" />
+            <label v-if="settings.getCurve" class="ml-6 flex items-center justify-between">
+              Min curve angle ({{ settings.minCurveAngle }}°)
+              <input type="range" v-model.number="settings.minCurveAngle" min="5" max="90" />
             </label>
 
             <Checkbox v-model="settings.adjustHeading">Adjust heading</Checkbox>
@@ -444,7 +453,6 @@
 </template>
 
 <script setup lang="ts">
-// @ts-nocheck
 import { onMounted, ref, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
@@ -453,14 +461,15 @@ import { llToPX } from 'web-merc-projection'
 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import '@/assets/leaflet-draw/leaflet.draw.js' // npm one is broken for rectancles so we use a patched one
+import '@/assets/leaflet-draw/leaflet.draw.js' // npm one is broken for rectangles so we use a patched one
 import '@/assets/leaflet-draw/leaflet.draw.css'
-import 'leaflet-contextmenu'
-import 'leaflet-contextmenu/dist/leaflet.contextmenu.css'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster.freezable/dist/leaflet.markercluster.freezable.js'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import 'leaflet-contextmenu'
+import 'leaflet-contextmenu/dist/leaflet.contextmenu.css'
+
 import markerBlue from '@/assets/markers/marker-blue.png'
 import markerRed from '@/assets/markers/marker-red.png'
 import markerViolet from '@/assets/markers/marker-violet.png'
@@ -537,8 +546,8 @@ const storedSettings = useStorage('map_generator_settings', {
   getDeadEnds: false,
   deadEndsLookBackwards: false,
   getIntersection: false,
-  pinpointSearch: false,
-  pinpointAngle: 145,
+  getCurve: false,
+  minCurveAngle: 10,
   adjustHeading: true,
   headingReference: 'link',
   headingDeviation: 0,
@@ -556,6 +565,8 @@ const storedSettings = useStorage('map_generator_settings', {
   checkImports: false,
 })
 const settings = reactive(storedSettings.value)
+settings.toDate = currentDate
+settings.toYear = currentYear
 
 const panels = useStorage('map_generator_panels', {
   layer: true,
@@ -664,7 +675,7 @@ const markerLayers: Record<MarkerLayersTypes, L.MarkerClusterGroup> = {
 interface LayerMeta {
   label: string
   key: string
-  source: string | GeoJSON.GeoJsonObject[]
+  source: string | L.Layer
   visible: boolean
 }
 const availableLayers = ref<LayerMeta[]>([
@@ -943,7 +954,7 @@ onMounted(async () => {
 
   for (const layer of availableLayers.value) {
     if (layer.visible) {
-      const loaded = await loadLayer(layer)
+      const loaded = await loadLayer(layer as LayerMeta)
       map.addLayer(loaded)
     }
   }
@@ -1036,6 +1047,7 @@ async function start() {
 
 async function generate(polygon: Polygon) {
   let detector
+
   if (settings.onlyCheckBlueLines) {
     const bounds = polygon.getBounds()
     const boundsNW = { lat: bounds.getNorth(), lng: bounds.getWest() }
@@ -1046,220 +1058,200 @@ async function generate(polygon: Polygon) {
   while (polygon.found.length < polygon.nbNeeded) {
     if (!state.started) return
     polygon.isProcessing = true
+
     const randomCoords = []
     const n = Math.min(polygon.nbNeeded * 100, 1000)
+
     while (randomCoords.length < n) {
       const point = randomPointInPoly(polygon)
-      if (booleanPointInPolygon([point.lng, point.lat], polygon.feature)) {
-        if (!settings.onlyCheckBlueLines || detector(point.lat, point.lng, settings.radius)) {
-          randomCoords.push(point)
-        }
+      if (
+        booleanPointInPolygon([point.lng, point.lat], polygon.feature) &&
+        (!settings.onlyCheckBlueLines || detector(point.lat, point.lng, settings.radius))
+      ) {
+        randomCoords.push(point)
       }
     }
-    if (!settings.findRegions) {
-      for (const locationGroup of randomCoords.chunk(75)) {
-        await Promise.allSettled(locationGroup.map((l) => getLoc(l, polygon)))
-      }
-    } else if (settings.findRegions) {
-      for (const locationGroup of randomCoords.chunk(1)) {
-        await Promise.allSettled(locationGroup.map((l) => getLoc(l, polygon)))
-      }
+
+    const chunkSize = settings.findRegions ? 1 : 75
+    for (const locationGroup of randomCoords.chunk(chunkSize)) {
+      await Promise.allSettled(locationGroup.map((l) => getLoc(l, polygon)))
     }
   }
   polygon.isProcessing = false
 }
 
+function getPanoramaRequest(
+  loc: LatLng,
+  rejectUnofficial: boolean,
+): google.maps.StreetViewLocationRequest {
+  return {
+    location: loc,
+    sources: [
+      rejectUnofficial ? google.maps.StreetViewSource.GOOGLE : google.maps.StreetViewSource.DEFAULT,
+    ],
+    radius: settings.radius,
+  }
+}
+
+function isOfficial(pano: string) {
+  return pano.length === 22 // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+  // return (!/^\xA9 (?:\d+ )?Google$/.test(pano.copyright))
+}
+
+function hasAnyDescription(location: google.maps.StreetViewLocation) {
+  return location.description || location.shortDescription
+}
+
+function isDrone(res: google.maps.StreetViewPanoramaData) {
+  return [2048, 7200].includes(res.tiles.worldSize.height) && !res.links?.length
+}
+
+function isAcceptableCurve(links: google.maps.StreetViewLink[], minCurveAngle: number): boolean {
+  if (links.length !== 2 || links[0].heading == null || links[1].heading == null) return false
+
+  const angleDifference = Math.abs(links[0].heading - links[1].heading) % 360
+  const smallestAngle = angleDifference > 180 ? 360 - angleDifference : angleDifference
+  const curveAngle = Math.abs(180 - smallestAngle)
+  return curveAngle >= minCurveAngle
+}
+
+// this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
+function parseDate(date: Date): number {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const monthStr = month < 10 ? `0${month}` : `${month}`
+  return Date.parse(`${year}-${monthStr}`)
+}
+
 async function getLoc(loc: LatLng, polygon: Polygon) {
-  return SV.getPanorama(
-    {
-      location: { lat: loc.lat, lng: loc.lng },
-      sources: [
-        settings.rejectUnofficial
-          ? google.maps.StreetViewSource.GOOGLE
-          : google.maps.StreetViewSource.DEFAULT,
-      ],
-      radius: settings.radius,
-    },
-    (res, status) => {
-      if (!res || status != google.maps.StreetViewStatus.OK) return false
+  return SV.getPanorama(getPanoramaRequest(loc, settings.rejectUnofficial), (res, status) => {
+    if (status != google.maps.StreetViewStatus.OK || !res || !res.location) return false
 
-      if (settings.rejectUnofficial && !settings.rejectOfficial) {
-        if (
-          settings.rejectNoDescription &&
-          !settings.rejectDescription &&
-          !res.location?.description &&
-          !res.location?.shortDescription
-        )
-          return false
-        if (settings.getDeadEnds && res.links.length > 1) return false
-        if (settings.getIntersection && res?.links.length < 3) return false
-        if (
-          settings.rejectDescription &&
-          (res.location?.description || res.location?.shortDescription)
-        )
-          return false
-        if (settings.pinpointSearch && res.links.length < 2) return false
-        if (settings.getIntersection && !settings.pinpointSearch && res.links.length < 3)
-          return false
-        if (
-          settings.pinpointSearch &&
-          res.links.length == 2 &&
-          Math.abs(res.links[0].heading - res.links[1].heading) > settings.pinpointAngle
-        )
-          return false
+    if (settings.rejectUnofficial && !settings.rejectOfficial) {
+      // Reject trekkers
+      if (
+        settings.rejectNoDescription &&
+        !settings.rejectDescription &&
+        !hasAnyDescription(res.location)
+      )
+        return false
+
+      // Find trekkers
+      if (settings.rejectDescription && hasAnyDescription(res.location)) return false
+
+      if (settings.getDeadEnds && res.links && res.links.length > 1) return false
+
+      if (settings.getCurve || settings.getIntersection) {
+        const links = res.links ?? []
+        const isIntersection = settings.getIntersection && links.length >= 3
+        const isCurve = settings.getCurve && isAcceptableCurve(links, settings.minCurveAngle)
+        if (!isIntersection && !isCurve) return false
       }
+    }
 
-      if (settings.findRegions) {
-        settings.checkAllDates = false
-        let i = 0
-        while (i < polygon.found.length) {
-          if (distanceBetween(polygon.found[i], loc) < settings.regionRadius * 1000) {
-            return false
-          }
-          i++
+    if (settings.findRegions) {
+      settings.checkAllDates = false
+      let i = 0
+      while (i < polygon.found.length) {
+        if (distanceBetween(polygon.found[i], loc) < settings.regionRadius * 1000) {
+          return false
+        }
+        i++
+      }
+    }
+
+    if (settings.rejectOfficial) {
+      if (res.copyright && /^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false
+      if (settings.findDrones && !isDrone(res)) return false
+    }
+
+    if (
+      settings.findByGeneration &&
+      ((!settings.rejectOfficial && !settings.checkAllDates) || settings.selectMonths)
+    ) {
+      if (!settings.filterByGen[getCameraGeneration(res)]) return false
+    }
+
+    if (settings.randomInTimeline && res.time) {
+      const randomIndex = Math.floor(Math.random() * res.time.length)
+      const randomPano = res.time[randomIndex]
+      const panoDate = Object.values(randomPano).find((val) => val instanceof Date)
+      const parsedDate = panoDate ? panoDate.getTime() : undefined
+      if (
+        parsedDate &&
+        (parsedDate < Date.parse(settings.fromDate) || parsedDate > Date.parse(settings.toDate))
+      )
+        return false
+      getPano(randomPano.pano, polygon)
+    }
+
+    if (
+      settings.checkAllDates &&
+      !settings.selectMonths &&
+      !settings.rejectOfficial &&
+      !settings.randomInTimeline
+    ) {
+      if (!res.time?.length) return false
+
+      const fromDate = Date.parse(settings.fromDate)
+      const toDate = Date.parse(settings.toDate)
+      let dateWithin = false
+      for (const loc of res.time) {
+        if (settings.rejectUnofficial && !isOfficial(loc.pano)) continue
+
+        const date = Object.values(loc).find((val) => val instanceof Date)
+        const iDate = parseDate(date)
+        if (iDate >= fromDate && iDate <= toDate) {
+          // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
+          dateWithin = true
+          getPano(loc.pano, polygon)
         }
       }
-
-      if (settings.rejectOfficial) {
-        if (/^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false
-        if (
-          settings.findDrones &&
-          (![2048, 7200].includes(res.tiles.worldSize.height) || res.links.length > 1)
-        )
-          return false
-      }
+      if (!dateWithin) return false
+    } else {
+      if (settings.rejectDateless && !res.imageDate) return false
 
       if (
-        settings.findByGeneration &&
-        ((!settings.rejectOfficial && !settings.checkAllDates) || settings.selectMonths)
+        res.imageDate &&
+        (Date.parse(res.imageDate) < Date.parse(settings.fromDate) ||
+          Date.parse(res.imageDate) > Date.parse(settings.toDate))
       ) {
-        if (!settings.filterByGen[getCameraGeneration(res)]) return false
+        return false
       }
 
-      if (settings.randomInTimeline) {
-        const randomIndex = Math.floor(Math.random() * res.time.length)
-        const pano_test = res.time[randomIndex]
-        if (
-          Date.parse(pano_test.gx) < Date.parse(settings.fromDate) ||
-          Date.parse(pano_test.gx) > Date.parse(settings.toDate)
-        )
-          return false
-        getPano(pano_test.pano, polygon)
-      }
+      getPano(res.location.pano, polygon)
+    }
 
-      if (
-        settings.checkAllDates &&
-        res.time &&
-        !settings.selectMonths &&
-        !settings.rejectOfficial &&
-        !settings.randomInTimeline
-      ) {
-        if (!res.time.length) return false
-        const fromDate = Date.parse(settings.fromDate)
-        const toDate = Date.parse(settings.toDate)
-        let dateWithin = false
-        for (const loc of res.time) {
-          if (settings.rejectUnofficial && loc.pano.length != 22) continue // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
-          const date = Object.values(loc).find((val) => val instanceof Date)
-          const iDate = Date.parse(
-            date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1),
-          ) // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
-          if (iDate >= fromDate && iDate <= toDate) {
-            // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
-            dateWithin = true
-            getPano(loc.pano, polygon)
-          }
-        }
-        if (!dateWithin) return false
-      } else {
-        if (settings.rejectDateless && !res.imageDate) return false
-        if (
-          Date.parse(res.imageDate) < Date.parse(settings.fromDate) ||
-          Date.parse(res.imageDate) > Date.parse(settings.toDate)
-        )
-          return false
-        getPano(res.location.pano, polygon)
-      }
-
-      if (settings.selectMonths && !settings.rejectOfficial) {
-        if (!res.time?.length) return false
-        let dateWithin = false
-        const fromMonth = settings.fromMonth
-        const toMonth = settings.toMonth
-        const fromYear = settings.fromYear
-        const toYear = settings.toYear
-        if (settings.checkAllDates) {
-          for (let i = 0; i < res.time.length; i++) {
-            const timeframeDate = Object.values(res.time[i]).find((val) => isDate(val))
-
-            if (settings.rejectUnofficial && res.time[i].pano.length != 22) continue // Checks if res ID is 22 characters long. Otherwise, it's an Ari
-            const iDateMonth = timeframeDate.getMonth() + 1
-            const iDateYear = timeframeDate.getFullYear()
-
-            if (fromMonth <= toMonth) {
-              if (
-                iDateMonth >= fromMonth &&
-                iDateMonth <= toMonth &&
-                iDateYear >= fromYear &&
-                iDateYear <= toYear
-              ) {
-                dateWithin = true
-                break
-              }
-            } else {
-              if (
-                (iDateMonth >= fromMonth || iDateMonth <= toMonth) &&
-                iDateYear >= fromYear &&
-                iDateYear <= toYear
-              ) {
-                dateWithin = true
-                break
-              }
-            }
-          }
-          if (!dateWithin) return false
-        } else {
-          if (res.imageDate.slice(0, 4) < fromYear || res.imageDate.slice(0, 4) > toYear)
-            return false
-          if (fromMonth <= toMonth) {
-            if (res.imageDate.slice(5) < fromMonth || res.imageDate.slice(5) > toMonth) return false
-          } else {
-            if (res.imageDate.slice(5) < fromMonth && res.imageDate.slice(5) > toMonth) return false
-          }
-        }
-      }
-
-      return true
-    },
-  )
+    return true
+  })
 }
 
 function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
   if (settings.rejectUnofficial && !settings.rejectOfficial) {
-    if (pano.location?.pano.length != 22) return false
-    // if (!/^\xA9 (?:\d+ )?Google$/.test(pano.copyright)) return false;
+    if (!pano.location || !isOfficial(pano.location.pano)) return false
+    // Reject trekkers
     if (
       settings.rejectNoDescription &&
       !settings.rejectDescription &&
-      !pano.location.description &&
-      !pano.location.shortDescription
+      !hasAnyDescription(pano.location)
     )
       return false
-    if (settings.getDeadEnds && pano.links.length > 1) return false
-    if (settings.getIntersection && pano.links.length < 3) return false
-    if (settings.rejectDescription && (pano.location.description || pano.location.shortDescription))
-      return false
-    if (settings.pinpointSearch && pano.links.length < 2) return false
-    if (settings.getIntersection && !settings.pinpointSearch && pano.links.length < 3) return false
-    if (
-      settings.pinpointSearch &&
-      pano.links.length == 2 &&
-      Math.abs(pano.links[0].heading - pano.links[1].heading) > settings.pinpointAngle
-    )
-      return false
+
+    // Find trekkers
+    if (settings.rejectDescription && hasAnyDescription(pano.location)) return false
+
+    if (settings.getDeadEnds && pano.links && pano.links.length > 1) return false
+
+    if (settings.getCurve || settings.getIntersection) {
+      const links = pano.links ?? []
+      const isIntersection = settings.getIntersection && links.length >= 3
+      const isCurve = settings.getCurve && isAcceptableCurve(links, settings.minCurveAngle)
+      if (!isIntersection && !isCurve) return false
+    }
   }
 
   if (settings.rejectDateless && !pano.imageDate) return false
+
   const fromDate = Date.parse(settings.fromDate)
   const toDate = Date.parse(settings.toDate)
   const locDate = Date.parse(pano.imageDate)
@@ -1275,34 +1267,26 @@ function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
   }
 
   if (settings.onlyOneInTimeframe) {
+    if (!pano.time?.length) return false
     for (const loc of pano.time) {
-      if (settings.rejectUnofficial && loc.pano.length != 22) continue
+      if (settings.rejectUnofficial && !isOfficial(loc.pano)) continue
       if (loc.pano == pano.location?.pano) continue
       const date = Object.values(loc).find((val) => val instanceof Date)
-      const iDate = Date.parse(
-        date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1),
-      )
+      const iDate = parseDate(date)
       if (iDate >= fromDate && iDate <= toDate) return false
     }
   }
 
   if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
     if (!pano.time?.length) return false
-    if (settings.findByGeneration) {
-      if (!settings.filterByGen[getCameraGeneration(pano)]) return false
-    }
+    if (settings.findByGeneration && !settings.filterByGen[getCameraGeneration(pano)]) return false
 
     let dateWithin = false
     for (let i = 0; i < pano.time.length; i++) {
-      const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val))
+      if (settings.rejectUnofficial && !isOfficial(pano.time[i].pano)) continue
 
-      if (settings.rejectUnofficial && pano.time[i].pano.length != 22) continue // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
-      const iDate = Date.parse(
-        timeframeDate.getFullYear() +
-          '-' +
-          (timeframeDate.getMonth() > 8 ? '' : '0') +
-          (timeframeDate.getMonth() + 1),
-      )
+      const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val))
+      const iDate = parseDate(timeframeDate)
 
       if (iDate >= fromDate && iDate <= toDate) {
         dateWithin = true
@@ -1318,9 +1302,9 @@ function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
 
     if (settings.checkAllDates) {
       for (let i = 0; i < pano.time.length; i++) {
-        const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val))
+        if (settings.rejectUnofficial && !isOfficial(pano.time[i].pano)) continue
 
-        if (settings.rejectUnofficial && pano.time[i].pano.length != 22) continue // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+        const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val))
         const iDateMonth = timeframeDate.getMonth() + 1
         const iDateYear = timeframeDate.getFullYear()
 
@@ -1373,8 +1357,7 @@ function getPanoDeep(id: string, polygon: Polygon, depth: number) {
       polygon.checkedPanos.delete(id)
       return getPanoDeep(id, polygon, depth)
     } else if (status != google.maps.StreetViewStatus.OK) return
-    //successfulRequests++
-    // if (!pano) console.log(status, pano)
+
     const inCountry = booleanPointInPolygon(
       [pano.location.latLng.lng(), pano.location.latLng.lat()],
       polygon.feature,
@@ -1385,11 +1368,10 @@ function getPanoDeep(id: string, polygon: Polygon, depth: number) {
       const toDate = Date.parse(settings.toDate)
 
       for (const loc of pano.time) {
-        if (settings.rejectUnofficial && loc.pano.length != 22) continue // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+        if (settings.rejectUnofficial && !isOfficial(loc.pano)) continue
+
         const date = Object.values(loc).find((val) => val instanceof Date)
-        const iDate = Date.parse(
-          date.getFullYear() + '-' + (date.getMonth() > 8 ? '' : '0') + (date.getMonth() + 1),
-        ) // this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
+        const iDate = parseDate(date)
         if (iDate >= fromDate && iDate <= toDate) {
           // if date ranges from fromDate to toDate, set dateWithin to true and stop the loop
           getPanoDeep(loc.pano, polygon, isPanoGoodAndInCountry ? 1 : depth + 1)
@@ -1448,35 +1430,40 @@ function addLoc(pano: google.maps.StreetViewPanoramaData, polygon: Polygon) {
 
   const index = location.links.indexOf(pano.location.pano)
   if (index != -1) location.links.splice(index, 1)
+
   // Remove ari
   const time = settings.rejectUnofficial
-    ? pano.time.filter((entry) => entry.pano.length === 22)
+    ? pano.time.filter((entry) => isOfficial(entry.pano))
     : pano.time
   const previousPano = time[time.length - 2]?.pano
+
   // New road
   if (!previousPano) {
     checkHasBlueLine(pano.location.latLng.toJSON()).then((hasBlueLine) => {
-      addLocation(location, polygon, true, hasBlueLine ? newLocIcon : noBlueLineIcon)
+      addLocation(location, polygon, hasBlueLine ? newLocIcon : noBlueLineIcon)
     })
-
-    return
+  } else {
+    SV.getPanorama({ pano: previousPano }, (previousPano) => {
+      if (previousPano.tiles.worldSize.height === 1664) {
+        // Gen 1
+        return addLocation(location, polygon, gen1Icon)
+      } else if (previousPano.tiles.worldSize.height === 6656) {
+        // Gen 2 or 3
+        return addLocation(location, polygon, gen2Or3Icon)
+      } else {
+        // Gen 4
+        return addLocation(location, polygon, gen4Icon)
+      }
+    })
   }
-
-  SV.getPanorama({ pano: previousPano }, (previousPano) => {
-    if (previousPano.tiles.worldSize.height === 1664) {
-      // Gen 1
-      return addLocation(location, polygon, true, gen1Icon)
-    } else if (previousPano.tiles.worldSize.height === 6656) {
-      // Gen 2 or 3
-      return addLocation(location, polygon, true, gen2Or3Icon)
-    } else {
-      // Gen 4
-      return addLocation(location, polygon, true, gen4Icon)
-    }
-  })
 }
 
-function addLocation(location: Panorama, polygon: Polygon, addMarker: boolean, iconType: L.Icon) {
+function addLocation(
+  location: Panorama,
+  polygon: Polygon,
+  iconType: L.Icon,
+  addMarker: boolean = true,
+) {
   if (allFoundPanoIds.has(location.panoId)) return
   allFoundPanoIds.add(location.panoId)
 
@@ -1501,8 +1488,9 @@ function addLocation(location: Panorama, polygon: Polygon, addMarker: boolean, i
       break
   }
 
-  if (!polygon || polygon.found.length < polygon.nbNeeded) {
-    if (polygon) polygon.found.push(location)
+  if (polygon.found.length < polygon.nbNeeded) {
+    polygon.found.push(location)
+
     if (addMarker) {
       const marker = L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
         .on('click', () => {
@@ -1562,6 +1550,7 @@ async function importLocations(e: Event, polygon: Polygon) {
         }
       } catch (e) {
         alert('Invalid JSON.')
+        console.error(e)
       }
 
       for (const location of JSONResult.customCoordinates) {
@@ -1572,7 +1561,7 @@ async function importLocations(e: Event, polygon: Polygon) {
               getPano(link, polygon)
           }
         }
-        addLocation(location, polygon, settings.markersOnImport, gen4Icon)
+        addLocation(location, polygon, gen4Icon, settings.markersOnImport)
       }
     } else {
       alert('Unknown file type: ' + file.type + '. Only JSON may be imported.')
@@ -1618,15 +1607,15 @@ window.onbeforeunload = function () {
 ;(function (global: typeof L.Marker | undefined) {
   const MarkerMixin = {
     _updateZIndex: function (offset: number) {
-      // @ts-ignore
+      // @ts-expect-error error
       this._icon.style.zIndex = this.options.forceZIndex
-        ? // @ts-ignore
+        ? // @ts-expect-error error
           this.options.forceZIndex + (this.options.zIndexOffset || 0)
-        : // @ts-ignore
+        : // @ts-expect-error error
           this._zIndex + offset
     },
     setForceZIndex: function (forceZIndex?: number | null) {
-      // @ts-ignore
+      // @ts-expect-error error
       this.options.forceZIndex = forceZIndex ? forceZIndex : null
     },
   }

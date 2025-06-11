@@ -9,20 +9,20 @@ import Button from './Elements/Button.vue'
 import FileExportIcon from '@/assets/icons/file-export.svg'
 
 const props = defineProps<{
-  selection: Polygon[]
+  data: Polygon[]
   disabled?: boolean
 }>()
 
 function handleExport() {
   let data: Panorama[] = []
-  props.selection.forEach((polygon) => (data = data.concat(polygon.found)))
+  props.data.forEach((polygon) => (data = data.concat(polygon.found)))
   const dataUri =
     'data:application/json;charset=utf-8,' +
     encodeURIComponent(JSON.stringify({ customCoordinates: data }))
 
   const name =
-    props.selection.length === 1 && props.selection[0].feature.properties.name
-      ? props.selection[0].feature.properties.name
+    props.data.length === 1 && props.data[0].feature.properties.name
+      ? props.data[0].feature.properties.name
       : 'Generated map'
 
   const fileName = `${name} (${data.length} locations).json`

@@ -115,7 +115,6 @@ export const polygonStyles = {
 
   customPolygonStyle: () => ({
     weight: 2,
-    // opacity: 1,
     color: getRandomColor(),
     fillOpacity: 0,
   }),

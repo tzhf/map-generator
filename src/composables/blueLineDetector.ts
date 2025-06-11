@@ -188,7 +188,7 @@ export async function blueLineDetector(boundNW: LatLng, boundSE: LatLng) {
     throw new Error('Failed to obtain 2D rendering context')
   }
 
-  const { zoom, cols, rows, tileCoordNW, tileCoordSE } = calculateZoom(boundNW, boundSE, MAX_TILES)
+  const { zoom, cols, rows, tileCoordNW } = calculateZoom(boundNW, boundSE, MAX_TILES)
 
   ctx.canvas.width = TILE_SIZE * cols
   ctx.canvas.height = TILE_SIZE * rows

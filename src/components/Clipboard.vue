@@ -20,13 +20,13 @@ import { useClipboard } from '@vueuse/core'
 const { copy, copied, isSupported } = useClipboard()
 
 const props = defineProps<{
-  selection: Polygon[]
+  data: Polygon[]
   disabled?: boolean
 }>()
 
 function handleCopy() {
   let data: Panorama[] = []
-  props.selection.forEach((polygon) => (data = data.concat(polygon.found)))
+  props.data.forEach((polygon) => (data = data.concat(polygon.found)))
   copy(JSON.stringify({ customCoordinates: data }))
 }
 </script>

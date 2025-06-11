@@ -9,14 +9,14 @@ import Button from './Elements/Button.vue'
 import FileCSV from '@/assets/icons/file-csv.svg'
 
 const props = defineProps<{
-  selection: Polygon[]
+  data: Polygon[]
   disabled?: boolean
 }>()
 
 function handleExport() {
   let csv = ''
   let nbLocs = 0
-  props.selection.forEach((polygon) => {
+  props.data.forEach((polygon) => {
     polygon.found.forEach((coords) => {
       csv += `${coords.lat},${coords.lng},\n`
       nbLocs++

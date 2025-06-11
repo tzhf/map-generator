@@ -7,7 +7,7 @@ type LatLng = {
   lng: number
 }
 
-interface Feature extends GeoJSON.Feature {
+interface Feature extends GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon> {
   properties: {
     code: string
     name: string
