@@ -47,17 +47,17 @@ input[type='range'] {
 }
 /* Chrome, Safari, Edge (Chromium) */
 input[type='range']::-webkit-slider-runnable-track {
-  @apply bg-black/50 h-2 rounded-sm;
+  @apply bg-black/50 h-1.5 rounded-sm;
 }
 input[type='range']::-webkit-slider-thumb {
-  @apply appearance-none w-4 h-4 rounded-full mt-[-0.25rem] bg-primary cursor-grab;
+  @apply appearance-none w-3 h-3 rounded-full mt-[-0.25rem] bg-white cursor-grab;
 }
 /* Firefox */
 input[type='range']::-moz-range-track {
-  @apply bg-black/50 h-2 rounded-sm;
+  @apply bg-black/50 h-1.5 rounded-sm;
 }
 input[type='range']::-moz-range-thumb {
-  @apply appearance-none border-none w-4 h-4 rounded-full bg-primary cursor-grab;
+  @apply appearance-none border-none w-3 h-3 rounded-full bg-white cursor-grab;
 }
 
 .settings input[type='radio'] {

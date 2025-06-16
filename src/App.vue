@@ -362,35 +362,65 @@
               <input type="range" v-model.number="settings.minCurveAngle" min="5" max="90" />
             </label>
 
-            <Checkbox v-model="settings.adjustHeading">Adjust heading</Checkbox>
-            <div v-if="settings.adjustHeading" class="ml-6">
+            <Checkbox v-model="settings.heading.adjust">Set heading</Checkbox>
+            <div v-if="settings.heading.adjust" class="ml-6">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="settings.headingReference" value="link" />
+                <input type="radio" v-model="settings.heading.reference" value="link" />
                 Along road
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="settings.headingReference" value="forward" />
+                <input type="radio" v-model="settings.heading.reference" value="forward" />
                 To front of car
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" v-model="settings.headingReference" value="backward" />
+                <input type="radio" v-model="settings.heading.reference" value="backward" />
                 To back of car
               </label>
               <label class="flex items-center justify-between">
-                Deviation (+/- {{ settings.headingDeviation }}°)
-                <input type="range" v-model.number="settings.headingDeviation" min="0" max="360" />
+                Deviation
+                <Slider
+                  v-model="settings.heading.range"
+                  :min="-180"
+                  :max="180"
+                  tooltipPosition="bottom"
+                  class="w-32 pr-2"
+                />
               </label>
               <small>0° will point directly towards the road.</small>
+              <Checkbox v-model="settings.heading.randomInRange">Random in range</Checkbox>
             </div>
 
-            <Checkbox v-model="settings.adjustPitch">Adjust pitch</Checkbox>
-            <div v-if="settings.adjustPitch" class="ml-6">
-              <label class="flex items-center justify-between">
-                Deviation ({{ settings.pitchDeviation }}°)
-                <input type="range" v-model.number="settings.pitchDeviation" min="-90" max="90" />
-              </label>
-              <small>0 by default. -90° for tarmac/+90° for sky</small>
+            <div class="flex items-center justify-between">
+              <Checkbox v-model="settings.pitch.adjust">Set pitch</Checkbox>
+              <Slider
+                v-if="settings.pitch.adjust"
+                v-model="settings.pitch.range"
+                :min="-90"
+                :max="90"
+                tooltipPosition="bottom"
+                class="w-32 pr-2"
+              />
             </div>
+            <div v-if="settings.pitch.adjust" class="ml-6">
+              <small>0° by default. -90° for tarmac, +90° for sky</small>
+              <Checkbox v-model="settings.pitch.randomInRange">Random in range</Checkbox>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <Checkbox v-model="settings.zoom.adjust">Set zoom</Checkbox>
+              <Slider
+                v-if="settings.zoom.adjust"
+                v-model="settings.zoom.range"
+                :min="0"
+                :max="4"
+                :step="-1"
+                tooltipPosition="bottom"
+                class="w-32 pr-2"
+              />
+            </div>
+            <Checkbox v-if="settings.zoom.adjust" v-model="settings.zoom.randomInRange" class="ml-6"
+              >Random in range</Checkbox
+            >
           </Collapsible>
         </div>
       </div>
@@ -400,28 +430,28 @@
           <h2>Markers</h2>
           <ChevronDownIcon class="collapsible-indicator absolute top-0 right-0" />
         </div>
-        <!-- <div class="flex-1 min-h-0 overflow-y-auto"> -->
+
         <Collapsible :is-open="panels.marker" class="p-1">
           <Checkbox
-            v-model="settings.noBlueLineMarker"
+            v-model="settings.markers.noBlueLine"
             v-on:change="updateMarkerLayers('noBlueLine')"
           >
             <span class="h-3 w-3 bg-[#E412D2] rounded-full"></span>No blue line
           </Checkbox>
-          <Checkbox v-model="settings.newRoadMarker" v-on:change="updateMarkerLayers('newRoad')">
+          <Checkbox v-model="settings.markers.newRoad" v-on:change="updateMarkerLayers('newRoad')">
             <span class="h-3 w-3 bg-[#CA283F] rounded-full"></span>New Road
           </Checkbox>
-          <Checkbox v-model="settings.gen4Marker" v-on:change="updateMarkerLayers('gen4')">
+          <Checkbox v-model="settings.markers.gen4" v-on:change="updateMarkerLayers('gen4')">
             <span class="h-3 w-3 bg-[#2880CA] rounded-full"></span>Gen 4 Update
           </Checkbox>
-          <Checkbox v-model="settings.gen2Or3Marker" v-on:change="updateMarkerLayers('gen2Or3')">
+          <Checkbox v-model="settings.markers.gen2Or3" v-on:change="updateMarkerLayers('gen2Or3')">
             <span class="h-3 w-3 bg-[#9A28CA] rounded-full"></span>Gen 2 or 3 Update
           </Checkbox>
-          <Checkbox v-model="settings.gen1Marker" v-on:change="updateMarkerLayers('gen1')">
+          <Checkbox v-model="settings.markers.gen1" v-on:change="updateMarkerLayers('gen1')">
             <span class="h-3 w-3 bg-[#24AC20] rounded-full"></span>Gen 1 Update
           </Checkbox>
           <Checkbox
-            v-model="settings.cluster"
+            v-model="settings.markers.cluster"
             v-on:change="updateClusters"
             title="For lag reduction."
           >
@@ -438,7 +468,6 @@
             <MarkerIcon class="w-5 h-5" />Clear
           </Button>
         </Collapsible>
-        <!-- </div> -->
       </div>
 
       <Button
@@ -453,6 +482,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 import { onMounted, ref, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
@@ -476,6 +506,7 @@ import markerViolet from '@/assets/markers/marker-violet.png'
 import markerGreen from '@/assets/markers/marker-green.png'
 import markerPink from '@/assets/markers/marker-pink.png'
 
+import Slider from '@vueform/slider'
 import Collapsible from '@/components/Elements/Collapsible.vue'
 import Button from '@/components/Elements/Button.vue'
 import Checkbox from '@/components/Elements/Checkbox.vue'
@@ -508,7 +539,7 @@ const { currentYear, currentDate } = getCurrentDate()
 
 const SV = new google.maps.StreetViewService()
 
-const storedSettings = useStorage('map_generator_settings', {
+const storedSettings = useStorage('map_generator__settings', {
   numOfGenerators: 1,
   radius: 500,
   oneCountryAtATime: false,
@@ -548,19 +579,31 @@ const storedSettings = useStorage('map_generator_settings', {
   getIntersection: false,
   getCurve: false,
   minCurveAngle: 10,
-  adjustHeading: true,
-  headingReference: 'link',
-  headingDeviation: 0,
-  adjustPitch: false,
-  pitchDeviation: 0,
 
-  cluster: false,
-  noBlueLineMarker: true,
-  gen4Marker: true,
-  gen2Or3Marker: true,
-  gen1Marker: true,
-  newRoadMarker: true,
-
+  heading: {
+    adjust: true,
+    reference: 'link',
+    range: [0, 0],
+    randomInRange: false,
+  },
+  pitch: {
+    adjust: false,
+    range: [0, 0],
+    randomInRange: false,
+  },
+  zoom: {
+    adjust: false,
+    range: [0, 0],
+    randomInRange: false,
+  },
+  markers: {
+    gen1: true,
+    gen2Or3: true,
+    gen4: true,
+    newRoad: true,
+    noBlueLine: true,
+    cluster: false,
+  },
   markersOnImport: true,
   checkImports: false,
 })
@@ -568,7 +611,7 @@ const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear
 
-const panels = useStorage('map_generator_panels', {
+const panels = useStorage('map_generator__panels', {
   layer: true,
   generatorSettings: true,
   coverageSettings: true,
@@ -879,14 +922,14 @@ function resetHighlight(e: L.LeafletMouseEvent) {
 
 function updateMarkerLayers(gen: MarkerLayersTypes) {
   if (
-    (gen === 'gen4' && settings.gen4Marker) ||
-    (gen === 'gen2Or3' && settings.gen2Or3Marker) ||
-    (gen === 'gen1' && settings.gen1Marker) ||
-    (gen === 'newRoad' && settings.newRoadMarker) ||
-    (gen === 'noBlueLine' && settings.noBlueLineMarker)
+    (gen === 'gen4' && settings.markers.gen4) ||
+    (gen === 'gen2Or3' && settings.markers.gen2Or3) ||
+    (gen === 'gen1' && settings.markers.gen1) ||
+    (gen === 'newRoad' && settings.markers.newRoad) ||
+    (gen === 'noBlueLine' && settings.markers.noBlueLine)
   ) {
     map.addLayer(markerLayers[gen])
-    if (!settings.cluster) markerLayers[gen].disableClustering()
+    if (!settings.markers.cluster) markerLayers[gen].disableClustering()
     else markerLayers[gen].enableClustering()
   } else {
     map.removeLayer(markerLayers[gen])
@@ -895,7 +938,7 @@ function updateMarkerLayers(gen: MarkerLayersTypes) {
 
 function updateClusters() {
   Object.values(markerLayers).forEach((markerLayer) => {
-    if (settings.cluster) markerLayer.enableClustering()
+    if (settings.markers.cluster) markerLayer.enableClustering()
     else markerLayer.disableClustering()
   })
 }
@@ -1401,19 +1444,41 @@ function getPanoDeep(id: string, polygon: Polygon, depth: number) {
 
 function addLoc(pano: google.maps.StreetViewPanoramaData, polygon: Polygon) {
   let heading = 0
-  if (settings.adjustHeading) {
-    if (settings.headingReference === 'forward') {
+  if (settings.heading.adjust) {
+    if (settings.heading.reference === 'forward') {
       heading = pano.tiles.centerHeading
-    } else if (settings.headingReference === 'backward') {
+    } else if (settings.heading.reference === 'backward') {
       heading = (pano.tiles.centerHeading + 180) % 360
-    } else if (settings.headingReference === 'link' && pano.links.length > 0) {
+    } else if (settings.heading.reference === 'link' && pano.links.length > 0) {
       heading = parseInt(
         settings.getDeadEnds && settings.deadEndsLookBackwards
           ? pano.links[0].heading - 180
           : pano.links[0].heading,
       )
     }
-    heading += randomInRange(-settings.headingDeviation, settings.headingDeviation)
+    if (settings.heading.randomInRange) {
+      heading += randomInRange(settings.heading.range[0], settings.heading.range[1])
+    } else {
+      heading += Math.random() < 0.5 ? settings.heading.range[0] : settings.heading.range[1]
+    }
+  }
+
+  let pitch = 0
+  if (settings.pitch.adjust) {
+    if (settings.pitch.randomInRange) {
+      pitch = randomInRange(settings.pitch.range[0], settings.pitch.range[1])
+    } else {
+      pitch = Math.random() < 0.5 ? settings.pitch.range[0] : settings.pitch.range[1]
+    }
+  }
+
+  let zoom = 0
+  if (settings.zoom.adjust) {
+    if (settings.zoom.randomInRange) {
+      zoom = randomInRange(settings.zoom.range[0], settings.zoom.range[1])
+    } else {
+      zoom = Math.random() < 0.5 ? settings.zoom.range[0] : settings.zoom.range[1]
+    }
   }
 
   const location: Panorama = {
@@ -1421,7 +1486,8 @@ function addLoc(pano: google.maps.StreetViewPanoramaData, polygon: Polygon) {
     lat: pano.location.latLng.lat(),
     lng: pano.location.latLng.lng(),
     heading,
-    pitch: settings.adjustPitch ? settings.pitchDeviation : 0,
+    pitch,
+    zoom,
     imageDate: pano.imageDate,
     links: [
       ...new Set(pano.links.map((loc) => loc.pano).concat(pano.time.map((loc) => loc.pano))),
@@ -1495,9 +1561,7 @@ function addLocation(
       const marker = L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
         .on('click', () => {
           window.open(
-            `https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}${
-              location.heading ? '&heading=' + location.heading : ''
-            }${location.pitch ? '&pitch=' + location.pitch : ''}`,
+            `https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}${location.heading ? '&heading=' + location.heading : ''}${location.pitch ? '&pitch=' + location.pitch : ''}${location.zoom ? '&fov=' + String(180 / 2 ** location.zoom) : ''}`,
             '_blank',
           )
         })
@@ -1631,6 +1695,23 @@ Array.prototype.chunk = function (n) {
 </script>
 
 <style>
+@import '@vueform/slider/themes/default.css';
+:root {
+  /* --slider-handle-height: 12px;
+  --slider-handle-width: 12px; */
+  --slider-connect-bg: var(--color-primary);
+}
+.slider-connects {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.slider-tooltip {
+  background-color: rgb(59, 59, 59);
+  border: 1px solid black;
+  font-size: 0.75rem;
+  font-weight: 400;
+  padding: 0px 4px;
+}
+
 #map {
   z-index: 0;
   height: 100vh;

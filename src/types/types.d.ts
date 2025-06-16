@@ -35,6 +35,7 @@ interface Panorama {
   lng: LatLng.lng
   heading: number
   pitch: number
+  zoom: number
   imageDate?: string
   links?: string[]
 }

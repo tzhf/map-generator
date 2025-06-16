@@ -35,7 +35,7 @@ export function randomPointInPoly(polygon: Polygon) {
 }
 
 export const randomInRange = (min: number, max: number) =>
-  Math.floor(Math.random() * (max - min + 1)) + min
+  Math.round((Math.random() * (max - min + 1) + min) * 100) / 100
 
 export function distanceBetween(coords1: LatLng, coords2: LatLng) {
   // const R = 6.371; // km
