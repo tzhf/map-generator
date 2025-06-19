@@ -213,8 +213,11 @@
             >
 
             <Checkbox v-model="settings.rejectOfficial">Find unofficial coverage</Checkbox>
+            <Checkbox v-if="settings.rejectOfficial" v-model="settings.findPhotospheres"
+              >Find photospheres only</Checkbox
+            >
             <Checkbox v-if="settings.rejectOfficial" v-model="settings.findDrones"
-              >Find drone photospheres</Checkbox
+              >Find drone photospheres only</Checkbox
             >
 
             <div v-if="settings.rejectUnofficial && !settings.rejectOfficial">
@@ -483,7 +486,7 @@
 
 <script setup lang="ts">
 // @ts-nocheck
-import { onMounted, ref, reactive, computed } from 'vue'
+import { onMounted, ref, watch, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
@@ -559,6 +562,7 @@ const storedSettings = useStorage('map_generator__settings', {
   rejectNoDescription: true,
   rejectDescription: false,
   onlyOneInTimeframe: false,
+  findPhotospheres: false,
   findDrones: false,
   checkLinks: false,
   linksDepth: 2,
@@ -610,6 +614,15 @@ const storedSettings = useStorage('map_generator__settings', {
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear
+
+watch(
+  () => settings.rejectOfficial,
+  (newVal) => {
+    if (newVal) {
+      settings.rejectUnofficial = false
+    }
+  },
+)
 
 const panels = useStorage('map_generator__panels', {
   layer: true,
@@ -1141,12 +1154,15 @@ function isOfficial(pano: string) {
   // return (!/^\xA9 (?:\d+ )?Google$/.test(pano.copyright))
 }
 
-function hasAnyDescription(location: google.maps.StreetViewLocation) {
-  return location.description || location.shortDescription
+function isPhotosphere(res: google.maps.StreetViewPanoramaData) {
+  return res.links?.length === 0
+}
+function isDrone(res: google.maps.StreetViewPanoramaData) {
+  return isPhotosphere(res) && [2048, 7200].includes(res.tiles.worldSize.height)
 }
 
-function isDrone(res: google.maps.StreetViewPanoramaData) {
-  return [2048, 7200].includes(res.tiles.worldSize.height) && !res.links?.length
+function hasAnyDescription(location: google.maps.StreetViewLocation) {
+  return location.description || location.shortDescription
 }
 
 function isAcceptableCurve(links: google.maps.StreetViewLink[], minCurveAngle: number): boolean {
@@ -1204,7 +1220,8 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
     }
 
     if (settings.rejectOfficial) {
-      if (res.copyright && /^\xA9 (?:\d+ )?Google$/.test(res.copyright)) return false
+      if (isOfficial(res.location.pano)) return false
+      if (settings.findPhotospheres && !isPhotosphere(res)) return false
       if (settings.findDrones && !isDrone(res)) return false
     }
 
