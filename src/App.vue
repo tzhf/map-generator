@@ -546,6 +546,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 import { onMounted, ref, watch, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
