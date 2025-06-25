@@ -6,7 +6,7 @@ const checked = defineModel<boolean>()
   <label class="flex items-center gap-2 cursor-pointer hover:brightness-120">
     <input type="checkbox" v-model="checked" class="hidden peer" />
     <span
-      class="w-4 h-4 bg-black/50 border border-primary rounded-sm peer-checked:[&>svg]:scale-100"
+      class="w-4 h-4 shrink-0 bg-black/50 border border-primary rounded-sm peer-checked:[&>svg]:scale-100"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

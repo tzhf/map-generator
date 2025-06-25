@@ -39,3 +39,18 @@ interface Panorama {
   imageDate?: string
   links?: string[]
 }
+
+type TileOperators = 'AND' | 'OR' | 'NOT'
+type TileProvider = 'osm' | 'gmaps'
+type TileColors = {
+  active: boolean
+  threshold: number
+  label: string
+}
+interface TileColorConfig {
+  enabled: boolean
+  zoom: number
+  operator: TileOperators
+  tileProvider: TileProvider
+  tileColors: Record<TileProvider, Record<string, TileColors>>
+}

@@ -1,6 +1,9 @@
 <template>
   <div id="map"></div>
   <div id="leaflet-ui"></div>
+  <div class="absolute bottom-1 left-1/2 -translate-x-1/2 font-bold text-xs text-black">
+    Zoom: {{ currentZoom }}
+  </div>
   <div class="absolute top-1 left-1 w-100 max-h-[calc(100vh-178px)] flex flex-col gap-1">
     <Logo />
     <div class="flex-1 min-h-0 flex flex-col gap-1">
@@ -126,7 +129,7 @@
           class="ml-auto"
           size="sm"
           title="Change locations cap for all selected"
-          @click="changeLocationsCaps"
+          @click="changeLocationsCap"
           >Edit cap for all
         </Button>
         <div class="flex gap-1">
@@ -245,11 +248,11 @@
                 </div>
               </div>
 
-              <Checkbox v-model="settings.findByGeneration">Find by generation</Checkbox>
-              <div v-if="settings.findByGeneration" class="ml-6">
-                <Checkbox v-model="settings.filterByGen[1]">Gen 1</Checkbox>
-                <Checkbox v-model="settings.filterByGen[23]">Gen 2 & 3</Checkbox>
-                <Checkbox v-model="settings.filterByGen[4]">Gen 4</Checkbox>
+              <Checkbox v-model="settings.findByGeneration.enabled">Find by generation</Checkbox>
+              <div v-if="settings.findByGeneration.enabled" class="ml-6">
+                <Checkbox v-model="settings.findByGeneration.generation[1]">Gen 1</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.generation[23]">Gen 2 & 3</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.generation[4]">Gen 4</Checkbox>
               </div>
             </div>
 
@@ -334,6 +337,64 @@
 
         <div class="flex-1 min-h-0 overflow-y-auto">
           <Collapsible :is-open="panels.mapMakingSettings" class="p-1">
+            <Checkbox v-model="settings.findByTileColor.enabled"> Find by tile color </Checkbox>
+            <div v-if="settings.findByTileColor.enabled" class="space-y-0.5 ml-6 py-1">
+              <div class="flex justify-between items-center gap-2">
+                Tile provider :
+                <select v-model="settings.findByTileColor.tileProvider">
+                  <option value="gmaps">Google Maps</option>
+                  <option value="osm">OSM</option>
+                </select>
+              </div>
+
+              <div class="flex justify-between items-center gap-2">
+                Tile zoom level :
+                <span class="ml-auto">
+                  {{ settings.findByTileColor.zoom }}
+                </span>
+                <input
+                  type="range"
+                  v-model.number="settings.findByTileColor.zoom"
+                  min="17"
+                  max="19"
+                  step="1"
+                  title="Tile zoom level"
+                />
+              </div>
+
+              <div class="flex justify-between items-center gap-2">
+                Operator :
+                <select v-model="settings.findByTileColor.operator">
+                  <option value="OR">OR</option>
+                  <option value="AND">AND</option>
+                  <option value="NOT">NOT</option>
+                </select>
+              </div>
+
+              <div
+                v-for="(tileColor, colorKey) in settings.findByTileColor.tileColors[
+                  settings.findByTileColor.tileProvider
+                ]"
+                :key="colorKey"
+                :title="tileColor.label"
+                class="flex items-center gap-2"
+              >
+                <Checkbox v-model="tileColor.active" class="hover:brightness-100! truncate">
+                  <span class="h-4 min-w-8" :style="{ backgroundColor: 'rgb(' + colorKey + ')' }" />
+                  <span class="truncate">{{ tileColor.label }}</span>
+                </Checkbox>
+                <span class="ml-auto">{{ (tileColor.threshold * 100).toFixed(0) }}%</span>
+                <input
+                  type="range"
+                  v-model.number="tileColor.threshold"
+                  min="0.01"
+                  max="1"
+                  step="0.01"
+                  title="Color presence threshold"
+                />
+              </div>
+            </div>
+
             <Checkbox
               @change="
                 settings.getDeadEnds
@@ -485,7 +546,6 @@
 </template>
 
 <script setup lang="ts">
-// @ts-nocheck
 import { onMounted, ref, watch, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
@@ -524,8 +584,9 @@ import MarkerIcon from '@/assets/icons/marker.svg'
 import TrashBinIcon from '@/assets/icons/trash-bin.svg'
 import ChevronDownIcon from '@/assets/icons/chevron-down.svg'
 
-import { blueLineDetector } from '@/composables/blueLineDetector.ts'
-
+import { settings } from '@/composables/settings'
+import { blueLineDetector } from '@/composables/blueLineDetector'
+import { getTileUrl, getTileColorPresence } from '@/composables/tileColorDetector'
 import {
   randomPointInPoly,
   getCurrentDate,
@@ -538,82 +599,10 @@ import {
   changePolygonName,
   polygonStyles,
 } from '@/composables/utils.ts'
-const { currentYear, currentDate } = getCurrentDate()
+
+const { currentDate } = getCurrentDate()
 
 const SV = new google.maps.StreetViewService()
-
-const storedSettings = useStorage('map_generator__settings', {
-  numOfGenerators: 1,
-  radius: 500,
-  oneCountryAtATime: false,
-  onlyCheckBlueLines: false,
-  findRegions: false,
-  regionRadius: 100,
-
-  rejectUnofficial: true,
-  rejectOfficial: false,
-  findByGeneration: true,
-  filterByGen: {
-    1: false,
-    23: true,
-    4: true,
-  },
-  rejectDateless: true,
-  rejectNoDescription: true,
-  rejectDescription: false,
-  onlyOneInTimeframe: false,
-  findPhotospheres: false,
-  findDrones: false,
-  checkLinks: false,
-  linksDepth: 2,
-
-  rejectByYear: false,
-  fromDate: '2009-01',
-  toDate: currentDate,
-  fromMonth: '01',
-  toMonth: '12',
-  fromYear: '2007',
-  toYear: currentYear,
-  selectMonths: false,
-  checkAllDates: false,
-  randomInTimeline: false,
-
-  getDeadEnds: false,
-  deadEndsLookBackwards: false,
-  getIntersection: false,
-  getCurve: false,
-  minCurveAngle: 10,
-
-  heading: {
-    adjust: true,
-    reference: 'link',
-    range: [0, 0],
-    randomInRange: false,
-  },
-  pitch: {
-    adjust: false,
-    range: [0, 0],
-    randomInRange: false,
-  },
-  zoom: {
-    adjust: false,
-    range: [0, 0],
-    randomInRange: false,
-  },
-  markers: {
-    gen1: true,
-    gen2Or3: true,
-    gen4: true,
-    newRoad: true,
-    noBlueLine: true,
-    cluster: false,
-  },
-  markersOnImport: true,
-  checkImports: false,
-})
-const settings = reactive(storedSettings.value)
-settings.toDate = currentDate
-settings.toYear = currentYear
 
 watch(
   () => settings.rejectOfficial,
@@ -650,39 +639,41 @@ const totalLocs = computed(() => {
 let map: L.Map
 const loadedLayers: Record<string, L.GeoJSON> = {}
 const drawnPolygonsLayer = new L.GeoJSON()
+const currentZoom = ref(1)
 
 const roadmapBaseLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m2!1e0!2sm!3m5!2sen!3sus!5e1105!12m1!1e3!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
+  { minZoom: 1, maxZoom: 20 },
 )
 const roadmapLabelsLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m2!1e0!2sm!3m5!2sen!3sus!5e1105!12m1!1e15!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
   { pane: 'labelPane' },
 )
 const roadmapLayer = L.layerGroup([roadmapBaseLayer, roadmapLabelsLayer])
+
 const terrainBaseLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m2!1e0!2sm!2m1!1e4!3m7!2sen!3sus!5e1105!12m1!1e67!12m1!1e3!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
+  { minZoom: 1, maxZoom: 20 },
 )
 const terrainLayer = L.layerGroup([terrainBaseLayer, roadmapLabelsLayer])
+
 const satelliteBaseLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m2!1e1!2sm!3m3!2sen!3sus!5e1105!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
+  { minZoom: 1, maxZoom: 20 },
 )
 const satelliteLabelsLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m2!1e0!2sm!3m5!2sen!3sus!5e1105!12m1!1e4!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
   { pane: 'labelPane' },
 )
 const satelliteLayer = L.layerGroup([satelliteBaseLayer, satelliteLabelsLayer])
+
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  minZoom: 1,
+  maxZoom: 19,
   attribution:
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 })
-const cartoLightLayer = L.tileLayer(
-  'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
-  { subdomains: ['a', 'b', 'c'] },
-)
-const cartoDarkLayer = L.tileLayer(
-  'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
-  { subdomains: ['a', 'b', 'c'] },
-)
+
 const gsvLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e2*212b1*213e2*211m3*211e3*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b1!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
 )
@@ -702,8 +693,6 @@ const baseMaps = {
   Satellite: satelliteLayer,
   Terrain: terrainLayer,
   OSM: osmLayer,
-  'Carto Light': cartoLightLayer,
-  'Carto Dark': cartoDarkLayer,
 }
 
 const overlayMaps = {
@@ -711,6 +700,26 @@ const overlayMaps = {
   'Google Street View Official Only': gsvLayer2,
   'Google Street View Roads (Only Works at Zoom Level 12+)': gsvLayer3,
   'Unofficial coverage only': gsvLayer4,
+}
+
+type BaseMapName = keyof typeof baseMaps
+type OverlayMapName = keyof typeof overlayMaps
+const storedLayers = useStorage<{
+  base: BaseMapName
+  overlays: OverlayMapName[]
+}>('map_generator__layers', {
+  base: 'Roadmap',
+  overlays: ['Google Street View Official Only'],
+})
+
+const baseLayerToName = new Map<L.Layer, string>()
+for (const [name, layer] of Object.entries(baseMaps)) {
+  baseLayerToName.set(layer, name)
+}
+
+const overlayLayerToName = new Map<L.Layer, string>()
+for (const [name, layer] of Object.entries(overlayMaps)) {
+  overlayLayerToName.set(layer, name)
 }
 
 const gen1Icon = L.icon({ iconUrl: markerGreen, iconAnchor: [12, 41] })
@@ -762,7 +771,7 @@ async function loadLayer(layer: LayerMeta) {
       const response = await fetch(layer.source)
       data = await response.json()
     } else {
-      data = layer.source
+      data = layer.source as unknown as GeoJSON.GeoJsonObject
     }
 
     const style =
@@ -908,7 +917,7 @@ function clearMarkers() {
   })
 }
 
-function onEachFeature(_, layer: L.Layer) {
+function onEachFeature(_: Feature, layer: L.Layer) {
   layer.on({
     mouseover: highlightFeature,
     mouseout: resetHighlight,
@@ -997,14 +1006,21 @@ onMounted(async () => {
     center: [0, 0],
     preferCanvas: true,
     zoom: 1,
+    minZoom: 1,
     zoomControl: false,
     worldCopyJump: true,
   })
   map.createPane('labelPane')
   map.getPane('labelPane')!.style.zIndex = '300'
 
-  roadmapLayer.addTo(map)
-  gsvLayer2.addTo(map)
+  const selectedBase = baseMaps[storedLayers.value.base] || roadmapLayer
+  selectedBase.addTo(map)
+
+  // Add overlay layers
+  storedLayers.value.overlays.forEach((name) => {
+    const layer = overlayMaps[name]
+    if (layer) map.addLayer(layer)
+  })
 
   L.control.layers(baseMaps, overlayMaps, { position: 'bottomleft' }).addTo(map)
 
@@ -1021,6 +1037,31 @@ onMounted(async () => {
 
   map.addControl(drawControl)
 
+  map.on('zoom', ({ target }) => {
+    currentZoom.value = target.getZoom()
+  })
+
+  map.on('zoomend', ({ target }) => {
+    currentZoom.value = target.getZoom()
+  })
+
+  map.on('baselayerchange', (e) => {
+    const name = baseLayerToName.get(e.layer)
+    if (name) storedLayers.value.base = name as BaseMapName
+  })
+  map.on('overlayadd', (e) => {
+    const name = overlayLayerToName.get(e.layer) as OverlayMapName
+    if (name && !storedLayers.value.overlays.includes(name)) {
+      storedLayers.value.overlays.push(name)
+    }
+  })
+  map.on('overlayremove', (e) => {
+    const name = overlayLayerToName.get(e.layer)
+    if (name) {
+      storedLayers.value.overlays = storedLayers.value.overlays.filter((n) => n !== name)
+    }
+  })
+
   map.on('draw:created', (e) => {
     const event = e as L.DrawEvents.Created
     const polygon = event.layer as Polygon
@@ -1035,7 +1076,6 @@ onMounted(async () => {
     drawnPolygonsLayer.addLayer(polygon)
     selected.value.push(polygon)
   })
-
   map.on('draw:edited', (e) => {
     const event = e as L.DrawEvents.Edited
     event.layers.eachLayer((layer) => {
@@ -1046,7 +1086,6 @@ onMounted(async () => {
       if (index != -1) selected.value[index] = polygon
     })
   })
-
   map.on('draw:deleted', (e) => {
     const event = e as L.DrawEvents.Deleted
     event.layers.eachLayer((layer) => {
@@ -1197,15 +1236,6 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
 
       // Find trekkers
       if (settings.rejectDescription && hasAnyDescription(res.location)) return false
-
-      if (settings.getDeadEnds && res.links && res.links.length > 1) return false
-
-      if (settings.getCurve || settings.getIntersection) {
-        const links = res.links ?? []
-        const isIntersection = settings.getIntersection && links.length >= 3
-        const isCurve = settings.getCurve && isAcceptableCurve(links, settings.minCurveAngle)
-        if (!isIntersection && !isCurve) return false
-      }
     }
 
     if (settings.findRegions) {
@@ -1226,10 +1256,12 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
     }
 
     if (
-      settings.findByGeneration &&
+      settings.findByGeneration.enabled &&
       ((!settings.rejectOfficial && !settings.checkAllDates) || settings.selectMonths)
     ) {
-      if (!settings.filterByGen[getCameraGeneration(res)]) return false
+      const gen = getCameraGeneration(res)
+      if (gen === 0) return false
+      if (!settings.findByGeneration.generation[gen]) return false
     }
 
     if (settings.randomInTimeline && res.time) {
@@ -1286,7 +1318,7 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
   })
 }
 
-function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
+async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
   if (settings.rejectUnofficial && !settings.rejectOfficial) {
     if (!pano.location || !isOfficial(pano.location.pano)) return false
     // Reject trekkers
@@ -1299,6 +1331,23 @@ function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
 
     // Find trekkers
     if (settings.rejectDescription && hasAnyDescription(pano.location)) return false
+
+    if (settings.findByTileColor.enabled) {
+      const latLng = pano.location.latLng
+      if (!latLng) return false
+      const anyMatch = await getTileColorPresence(
+        { lat: latLng.lat(), lng: latLng.lng() },
+        settings.findByTileColor,
+      )
+      if (!anyMatch) return false
+      // debug/preview tile
+      // const tileUrl = getTileUrl(
+      //   { lat: latLng.lat(), lng: latLng.lng() },
+      //   settings.findByTileColor.tileProvider,
+      //   settings.findByTileColor.zoom,
+      // )
+      // console.log('🚀 ~ tileUrl:', tileUrl)
+    }
 
     if (settings.getDeadEnds && pano.links && pano.links.length > 1) return false
 
@@ -1339,7 +1388,12 @@ function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
 
   if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
     if (!pano.time?.length) return false
-    if (settings.findByGeneration && !settings.filterByGen[getCameraGeneration(pano)]) return false
+
+    if (settings.findByGeneration.enabled) {
+      const gen = getCameraGeneration(pano)
+      if (gen === 0) return false
+      if (!settings.findByGeneration.generation[gen]) return false
+    }
 
     let dateWithin = false
     for (let i = 0; i < pano.time.length; i++) {
@@ -1422,7 +1476,8 @@ function getPanoDeep(id: string, polygon: Polygon, depth: number) {
       [pano.location.latLng.lng(), pano.location.latLng.lat()],
       polygon.feature,
     )
-    const isPanoGoodAndInCountry = isPanoGood(pano) && inCountry
+    const isPanoGoodAndInCountry = (await isPanoGood(pano)) && inCountry
+
     if (settings.checkAllDates && !settings.selectMonths && pano.time) {
       const fromDate = Date.parse(settings.fromDate)
       const toDate = Date.parse(settings.toDate)
@@ -1659,7 +1714,7 @@ async function readFileAsText(file: File) {
   return result
 }
 
-async function changeLocationsCaps() {
+async function changeLocationsCap() {
   const input = prompt('What would you like to set the locations cap to ?')
   if (input === null) return
   const newCap = Math.abs(parseInt(input))
@@ -1714,8 +1769,6 @@ Array.prototype.chunk = function (n) {
 <style>
 @import '@vueform/slider/themes/default.css';
 :root {
-  /* --slider-handle-height: 12px;
-  --slider-handle-width: 12px; */
   --slider-connect-bg: var(--color-primary);
 }
 .slider-connects {

@@ -26,11 +26,11 @@ a {
 
 input,
 select {
-  @apply bg-black/50 text-center rounded-sm outline-none  hover:brightness-120;
+  @apply bg-black/50 text-center rounded-sm outline-none hover:brightness-120;
 }
 
 select {
-  @apply border border-neutral-500 cursor-pointer;
+  @apply border border-neutral-500 px-1 cursor-pointer;
 }
 
 input[type='number'] {
