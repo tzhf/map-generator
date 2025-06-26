@@ -42,15 +42,18 @@ interface Panorama {
 
 type TileOperators = 'AND' | 'OR' | 'NOT'
 type TileProvider = 'osm' | 'gmaps'
-type TileColors = {
+
+interface TileColor {
+  label: string
   active: boolean
   threshold: number
-  label: string
+  colors: string[]
 }
+
 interface TileColorConfig {
   enabled: boolean
   zoom: number
   operator: TileOperators
   tileProvider: TileProvider
-  tileColors: Record<TileProvider, Record<string, TileColors>>
+  tileColors: Record<TileProvider, TileColor[]>
 }

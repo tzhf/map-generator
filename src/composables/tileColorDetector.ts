@@ -21,12 +21,15 @@ export function getTileUrl(loc: LatLng, type: TileProvider, zoom: number) {
 }
 
 export async function getTileColorPresence(loc: LatLng, config: TileColorConfig): Promise<boolean> {
-  const tileSize = 256
-  const url = getTileUrl({ lat: loc.lat, lng: loc.lng }, config.tileProvider, config.zoom)
+  const colorGroups = config.tileColors[config.tileProvider].filter((g) => g.active)
+
+  const url = getTileUrl(loc, config.tileProvider, config.zoom)
   const response = await fetch(url)
   const blob = await response.blob()
   const imageBitmap = await createImageBitmap(blob)
 
+  const tileSize = 256
+  const pixelCount = tileSize * tileSize
   const canvas = new OffscreenCanvas(tileSize, tileSize)
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas 2D context not available')
@@ -34,38 +37,44 @@ export async function getTileColorPresence(loc: LatLng, config: TileColorConfig)
   ctx.drawImage(imageBitmap, 0, 0, tileSize, tileSize)
   const data = ctx.getImageData(0, 0, tileSize, tileSize).data
 
-  const pixelCount = tileSize * tileSize
-  const matchCountMap = new Map<string, number>()
+  // Use Map<number, string[]>: 24-bit RGB -> group labels
+  const colorToGroups = new Map()
+  const groupStats = new Map()
 
-  const targetColors = config.tileColors[config.tileProvider]
+  for (const group of colorGroups) {
+    groupStats.set(group.label, { matchCount: 0, threshold: group.threshold })
 
+    for (const color of group.colors) {
+      const [r, g, b] = color.split(',').map(Number)
+      const key = (r << 16) | (g << 8) | b
+      if (!colorToGroups.has(key)) colorToGroups.set(key, [])
+      colorToGroups.get(key).push(group.label)
+    }
+  }
+
+  // One pass over pixels
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i]
     const g = data[i + 1]
     const b = data[i + 2]
-    const key = `${r},${g},${b}`
-
-    if (targetColors[key]?.active) {
-      matchCountMap.set(key, (matchCountMap.get(key) || 0) + 1)
+    const key = (r << 16) | (g << 8) | b
+    const affectedGroups = colorToGroups.get(key)
+    if (affectedGroups) {
+      for (const label of affectedGroups) {
+        groupStats.get(label).matchCount++
+      }
     }
   }
 
-  // Evaluate matches
-  const activeKeys = Object.keys(targetColors).filter((k) => targetColors[k].active)
-
-  const results = activeKeys.map((key) => {
-    const count = matchCountMap.get(key) || 0
-    const ratio = count / pixelCount
-    return ratio >= targetColors[key].threshold
+  const results = [...groupStats.entries()].map(([label, { matchCount, threshold }]) => {
+    return threshold === 0
+      ? matchCount > 100 // Match if at least 100 pixel matches (arbitrary threshold but seems reasonable to avoid fale positives for bridges, etc.)
+      : matchCount / pixelCount >= threshold
   })
 
-  if (config.operator === 'AND') {
-    return results.length > 0 && results.every(Boolean)
-  } else if (config.operator === 'OR') {
-    return results.some(Boolean)
-  } else if (config.operator === 'NOT') {
-    return results.every((match) => !match)
-  }
+  if (config.operator === 'AND') return results.length > 0 && results.every(Boolean)
+  if (config.operator === 'OR') return results.some(Boolean)
+  if (config.operator === 'NOT') return results.every((r) => !r)
 
   return false // fallback, shouldn't happen
 }

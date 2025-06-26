@@ -2,7 +2,7 @@
   <div id="map"></div>
   <div id="leaflet-ui"></div>
   <div class="absolute bottom-1 left-1/2 -translate-x-1/2 font-bold text-xs text-black">
-    Zoom: {{ currentZoom }}
+    Zoom : {{ currentZoom }}
   </div>
   <div class="absolute top-1 left-1 w-100 max-h-[calc(100vh-178px)] flex flex-col gap-1">
     <Logo />
@@ -355,7 +355,7 @@
                 <input
                   type="range"
                   v-model.number="settings.findByTileColor.zoom"
-                  min="17"
+                  min="15"
                   max="19"
                   step="1"
                   title="Tile zoom level"
@@ -372,26 +372,31 @@
               </div>
 
               <div
-                v-for="(tileColor, colorKey) in settings.findByTileColor.tileColors[
+                v-for="(tileColor, index) in settings.findByTileColor.tileColors[
                   settings.findByTileColor.tileProvider
                 ]"
-                :key="colorKey"
+                :key="index"
                 :title="tileColor.label"
                 class="flex items-center gap-2"
               >
                 <Checkbox v-model="tileColor.active" class="hover:brightness-100! truncate">
-                  <span class="h-4 min-w-8" :style="{ backgroundColor: 'rgb(' + colorKey + ')' }" />
+                  <span
+                    class="h-4 min-w-8"
+                    :style="{ backgroundColor: 'rgb(' + tileColor.colors[0] + ')' }"
+                  />
                   <span class="truncate">{{ tileColor.label }}</span>
                 </Checkbox>
-                <span class="ml-auto">{{ (tileColor.threshold * 100).toFixed(0) }}%</span>
-                <input
-                  type="range"
-                  v-model.number="tileColor.threshold"
-                  min="0.01"
-                  max="1"
-                  step="0.01"
-                  title="Color presence threshold"
-                />
+                <div v-if="tileColor.threshold > 0" class="flex items-center gap-2 ml-auto">
+                  <span>{{ (tileColor.threshold * 100).toFixed(0) }}%</span>
+                  <input
+                    type="range"
+                    v-model.number="tileColor.threshold"
+                    min="0.01"
+                    max="1"
+                    step="0.01"
+                    title="Color presence threshold"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1017,7 +1022,6 @@ onMounted(async () => {
   const selectedBase = baseMaps[storedLayers.value.base] || roadmapLayer
   selectedBase.addTo(map)
 
-  // Add overlay layers
   storedLayers.value.overlays.forEach((name) => {
     const layer = overlayMaps[name]
     if (layer) map.addLayer(layer)
