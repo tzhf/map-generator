@@ -53,9 +53,10 @@ const defaultSettings = {
           label: 'Highways',
           active: false,
           threshold: 0.05,
-          colors: ['139,165,193', '112,144,178'],
-          // rgb(139,165,193)
-          // rgb(112,144,178)
+          colors: [
+            '139,165,193', // rgb(139,165,193)
+            '112,144,178', // rgb(112,144,178)
+          ],
         },
         {
           label: 'Roads, streets',
@@ -67,6 +68,7 @@ const defaultSettings = {
             '186,201,215', // rgb(186,201,215)
             '203,217,230', // rgb(203,217,230)
             '204,215,224', // rgb(204,215,224)
+            '204,215,222', // rgb(204,215,222)
             '216,224,231', // rgb(216,224,231)
           ], // zoom levels: 1:19, 2:18 (found two colors at same zoom), 3:18, 4:17, 5:16, 6:15
         },
@@ -77,6 +79,20 @@ const defaultSettings = {
           colors: [
             '219,224,232', // rgb(219,224,232) min zoom 17
           ],
+        },
+        {
+          label: 'Train tracks',
+          active: false,
+          threshold: 0,
+          colors: [
+            '189,193,198', // rgb(189,193,198)
+            '193,197,202', // rgb(193,197,202)
+            '195,199,203', // rgb(195,199,203)
+            '201,205,209', // rgb(201,205,209)
+            '203,206,211', // rgb(203,206,211)
+            '205,208,212', // rgb(205,208,212)
+            '206,209,212', // rgb(206,209,212)
+          ], // kind of arbitrary values as train tracks are really thin, but looks good enough and no false positives for now
         },
         {
           label: 'Buildings',
@@ -258,7 +274,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v3', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v4', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear
