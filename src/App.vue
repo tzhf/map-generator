@@ -551,7 +551,7 @@
 </template>
 
 <script setup lang="ts">
-// @ts-nocheck
+//  @ts-nocheck
 import { onMounted, ref, watch, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
@@ -1201,6 +1201,7 @@ function isOfficial(pano: string) {
 function isPhotosphere(res: google.maps.StreetViewPanoramaData) {
   return res.links?.length === 0
 }
+
 function isDrone(res: google.maps.StreetViewPanoramaData) {
   return isPhotosphere(res) && [2048, 7200].includes(res.tiles.worldSize.height)
 }
@@ -1337,6 +1338,15 @@ async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
     // Find trekkers
     if (settings.rejectDescription && hasAnyDescription(pano.location)) return false
 
+    if (settings.getDeadEnds && pano.links && pano.links.length > 1) return false
+
+    if (settings.getCurve || settings.getIntersection) {
+      const links = pano.links ?? []
+      const isIntersection = settings.getIntersection && links.length >= 3
+      const isCurve = settings.getCurve && isAcceptableCurve(links, settings.minCurveAngle)
+      if (!isIntersection && !isCurve) return false
+    }
+
     if (settings.findByTileColor.enabled) {
       const latLng = pano.location.latLng
       if (!latLng) return false
@@ -1352,15 +1362,6 @@ async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
       //   settings.findByTileColor.zoom,
       // )
       // console.log('🚀 ~ tileUrl:', tileUrl)
-    }
-
-    if (settings.getDeadEnds && pano.links && pano.links.length > 1) return false
-
-    if (settings.getCurve || settings.getIntersection) {
-      const links = pano.links ?? []
-      const isIntersection = settings.getIntersection && links.length >= 3
-      const isCurve = settings.getCurve && isAcceptableCurve(links, settings.minCurveAngle)
-      if (!isIntersection && !isCurve) return false
     }
   }
 

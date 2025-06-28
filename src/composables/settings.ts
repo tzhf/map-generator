@@ -228,6 +228,12 @@ const defaultSettings = {
         { label: 'Retail area', active: false, threshold: 0.2, colors: ['255,214,209'] }, // rgb(255,214,209)
         { label: 'Commercial area', active: false, threshold: 0.2, colors: ['242,218,217'] }, // rgb(242,218,217)
         { label: 'Industrial area', active: false, threshold: 0.2, colors: ['235,219,232'] }, // rgb(235,219,232)
+        {
+          label: 'Mines, construction site',
+          active: false,
+          threshold: 0.2,
+          colors: ['197,195,195'],
+        }, // rgb(197,195,195)
         { label: 'Brownfield site', active: false, threshold: 0.2, colors: ['199,199,180'] }, // rgb(199,199,180)
         { label: 'School, Hospital', active: false, threshold: 0.05, colors: ['255,255,229'] }, // rgb(255,255,229)
         { label: 'Park', active: false, threshold: 0.05, colors: ['200,250,204'] }, // rgb(200,250,204)
@@ -274,7 +280,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v4', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v5', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear
