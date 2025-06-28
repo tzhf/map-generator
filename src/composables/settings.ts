@@ -228,13 +228,13 @@ const defaultSettings = {
         { label: 'Retail area', active: false, threshold: 0.2, colors: ['255,214,209'] }, // rgb(255,214,209)
         { label: 'Commercial area', active: false, threshold: 0.2, colors: ['242,218,217'] }, // rgb(242,218,217)
         { label: 'Industrial area', active: false, threshold: 0.2, colors: ['235,219,232'] }, // rgb(235,219,232)
+        { label: 'Brownfield site', active: false, threshold: 0.2, colors: ['199,199,180'] }, // rgb(199,199,180)
         {
-          label: 'Mines, construction site',
+          label: 'Mine, construction site',
           active: false,
           threshold: 0.2,
           colors: ['197,195,195'],
         }, // rgb(197,195,195)
-        { label: 'Brownfield site', active: false, threshold: 0.2, colors: ['199,199,180'] }, // rgb(199,199,180)
         { label: 'School, Hospital', active: false, threshold: 0.05, colors: ['255,255,229'] }, // rgb(255,255,229)
         { label: 'Park', active: false, threshold: 0.05, colors: ['200,250,204'] }, // rgb(200,250,204)
         { label: 'Place of worship', active: false, threshold: 0.05, colors: ['196,182,171'] }, // rgb(196,182,171)
@@ -242,6 +242,7 @@ const defaultSettings = {
         { label: 'Sports pitch', active: false, threshold: 0.05, colors: ['136,224,190'] }, // rgb(136,224,190)
         { label: 'Sports center', active: false, threshold: 0.05, colors: ['223,252,226'] }, // rgb(223,252,226)
         { label: 'Camping, golf course', active: false, threshold: 0.05, colors: ['222,246,192'] }, // rgb(222,246,192)
+        { label: 'Borders', active: false, threshold: 0, colors: ['202,183,197'] }, // rgb(202,183,197)
       ],
     },
   } as TileColorConfig,
@@ -280,7 +281,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v5', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v6', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear
