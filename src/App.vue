@@ -337,7 +337,35 @@
 
         <div class="flex-1 min-h-0 overflow-y-auto">
           <Collapsible :is-open="panels.mapMakingSettings" class="p-1">
-            <Checkbox v-model="settings.findByTileColor.enabled"> Find by tile color </Checkbox>
+            <div class="flex items-center gap-2 whitespace-nowrap">
+              Search in description :
+              <input
+                id="searchInDescription"
+                type="text"
+                v-model.trim="settings.searchInDescription.searchTerms"
+                class="w-auto min-w-0"
+              />
+            </div>
+            <div class="space-y-0.5 ml-6 py-0.5">
+              <div class="flex justify-between items-center gap-2">
+                Include/exclude :
+                <select v-model="settings.searchInDescription.filterType">
+                  <option value="include">include</option>
+                  <option value="exclude">exclude</option>
+                </select>
+              </div>
+              <div class="flex justify-between items-center gap-2">
+                Search mode :
+                <select v-model="settings.searchInDescription.searchMode">
+                  <option value="contains">contains</option>
+                  <option value="fullword">fullword</option>
+                  <option value="startswith">startswith</option>
+                  <option value="endswith">endswith</option>
+                </select>
+              </div>
+            </div>
+
+            <Checkbox v-model="settings.findByTileColor.enabled">Find by tile color</Checkbox>
             <div v-if="settings.findByTileColor.enabled" class="space-y-0.5 ml-6 py-1">
               <div class="flex justify-between items-center gap-2">
                 Tile provider :
@@ -409,9 +437,13 @@
               v-model="settings.getDeadEnds"
               >Find dead ends (end of coverage)</Checkbox
             >
-            <div v-if="settings.getDeadEnds" class="ml-6">
-              <Checkbox v-model="settings.deadEndsLookBackwards">Look towards dead end</Checkbox>
-            </div>
+
+            <Checkbox
+              v-if="settings.getDeadEnds"
+              v-model="settings.deadEndsLookBackwards"
+              class="ml-6"
+              >Look towards dead end</Checkbox
+            >
 
             <Checkbox
               @change="settings.getIntersection ? (settings.getDeadEnds = false) : true"
@@ -551,7 +583,7 @@
 </template>
 
 <script setup lang="ts">
-//  @ts-nocheck
+// @ts-nocheck
 import { onMounted, ref, watch, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
@@ -1121,6 +1153,10 @@ onMounted(async () => {
 
 // Process
 document.onkeydown = (event) => {
+  const target = event.target as HTMLElement
+  const tag = target.tagName.toLowerCase()
+  if (tag === 'input') return
+
   if (event.key === ' ') {
     handleClickStart()
   }
@@ -1227,9 +1263,59 @@ function parseDate(date: Date): number {
   return Date.parse(`${year}-${monthStr}`)
 }
 
+function normalizeText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize('NFD') // décompose les accents
+    .replace(/[\u0300-\u036f]/g, '') // enlève les accents
+    .replace(/[^\w\s-]/g, '') // enlève ponctuations sauf tirets
+    .trim()
+}
+
+function tokenize(text: string) {
+  // découpe sur espaces, tirets, underscore, etc.
+  return text.split(/[\s\-_,.;!?()'"“”«»]+/).filter(Boolean)
+}
+
+function searchInDescription(
+  loc: google.maps.StreetViewLocation,
+  searchConfig: SearchInDescriptionConfig,
+) {
+  if (!searchConfig.searchTerms.trim()) return true
+
+  const searchTerms = searchConfig.searchTerms
+    .split(',')
+    .map((term) => normalizeText(term.trim()))
+    .filter(Boolean)
+
+  if (searchTerms.length === 0) return true
+
+  const combinedDescription = `${loc.description ?? ''} ${loc.shortDescription ?? ''}`
+  const normalizedText = normalizeText(combinedDescription)
+  const words = tokenize(combinedDescription).map(normalizeText)
+
+  const hasMatch = searchTerms.some((term) => {
+    switch (searchConfig.searchMode) {
+      case 'fullword':
+        return words.includes(term)
+      case 'startswith':
+        return words.some((word) => word.startsWith(term))
+      case 'endswith':
+        return words.some((word) => word.endsWith(term))
+      case 'contains':
+      default:
+        return normalizedText.includes(term)
+    }
+  })
+  return searchConfig.filterType === 'exclude' ? !hasMatch : hasMatch
+}
+
 async function getLoc(loc: LatLng, polygon: Polygon) {
   return SV.getPanorama(getPanoramaRequest(loc, settings.rejectUnofficial), (res, status) => {
     if (status != google.maps.StreetViewStatus.OK || !res || !res.location) return false
+
+    const descriptionMatchesSearch = searchInDescription(res.location, settings.searchInDescription)
+    if (!descriptionMatchesSearch) return false
 
     if (settings.rejectUnofficial && !settings.rejectOfficial) {
       // Reject trekkers

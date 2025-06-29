@@ -25,6 +25,11 @@ const defaultSettings = {
   rejectDateless: true,
   rejectNoDescription: true,
   rejectDescription: false,
+  searchInDescription: {
+    searchTerms: '',
+    searchMode: 'contains',
+    filterType: 'include',
+  } as SearchInDescriptionConfig,
   onlyOneInTimeframe: false,
   findPhotospheres: false,
   findDrones: false,
@@ -281,7 +286,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v6', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v7', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear

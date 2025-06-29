@@ -57,3 +57,9 @@ interface TileColorConfig {
   tileProvider: TileProvider
   tileColors: Record<TileProvider, TileColor[]>
 }
+
+interface SearchInDescriptionConfig {
+  searchTerms: string
+  searchMode: 'fullword' | 'startswith' | 'endswith' | 'contains'
+  filterType: 'include' | 'exclude'
+}
