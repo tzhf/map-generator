@@ -344,6 +344,7 @@
                 type="text"
                 v-model.trim="settings.searchInDescription.searchTerms"
                 class="w-auto min-w-0"
+                title="use comma for several search terms"
               />
             </div>
             <div class="space-y-0.5 ml-6 py-0.5">
