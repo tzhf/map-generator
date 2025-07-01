@@ -26,6 +26,7 @@ const defaultSettings = {
   rejectNoDescription: true,
   rejectDescription: false,
   searchInDescription: {
+    enabled: false,
     searchTerms: '',
     searchMode: 'contains',
     filterType: 'include',
@@ -88,7 +89,7 @@ const defaultSettings = {
         {
           label: 'Train tracks',
           active: false,
-          threshold: 0,
+          threshold: 0.001,
           colors: [
             '189,193,198', // rgb(189,193,198)
             '193,197,202', // rgb(193,197,202)
@@ -192,25 +193,18 @@ const defaultSettings = {
         { label: 'Main road 2', active: false, threshold: 0.05, colors: ['252,214,164'] }, // rgb(252,214,164)
         { label: 'Main road 3', active: false, threshold: 0.05, colors: ['247,250,191'] }, // rgb(247,250,191)
         { label: 'White road', active: false, threshold: 0.05, colors: ['255,255,255'] }, // rgb(255,255,255)
-        { label: 'Bridges', active: false, threshold: 0, colors: ['184,184,184'] }, // rgb(184,184,184) - min zoom 17
+        { label: 'Bridges', active: false, threshold: 0.001, colors: ['184,184,184'] }, // rgb(184,184,184) - min zoom 17
         {
           label: 'Train tracks',
           active: false,
-          threshold: 0,
+          threshold: 0.001,
           colors: ['112,112,112'],
         }, // rgb(112,112,112)  secondary tracks are rgb(170,170,170) but some ports have the same color
         {
           label: 'Tracks',
           active: false,
-          threshold: 0,
+          threshold: 0.001,
           colors: ['172,131,49'], // rgb(172,131,49)
-        },
-
-        {
-          label: 'Footway',
-          active: false,
-          threshold: 0,
-          colors: ['250,128,114'], // rgb(250,128,114)
         },
         { label: 'Forest, woods', active: false, threshold: 0.2, colors: ['173,209,158'] }, // rgb(173,209,158)
         { label: 'Grass, meadow', active: false, threshold: 0.2, colors: ['205,235,176'] }, // rgb(205,235,176)
@@ -235,19 +229,20 @@ const defaultSettings = {
         { label: 'Industrial area', active: false, threshold: 0.2, colors: ['235,219,232'] }, // rgb(235,219,232)
         { label: 'Brownfield site', active: false, threshold: 0.2, colors: ['199,199,180'] }, // rgb(199,199,180)
         {
-          label: 'Mine, construction site',
+          label: 'Mine, quarry, construction site',
           active: false,
           threshold: 0.2,
           colors: ['197,195,195'],
         }, // rgb(197,195,195)
-        { label: 'School, Hospital', active: false, threshold: 0.05, colors: ['255,255,229'] }, // rgb(255,255,229)
+        { label: 'School/Hospital area', active: false, threshold: 0.05, colors: ['255,255,229'] }, // rgb(255,255,229)
         { label: 'Park', active: false, threshold: 0.05, colors: ['200,250,204'] }, // rgb(200,250,204)
         { label: 'Place of worship', active: false, threshold: 0.05, colors: ['196,182,171'] }, // rgb(196,182,171)
         { label: 'Cemetery', active: false, threshold: 0.05, colors: ['170,203,175'] }, // rgb(170,203,175)
         { label: 'Sports pitch', active: false, threshold: 0.05, colors: ['136,224,190'] }, // rgb(136,224,190)
         { label: 'Sports center', active: false, threshold: 0.05, colors: ['223,252,226'] }, // rgb(223,252,226)
         { label: 'Camping, golf course', active: false, threshold: 0.05, colors: ['222,246,192'] }, // rgb(222,246,192)
-        { label: 'Borders', active: false, threshold: 0, colors: ['202,183,197'] }, // rgb(202,183,197)
+        { label: 'Peak, summit', active: false, threshold: 0.0001, colors: ['208,143,86'] }, // rgb(208, 143, 86)
+        { label: 'Volcano', active: false, threshold: 0.0001, colors: ['212,0,0'] }, // rgb(212,0,0)
       ],
     },
   } as TileColorConfig,
@@ -286,7 +281,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v7', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v8', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear

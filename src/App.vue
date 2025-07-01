@@ -337,24 +337,24 @@
 
         <div class="flex-1 min-h-0 overflow-y-auto">
           <Collapsible :is-open="panels.mapMakingSettings" class="p-1">
-            <div class="flex items-center gap-2 whitespace-nowrap">
-              Search in description :
-              <input
-                id="searchInDescription"
-                type="text"
-                v-model.trim="settings.searchInDescription.searchTerms"
-                class="w-auto min-w-0"
-                title="use comma for several search terms"
-              />
-            </div>
-            <div class="space-y-0.5 ml-6 py-0.5">
-              <div class="flex justify-between items-center gap-2">
-                Include/exclude :
+            <Checkbox v-model="settings.searchInDescription.enabled"
+              >Search in panorama description
+            </Checkbox>
+
+            <div v-if="settings.searchInDescription.enabled" class="space-y-0.5 ml-6 py-1">
+              <div class="flex justify-between items-center gap-1">
                 <select v-model="settings.searchInDescription.filterType">
                   <option value="include">include</option>
                   <option value="exclude">exclude</option>
                 </select>
+                <input
+                  type="text"
+                  v-model.trim="settings.searchInDescription.searchTerms"
+                  title="use comma for several search terms"
+                  class="w-full"
+                />
               </div>
+
               <div class="flex justify-between items-center gap-2">
                 Search mode :
                 <select v-model="settings.searchInDescription.searchMode">
@@ -384,7 +384,7 @@
                 <input
                   type="range"
                   v-model.number="settings.findByTileColor.zoom"
-                  min="15"
+                  min="13"
                   max="19"
                   step="1"
                   title="Tile zoom level"
@@ -415,7 +415,7 @@
                   />
                   <span class="truncate">{{ tileColor.label }}</span>
                 </Checkbox>
-                <div v-if="tileColor.threshold > 0" class="flex items-center gap-2 ml-auto">
+                <div v-if="tileColor.threshold > 0.01" class="flex items-center gap-2 ml-auto">
                   <span>{{ (tileColor.threshold * 100).toFixed(0) }}%</span>
                   <input
                     type="range"
@@ -584,7 +584,7 @@
 </template>
 
 <script setup lang="ts">
-// @ts-nocheck
+// // @ts-nocheck
 import { onMounted, ref, watch, reactive, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
@@ -628,10 +628,17 @@ import { blueLineDetector } from '@/composables/blueLineDetector'
 import { getTileUrl, getTileColorPresence } from '@/composables/tileColorDetector'
 import {
   randomPointInPoly,
+  isOfficial,
+  isPhotosphere,
+  isDrone,
+  hasAnyDescription,
+  isAcceptableCurve,
+  getCameraGeneration,
+  searchInDescription,
   getCurrentDate,
+  parseDate,
   isDate,
   randomInRange,
-  getCameraGeneration,
   distanceBetween,
   isValidGeoJSON,
   getPolygonName,
@@ -1156,7 +1163,7 @@ onMounted(async () => {
 document.onkeydown = (event) => {
   const target = event.target as HTMLElement
   const tag = target.tagName.toLowerCase()
-  if (tag === 'input') return
+  if (tag === 'input' && target.type === 'text') return
 
   if (event.key === ' ') {
     handleClickStart()
@@ -1230,93 +1237,17 @@ function getPanoramaRequest(
   }
 }
 
-function isOfficial(pano: string) {
-  return pano.length === 22 // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
-  // return (!/^\xA9 (?:\d+ )?Google$/.test(pano.copyright))
-}
-
-function isPhotosphere(res: google.maps.StreetViewPanoramaData) {
-  return res.links?.length === 0
-}
-
-function isDrone(res: google.maps.StreetViewPanoramaData) {
-  return isPhotosphere(res) && [2048, 7200].includes(res.tiles.worldSize.height)
-}
-
-function hasAnyDescription(location: google.maps.StreetViewLocation) {
-  return location.description || location.shortDescription
-}
-
-function isAcceptableCurve(links: google.maps.StreetViewLink[], minCurveAngle: number): boolean {
-  if (links.length !== 2 || links[0].heading == null || links[1].heading == null) return false
-
-  const angleDifference = Math.abs(links[0].heading - links[1].heading) % 360
-  const smallestAngle = angleDifference > 180 ? 360 - angleDifference : angleDifference
-  const curveAngle = Math.abs(180 - smallestAngle)
-  return curveAngle >= minCurveAngle
-}
-
-// this will parse the Date object from res.time[i] (like Fri Oct 01 2021 00:00:00 GMT-0700 (Pacific Daylight Time)) to a local timestamp, like Date.parse("2021-09") == 1630454400000 for Pacific Daylight Time
-function parseDate(date: Date): number {
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const monthStr = month < 10 ? `0${month}` : `${month}`
-  return Date.parse(`${year}-${monthStr}`)
-}
-
-function normalizeText(text: string) {
-  return text
-    .toLowerCase()
-    .normalize('NFD') // décompose les accents
-    .replace(/[\u0300-\u036f]/g, '') // enlève les accents
-    .replace(/[^\w\s-]/g, '') // enlève ponctuations sauf tirets
-    .trim()
-}
-
-function tokenize(text: string) {
-  // découpe sur espaces, tirets, underscore, etc.
-  return text.split(/[\s\-_,.;!?()'"“”«»]+/).filter(Boolean)
-}
-
-function searchInDescription(
-  loc: google.maps.StreetViewLocation,
-  searchConfig: SearchInDescriptionConfig,
-) {
-  if (!searchConfig.searchTerms.trim()) return true
-
-  const searchTerms = searchConfig.searchTerms
-    .split(',')
-    .map((term) => normalizeText(term.trim()))
-    .filter(Boolean)
-
-  if (searchTerms.length === 0) return true
-
-  const combinedDescription = `${loc.description ?? ''} ${loc.shortDescription ?? ''}`
-  const normalizedText = normalizeText(combinedDescription)
-  const words = tokenize(combinedDescription).map(normalizeText)
-
-  const hasMatch = searchTerms.some((term) => {
-    switch (searchConfig.searchMode) {
-      case 'fullword':
-        return words.includes(term)
-      case 'startswith':
-        return words.some((word) => word.startsWith(term))
-      case 'endswith':
-        return words.some((word) => word.endsWith(term))
-      case 'contains':
-      default:
-        return normalizedText.includes(term)
-    }
-  })
-  return searchConfig.filterType === 'exclude' ? !hasMatch : hasMatch
-}
-
 async function getLoc(loc: LatLng, polygon: Polygon) {
   return SV.getPanorama(getPanoramaRequest(loc, settings.rejectUnofficial), (res, status) => {
     if (status != google.maps.StreetViewStatus.OK || !res || !res.location) return false
 
-    const descriptionMatchesSearch = searchInDescription(res.location, settings.searchInDescription)
-    if (!descriptionMatchesSearch) return false
+    if (settings.searchInDescription.enabled) {
+      const descriptionMatchesSearch = searchInDescription(
+        res.location,
+        settings.searchInDescription,
+      )
+      if (!descriptionMatchesSearch) return false
+    }
 
     if (settings.rejectUnofficial && !settings.rejectOfficial) {
       // Reject trekkers

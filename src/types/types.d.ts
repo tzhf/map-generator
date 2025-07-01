@@ -59,6 +59,7 @@ interface TileColorConfig {
 }
 
 interface SearchInDescriptionConfig {
+  enabled: boolean
   searchTerms: string
   searchMode: 'fullword' | 'startswith' | 'endswith' | 'contains'
   filterType: 'include' | 'exclude'
