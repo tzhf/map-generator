@@ -51,6 +51,7 @@ const defaultSettings = {
   findByTileColor: {
     enabled: false,
     zoom: 19,
+    filterType: 'include',
     operator: 'OR',
     tileProvider: 'gmaps',
     tileColors: {
@@ -105,8 +106,15 @@ const defaultSettings = {
           active: false,
           threshold: 0.05,
           colors: [
-            '232,233,237', // rgb(232,233,237) min zoom 17
-          ],
+            '232,233,237', // rgb(232,233,237)
+            '232,232,236', // rgb(232,232,236)
+            '230,234,237', // rgb(230,234,237)
+            '234,234,238', // rgb(234,234,238)
+            '221,227,229', // rgb(221,227,229)
+            '231,231,235', // rgb(231,231,235)
+            '231,231,236', // rgb(231,231,236)
+            '231,231,238', // rgb(231,231,238)
+          ], // min zoom 17
         },
         {
           label: 'Commercial buildings',
@@ -114,6 +122,7 @@ const defaultSettings = {
           threshold: 0.05,
           colors: [
             '253,249,239', // rgb(253,249,239) min zoom 17
+            '248,240,222', // rgb(248,240,222) zoom 16 and under
           ],
         },
         {
@@ -193,7 +202,12 @@ const defaultSettings = {
         { label: 'Main road 2', active: false, threshold: 0.05, colors: ['252,214,164'] }, // rgb(252,214,164)
         { label: 'Main road 3', active: false, threshold: 0.05, colors: ['247,250,191'] }, // rgb(247,250,191)
         { label: 'White road', active: false, threshold: 0.05, colors: ['255,255,255'] }, // rgb(255,255,255)
-        { label: 'Bridges', active: false, threshold: 0.001, colors: ['184,184,184'] }, // rgb(184,184,184) - min zoom 17
+        {
+          label: 'Bridges',
+          active: false,
+          threshold: 0.001,
+          colors: ['184,184,184'],
+        }, // rgb(184,184,184) - min zoom 17
         {
           label: 'Train tracks',
           active: false,
@@ -281,7 +295,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v8', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v9', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear

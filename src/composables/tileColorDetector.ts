@@ -67,15 +67,13 @@ export async function getTileColorPresence(loc: LatLng, config: TileColorConfig)
   }
 
   const results = [...groupStats.entries()].map(([label, { matchCount, threshold }]) => {
-    // return threshold === 0
-    //   ? matchCount > 100 // Match if at least 100 pixel matches (arbitrary threshold but seems reasonable to avoid fale positives for bridges, etc.)
-    //   : matchCount / pixelCount >= threshold
-    return matchCount / pixelCount >= threshold
+    // 1%: Match if at least 50 pixels matches (arbitrary threshold but seems reasonable to avoid false positives)
+    // under use fixed threshold
+    return threshold === 0.01 ? matchCount > 50 : matchCount / pixelCount >= threshold
   })
 
-  if (config.operator === 'AND') return results.length > 0 && results.every(Boolean)
-  if (config.operator === 'OR') return results.some(Boolean)
-  if (config.operator === 'NOT') return results.every((r) => !r)
+  const match =
+    config.operator === 'AND' ? results.length > 0 && results.every(Boolean) : results.some(Boolean)
 
-  return false // fallback, shouldn't happen
+  return config.filterType === 'exclude' ? !match : match
 }

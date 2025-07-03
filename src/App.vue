@@ -367,7 +367,14 @@
             </div>
 
             <Checkbox v-model="settings.findByTileColor.enabled">Find by tile color</Checkbox>
-            <div v-if="settings.findByTileColor.enabled" class="space-y-0.5 ml-6 py-1">
+            <div v-if="settings.findByTileColor.enabled" class="space-y-0.5 ml-6 pb-1">
+              <div class="flex justify-between items-center gap-2">
+                Include/Exclude :
+                <select v-model="settings.findByTileColor.filterType">
+                  <option value="include">include</option>
+                  <option value="exclude">exclude</option>
+                </select>
+              </div>
               <div class="flex justify-between items-center gap-2">
                 Tile provider :
                 <select v-model="settings.findByTileColor.tileProvider">

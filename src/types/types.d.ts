@@ -40,7 +40,7 @@ interface Panorama {
   links?: string[]
 }
 
-type TileOperators = 'AND' | 'OR' | 'NOT'
+type TileOperators = 'AND' | 'OR'
 type TileProvider = 'osm' | 'gmaps'
 
 interface TileColor {
@@ -53,6 +53,7 @@ interface TileColor {
 interface TileColorConfig {
   enabled: boolean
   zoom: number
+  filterType: 'include' | 'exclude'
   operator: TileOperators
   tileProvider: TileProvider
   tileColors: Record<TileProvider, TileColor[]>
