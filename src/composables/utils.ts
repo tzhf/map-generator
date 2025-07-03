@@ -51,7 +51,7 @@ function normalizeText(text: string) {
 }
 
 function tokenize(text: string) {
-  return text.split(/[\s\-_,.;!?()'"“”«»]+/).filter(Boolean)
+  return text.split(/[\s_,.;!?()'"“”«»]+/).filter(Boolean)
 }
 
 export function searchInDescription(
@@ -69,6 +69,7 @@ export function searchInDescription(
 
   const combinedDescription = `${loc.description ?? ''} ${loc.shortDescription ?? ''}`
   const normalizedText = normalizeText(combinedDescription)
+  console.log('🚀 ~ combinedDescription:', combinedDescription)
   const words = tokenize(combinedDescription).map(normalizeText)
 
   const hasMatch = searchTerms.some((term) => {
@@ -80,7 +81,6 @@ export function searchInDescription(
       case 'endswith':
         return words.some((word) => word.endsWith(term))
       case 'contains':
-      default:
         return normalizedText.includes(term)
     }
   })

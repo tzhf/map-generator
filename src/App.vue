@@ -415,7 +415,7 @@
                   />
                   <span class="truncate">{{ tileColor.label }}</span>
                 </Checkbox>
-                <div v-if="tileColor.threshold > 0.01" class="flex items-center gap-2 ml-auto">
+                <div v-if="tileColor.threshold >= 0.01" class="flex items-center gap-2 ml-auto">
                   <span>{{ (tileColor.threshold * 100).toFixed(0) }}%</span>
                   <input
                     type="range"
