@@ -403,7 +403,6 @@
                 <select v-model="settings.findByTileColor.operator">
                   <option value="OR">OR</option>
                   <option value="AND">AND</option>
-                  <option value="NOT">NOT</option>
                 </select>
               </div>
 
