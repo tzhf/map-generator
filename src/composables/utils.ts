@@ -187,26 +187,13 @@ export function changePolygonName(properties: Polygon['feature']['properties']) 
   // }
 }
 
-export const polygonStyles = {
-  defaultHidden: () => ({
-    opacity: 0,
-    fillOpacity: 0,
-  }),
-
-  customPolygonStyle: () => ({
-    weight: 2,
-    color: getRandomColor(),
-    fillOpacity: 0,
-  }),
-
-  highlighted: () => ({
-    fillColor: getRandomColor(),
-    fillOpacity: 0.5,
-  }),
-
-  removeHighlight: () => ({
-    fillOpacity: 0,
-  }),
+export async function readFileAsText(file: File) {
+  const result = await new Promise<string>((resolve) => {
+    const fileReader = new FileReader()
+    fileReader.onload = () => resolve(fileReader.result as string)
+    fileReader.readAsText(file)
+  })
+  return result
 }
 
 export function isValidGeoJSON(data: unknown) {
@@ -214,11 +201,4 @@ export function isValidGeoJSON(data: unknown) {
 
   const type = (data as { type?: unknown }).type
   return type === 'Feature' || type === 'FeatureCollection'
-}
-
-function getRandomColor() {
-  const red = Math.floor(((1 + Math.random()) * 256) / 2)
-  const green = Math.floor(((1 + Math.random()) * 256) / 2)
-  const blue = Math.floor(((1 + Math.random()) * 256) / 2)
-  return 'rgb(' + red + ', ' + green + ', ' + blue + ')'
 }
