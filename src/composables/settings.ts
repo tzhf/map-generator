@@ -109,11 +109,13 @@ const defaultSettings = {
             '232,233,237', // rgb(232,233,237)
             '232,232,236', // rgb(232,232,236)
             '230,234,237', // rgb(230,234,237)
+            '230,234,238', // rgb(230,234,238)
             '234,234,238', // rgb(234,234,238)
             '221,227,229', // rgb(221,227,229)
             '231,231,235', // rgb(231,231,235)
             '231,231,236', // rgb(231,231,236)
             '231,231,238', // rgb(231,231,238)
+            '231,234,238', // rgb(231,234,238)
           ], // min zoom 17
         },
         {
@@ -295,7 +297,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v9', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v10', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear
