@@ -590,7 +590,7 @@
 </template>
 
 <script setup lang="ts">
-// // @ts-nocheck
+// @ts-nocheck
 import { onMounted, watch, computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
