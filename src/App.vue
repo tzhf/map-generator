@@ -337,9 +337,15 @@
 
         <div class="flex-1 min-h-0 overflow-y-auto">
           <Collapsible :is-open="panels.mapMakingSettings" class="p-1">
-            <Checkbox v-model="settings.searchInDescription.enabled"
-              >Search in panorama description
-            </Checkbox>
+            <div class="flex items-center gap-1 relative">
+              <Checkbox v-model="settings.searchInDescription.enabled"
+                >Search in panorama description
+              </Checkbox>
+              <Tooltip>
+                Description is usually based on your locale.<br />
+                You can enter multiple search terms separated by commas.
+              </Tooltip>
+            </div>
 
             <div v-if="settings.searchInDescription.enabled" class="space-y-0.5 ml-6 py-1">
               <div class="flex justify-between items-center gap-1">
@@ -350,16 +356,27 @@
                 <input
                   type="text"
                   v-model.trim="settings.searchInDescription.searchTerms"
-                  title="use comma for several search terms"
                   class="w-full"
                 />
               </div>
 
               <div class="flex justify-between items-center gap-2">
-                Search mode :
+                <div class="flex items-center gap-1 relative">
+                  Search mode
+                  <Tooltip>
+                    <strong>Search modes:</strong><br />
+                    • <strong>contains</strong>: anywhere in text<br />
+                    • <strong>fullword</strong>: exact word<br />
+                    • <strong>sectionmatch</strong>: exact comma-separated section<br />
+                    (eg: 901 N Main Ave, <strong>Springfield</strong>, Missouri)<br />
+                    • <strong>startswith</strong>: beginning of word<br />
+                    • <strong>endswith</strong>: end of word<br />
+                  </Tooltip>
+                </div>
                 <select v-model="settings.searchInDescription.searchMode">
                   <option value="contains">contains</option>
                   <option value="fullword">fullword</option>
+                  <option value="sectionmatch">sectionmatch</option>
                   <option value="startswith">startswith</option>
                   <option value="endswith">endswith</option>
                 </select>
@@ -601,6 +618,7 @@ import Collapsible from '@/components/Elements/Collapsible.vue'
 import Button from '@/components/Elements/Button.vue'
 import Checkbox from '@/components/Elements/Checkbox.vue'
 import Spinner from '@/components/Elements/Spinner.vue'
+import Tooltip from '@/components/Elements/Tooltip.vue'
 import Logo from '@/components/Elements/Logo.vue'
 import Clipboard from '@/components/Clipboard.vue'
 import ExportToJSON from '@/components/ExportToJSON.vue'

@@ -45,13 +45,25 @@ function normalizeText(text: string) {
   return text
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^\w\s-]/g, '')
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/[^\w\s-]/g, '') // Remove punctuation
     .trim()
 }
 
 function tokenize(text: string) {
   return text.split(/[\s_,.;!?()'"“”«»]+/).filter(Boolean)
+}
+
+function sectionmatch(text: string, target: string): boolean {
+  const term = normalizeText(target)
+  const normalized = text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove accents
+
+  const pattern = new RegExp(`(^${term}$|^${term},|,\\s*${term}$|,\\s*${term},)`, 'i')
+
+  return pattern.test(normalized)
 }
 
 export function searchInDescription(
@@ -67,23 +79,29 @@ export function searchInDescription(
 
   if (searchTerms.length === 0) return true
 
-  const combinedDescription = `${loc.description ?? ''} ${loc.shortDescription ?? ''}`
+  const description = loc.description ?? ''
+  const shortDescription = loc.shortDescription ?? ''
+  const combinedDescription = `${description} ${shortDescription}`
+
   const normalizedText = normalizeText(combinedDescription)
-  console.log('🚀 ~ combinedDescription:', combinedDescription)
   const words = tokenize(combinedDescription).map(normalizeText)
 
   const hasMatch = searchTerms.some((term) => {
     switch (searchConfig.searchMode) {
+      case 'contains':
+        return normalizedText.includes(term)
       case 'fullword':
-        return words.includes(term)
+        const phrase = words.join(' ')
+        return new RegExp(`\\b${term}\\b`, 'i').test(phrase)
       case 'startswith':
         return words.some((word) => word.startsWith(term))
       case 'endswith':
         return words.some((word) => word.endsWith(term))
-      case 'contains':
-        return normalizedText.includes(term)
+      case 'sectionmatch':
+        return sectionmatch(description, term) || sectionmatch(shortDescription, term)
     }
   })
+
   return searchConfig.filterType === 'exclude' ? !hasMatch : hasMatch
 }
 
