@@ -263,9 +263,10 @@ const defaultSettings = {
     },
   } as TileColorConfig,
 
-  getDeadEnds: false,
-  deadEndsLookBackwards: false,
-  getIntersection: false,
+  filterByLinksLength: {
+    enabled: false,
+    range: [1, 5],
+  },
   getCurve: false,
   minCurveAngle: 10,
 
@@ -297,7 +298,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v10', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v11', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear
