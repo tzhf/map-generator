@@ -1,6 +1,33 @@
-export function isOfficial(pano: string) {
-  return pano.length === 22 // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
-  // return (!/^\xA9 (?:\d+ )?Google$/.test(pano.copyright))
+export function sendNotification(title: string, body: string) {
+  try {
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/favicon.ico' })
+    }
+  } catch (error) {
+    console.warn('Notification failed:', error)
+  }
+}
+
+export function isOfficial(pano: string, provider: string) {
+  switch (provider) {
+    case 'google':
+      return pano.length === 22  // Checks if pano ID is 22 characters long. Otherwise, it's an Ari
+    // return (!/^\xA9 (?:\d+ )?Google$/.test(pano.copyright))
+    case 'apple':
+      return pano.length === 19
+    case 'bing':
+      return true
+    case 'yandex':
+      return pano.length === 34
+    case 'tencent':
+      return pano.length === 23
+    case 'baidu':
+      return pano.length === 27
+    case 'kakao':
+      return true
+    default:
+      return false
+  }
 }
 
 export function isPhotosphere(res: google.maps.StreetViewPanoramaData) {
@@ -15,6 +42,14 @@ export function hasAnyDescription(location: google.maps.StreetViewLocation) {
   return location.description || location.shortDescription
 }
 
+export function getStreetViewStatus(key: keyof typeof google.maps.StreetViewStatus): google.maps.StreetViewStatus {
+  return google?.maps?.StreetViewStatus?.[key] ?? key
+}
+
+export function makeLatLng(lat: number, lng: number): google.maps.LatLng {
+  return new google.maps.LatLng(lat, lng)
+}
+
 export function isAcceptableCurve(
   links: google.maps.StreetViewLink[],
   minCurveAngle: number,
@@ -27,18 +62,67 @@ export function isAcceptableCurve(
   return curveAngle >= minCurveAngle
 }
 
-export function getCameraGeneration(pano: google.maps.StreetViewPanoramaData) {
-  const { worldSize } = pano.tiles
-  switch (worldSize.height) {
-    case 1664:
-      return 1
-    case 6656:
-      return 23
-    case 8192:
-      return 4
-    default:
-      return 0
+export function getCameraGeneration(pano: google.maps.StreetViewPanoramaData, provider: string) {
+  if (provider === 'google') {
+    const gen3Dates: any = {
+      'BD': '2021-04', 'EC': '2022-03', 'FI': '2020-09', 'IN': '2021-10', 'LK': '2021-02', 'KH': '2022-10',
+      'LB': '2021-05', 'NG': '2021-06', 'ST': '2024-02', 'US': '2019-01', 'VN': '2021-01', 'ES': '2023-01'
+    };
+    const gen2Countries = new Set(['AU', 'BR', 'CA', 'CL', 'JP', 'GB', 'IE', 'NZ', 'MX', 'RU', 'US', 'IT', 'DK', 'GR', 'RO',
+      'PL', 'CZ', 'CH', 'SE', 'FI', 'BE', 'LU', 'NL', 'ZA', 'SG', 'TW', 'HK', 'MO', 'MC', 'SM',
+      'AD', 'IM', 'JE', 'FR', 'DE', 'ES', 'PT', 'SJ']);
+    const country = pano.location?.country ?? 'None'
+    const targetDate = country in gen3Dates ? gen3Dates[country] : '9999-99'
+    const lat: number = pano.location?.latLng?.lat() ?? 0
+    const { worldSize } = pano.tiles
+    switch (worldSize.height) {
+      case 1664:
+        return 1
+      case 6656:
+        if (country && pano.imageDate) {
+          if (pano.imageDate >= targetDate) {
+            if (country !== 'US') return 'badcam'
+            if (country === 'US' && lat > 52) return 'badcam'
+          }
+
+          if (gen2Countries.has(country) && pano.imageDate <= '2011-11') {
+            return pano.imageDate >= '2010-09' ? 23 : 2;
+          }
+        }
+        return 3
+      case 8192:
+        return 4
+      default:
+        return 0
+    }
   }
+  else if (['apple', 'bing'].includes(provider)) {
+    return Number(pano.location?.description)
+  }
+  else if (provider === 'yandex') {
+    const world_width = pano.tiles.worldSize.width
+    if (!world_width) return 0
+    if (world_width == 17664) return 2
+    else if (world_width == 5632) return 1
+    else return 'trekker'
+
+  }
+}
+
+export function createPayload(
+  pano: string
+): string {
+  let payload: any;
+  let pano_type: number = 2;
+  if (pano.slice(0, 4) == 'CIHM' || pano.length != 22) pano_type = 10
+  payload = [
+    ["apiv3", null, null, null, "US", null, null, null, null, null, [[0]]],
+    ["en", "US"],
+    [[[pano_type, pano]]],
+    [[1, 2, 3, 4, 8, 6]]
+  ];
+
+  return JSON.stringify(payload);
 }
 
 function normalizeText(text: string) {
@@ -127,6 +211,28 @@ export function parseDate(date: Date): number {
   return Date.parse(`${year}-${monthStr}`)
 }
 
+export function extractDateFromPanoId(pano: string) {
+  const year = 2000 + Number(pano.slice(0, 2));
+  const month = pano.slice(2, 4);
+  const day = pano.slice(4, 6);
+  const hour = pano.slice(6, 8);
+  const minute = pano.slice(8, 10);
+  const second = pano.slice(10, 12);
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
+}
+
+export function formatTimeStr(datetimeStr: string): string {
+  const date = new Date(datetimeStr);
+  if (isNaN(date.getTime())) throw new Error("Invalid date string");
+  const yyyy = date.getFullYear();
+  const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+  const dd = date.getDate().toString().padStart(2, '0');
+  const hh = date.getHours().toString().padStart(2, '0');
+  const min = date.getMinutes().toString().padStart(2, '0');
+  const sec = date.getSeconds().toString().padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}:${sec}`;
+}
+
 export const isDate = (date: string) => {
   const parsed = new Date(date)
   return !isNaN(parsed.getTime())
@@ -141,12 +247,17 @@ export function randomPointInPoly(polygon: Polygon) {
   const lat =
     (Math.asin(
       Math.random() * (Math.sin((y_max * Math.PI) / 180) - Math.sin((y_min * Math.PI) / 180)) +
-        Math.sin((y_min * Math.PI) / 180),
+      Math.sin((y_min * Math.PI) / 180),
     ) *
       180) /
     Math.PI
   const lng = x_min + Math.random() * (x_max - x_min)
   return { lat, lng }
+}
+
+export function radians_to_degrees(radians: number) {
+  var pi = Math.PI;
+  return radians * (180 / pi);
 }
 
 export function distanceBetween(coords1: LatLng, coords2: LatLng) {
@@ -164,6 +275,19 @@ export function distanceBetween(coords1: LatLng, coords2: LatLng) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   const d = R * c
   return d
+}
+
+const A$1 = 114.59155902616465;
+const SCALE = 111319.49077777778;
+function deg2rad(deg: number) {
+  return deg * Math.PI / 180;
+}
+
+export function tencentToGcj02([x, y]: [number, number]) {
+  return [
+    x / SCALE,
+    A$1 * Math.atan(Math.exp(deg2rad(y / SCALE))) - 90
+  ];
 }
 
 export function randomInRange(min: number, max: number) {

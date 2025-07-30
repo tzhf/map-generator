@@ -5,22 +5,53 @@ import { getCurrentDate } from '@/composables/utils.ts'
 const { currentYear, currentDate } = getCurrentDate()
 
 const defaultSettings = {
+  notification: {
+    enabled: false,
+    anyLocation: false,
+    onePolygonComplete: false,
+    allPolygonsComplete: false,
+  },
+
   numOfGenerators: 1,
+  speed: 100,
   radius: 500,
   oneCountryAtATime: false,
   onlyCheckBlueLines: false,
   findRegions: false,
   regionRadius: 100,
 
+  provider: 'google',
+
   rejectUnofficial: true,
   rejectOfficial: false,
+  ignoreBadcam: false,
   findByGeneration: {
     enabled: true,
-    generation: {
+    google: {
       1: false,
+      2: true,
+      3: true,
+      badcam: true,
       23: true,
       4: true,
     },
+    apple: {
+      "bigcam": true,
+      "smallcam": true,
+      "backpack": true
+    },
+    bing: {
+      1: true,
+      2: true,
+      3: true,
+      4: true,
+      5: true
+    },
+    yandex: {
+      1: true,
+      2: true,
+      "trekker": false
+    }
   },
   rejectDateless: true,
   rejectNoDescription: true,
@@ -34,6 +65,7 @@ const defaultSettings = {
   onlyOneInTimeframe: false,
   findPhotospheres: false,
   findDrones: false,
+  findNightCoverage: false,
   checkLinks: false,
   linksDepth: 2,
 
@@ -47,6 +79,11 @@ const defaultSettings = {
   selectMonths: false,
   checkAllDates: false,
   randomInTimeline: false,
+
+  filterByMinutes: {
+    enabled: false,
+    range: [0, 1439],
+  },
 
   findByTileColor: {
     enabled: false,
@@ -267,6 +304,12 @@ const defaultSettings = {
     enabled: false,
     range: [1, 5],
   },
+
+  filterByAltitude: {
+    enabled: false,
+    range: [0, 1000],
+  },
+
   getCurve: false,
   minCurveAngle: 10,
 
@@ -298,7 +341,7 @@ const defaultSettings = {
   checkImports: false,
 }
 
-const storedSettings = useStorage('map_generator__settings_v11', defaultSettings)
+const storedSettings = useStorage('map_generator__settings_v12', defaultSettings)
 const settings = reactive(storedSettings.value)
 settings.toDate = currentDate
 settings.toYear = currentYear
