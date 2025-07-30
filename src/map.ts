@@ -19,6 +19,11 @@ import { ref } from 'vue'
 import { useStorage } from '@vueuse/core'
 import { settings } from '@/settings'
 import { isValidGeoJSON, getPolygonName, readFileAsText } from '@/composables/utils.ts'
+import { BaiduLayer } from './layers/baiduLayer'
+import { bingBaseLayer, bingTerrainLayer, bingStreetideLayer } from './layers/bingLayer'
+import { YandexLayer } from './layers/yandexLayer'
+import { AppleLayer } from './layers/appleLayer'
+import { TencentCoverageLayer } from './layers/tencentLayer'
 
 import { useStore } from '@/store'
 const { selected, select, state } = useStore()
@@ -32,7 +37,7 @@ const roadmapBaseLayer = L.tileLayer(
 )
 const roadmapLabelsLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m2!1e0!2sm!3m5!2sen!3sus!5e1105!12m1!1e15!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
-  { pane: 'labelPane' },
+  { minZoom: 1, maxZoom: 20, pane: 'labelPane' },
 )
 const roadmapLayer = L.layerGroup([roadmapBaseLayer, roadmapLabelsLayer])
 
@@ -54,16 +59,26 @@ const satelliteLayer = L.layerGroup([satelliteBaseLayer, satelliteLabelsLayer])
 
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   minZoom: 1,
-  maxZoom: 19,
+  maxZoom: 20,
   attribution:
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 })
 
+const bingMapsLayer=L.layerGroup([bingBaseLayer, bingTerrainLayer])
+
+const petalMapsLayer = L.tileLayer("https://maprastertile-drcn.dbankcdn.cn/display-service/v1/online-render/getTile/24.12.10.10/{z}/{x}/{y}/?language=en&p=46&scale=2&mapType=ROADMAP&presetStyleId=standard&pattern=JPG&key=DAEDANitav6P7Q0lWzCzKkLErbrJG4kS1u%2FCpEe5ZyxW5u0nSkb40bJ%2BYAugRN03fhf0BszLS1rCrzAogRHDZkxaMrloaHPQGO6LNg==",
+  { maxZoom: 20 }
+)
+
+const tencentBaseLayer = L.tileLayer("http://rt{s}.map.gtimg.com/realtimerender?z={z}&x={x}&y={-y}&type=vector", { subdomains: ["0", "1", "2", "3"], minNativeZoom: 3, minZoom: 1 })
+
 const gsvLayer = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e2*212b1*213e2*211m3*211e3*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b1!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
+  { maxZoom: 20 }
 )
 const gsvLayer2 = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e2*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b1!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
+  { maxZoom: 20 }
 )
 const gsvLayer3 = L.tileLayer(
   'https://maps.googleapis.com/maps/vt?pb=!1m5!1m4!1i{z}!2i{x}!3i{y}!4i256!2m8!1e2!2ssvv!4m2!1scb_client!2sapiv3!4m2!1scc!2s*211m3*211e3*212b1*213e2*211m3*211e2*212b1*213e2!3m3!3sUS!12m1!1e68!4e0',
@@ -71,21 +86,43 @@ const gsvLayer3 = L.tileLayer(
 )
 const gsvLayer4 = L.tileLayer(
   'https://www.google.com/maps/vt?pb=!1m7!8m6!1m3!1i{z}!2i{x}!3i{y}!2i9!3x1!2m8!1e2!2ssvv!4m2!1scc!2s*211m3*211e3*212b1*213e2*212b1*214b1!4m2!1ssvl!2s*211b0*212b1!3m8!2sen!3sus!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0!5m4!1e0!8m2!1e1!1e1!6m6!1e12!2i2!11e0!39b0!44e0!50e0',
+  { maxZoom: 20 }
 )
 
+const appleCoverageLayer = L.tileLayer('https://lookmap.eu.pythonanywhere.com/bluelines_raster_2x/{z}/{x}/{y}.png', { minZoom: 1, maxZoom: 7 })
+
+const baiduCoverageLayer = new BaiduLayer({ filter: "hue-rotate(140deg) saturate(200%)" })
+
+const yandexCoverageLayer = new YandexLayer()
+
+
 const baseMaps = {
-  Roadmap: roadmapLayer,
-  Satellite: satelliteLayer,
-  Terrain: terrainLayer,
+  "Google Roadmap": roadmapLayer,
+  "Google Satellite": satelliteLayer,
+  "Google Terrain": terrainLayer,
   OSM: osmLayer,
+  Bing: bingMapsLayer,
+  Tencent: tencentBaseLayer,
+  Petal: petalMapsLayer,
 }
 
 const overlayMaps = {
   'Google Street View': gsvLayer,
   'Google Street View Official Only': gsvLayer2,
   'Google Street View Roads (Only Works at Zoom Level 12+)': gsvLayer3,
-  'Unofficial coverage only': gsvLayer4,
+  'Google Unofficial coverage only': gsvLayer4,
+  'Apple Look Around': appleCoverageLayer,
+  'Apple Look Around (Only Works at Zoom Level 8+)':AppleLayer,
+  'Bing Streetside': bingStreetideLayer,
+  'Yandex Panorama (Only Works at Zoom Level 6+)': yandexCoverageLayer,
+  'Tencent Street View (Only Works at Zoom Level 5+)': TencentCoverageLayer,
+  'Baidu Street View (Only Works at Zoom Level 5+)': baiduCoverageLayer,
 }
+
+const allLayers = [
+  ...Object.values(baseMaps),
+  ...Object.values(overlayMaps)
+]
 
 const drawnPolygonsLayer = new L.GeoJSON()
 
@@ -232,6 +269,43 @@ async function initMap(el: string) {
   return map
 }
 
+function toggleMap(provider: string) {
+  function resetLayer() {
+    allLayers.forEach(layer => {
+      if (map.hasLayer(layer)) {
+        map.removeLayer(layer);
+      }
+    });
+  }
+  if (provider === 'google') {
+    resetLayer()
+    roadmapLayer.addTo(map)
+    gsvLayer2.addTo(map)
+  }
+  else if (provider === 'apple') {
+    appleCoverageLayer.addTo(map)
+    AppleLayer.addTo(map)
+  }
+  else if (provider === 'bing') {
+    resetLayer()
+    bingMapsLayer.addTo(map)
+    bingStreetideLayer.addTo(map)
+  }
+  else if (provider === 'tencent') {
+    resetLayer()
+    tencentBaseLayer.addTo(map)
+    TencentCoverageLayer.addTo(map)
+  }
+  else if (provider === 'baidu') {
+    resetLayer()
+    petalMapsLayer.addTo(map)
+    baiduCoverageLayer.addTo(map)
+  }
+  else if (provider === 'yandex') {
+    yandexCoverageLayer.addTo(map)
+  }
+}
+
 const copyCoords = (e: L.ContextMenuItemClickEvent) => {
   navigator.clipboard.writeText(e.latlng.lat.toFixed(7) + ', ' + e.latlng.lng.toFixed(7))
 }
@@ -268,7 +342,7 @@ const storedLayers = useStorage<{
   base: BaseMapName
   overlays: OverlayMapName[]
 }>('map_generator__layers', {
-  base: 'Roadmap',
+  base: 'Google Roadmap',
   overlays: ['Google Street View Official Only'],
 })
 
@@ -533,6 +607,7 @@ const icons = {
 export {
   L,
   initMap,
+  toggleMap,
   selectLayer,
   deselectLayer,
   toggleLayer,

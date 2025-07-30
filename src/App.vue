@@ -8,6 +8,42 @@
     <Logo />
     <div class="flex-1 min-h-0 flex flex-col gap-1">
       <div v-if="!state.started" class="container flex flex-col">
+        <div class="relative cursor-pointer" @click="panels.general = !panels.general">
+          <h2>General</h2>
+          <ChevronDownIcon class="collapsible-indicator absolute top-0 right-0" />
+        </div>
+        <Collapsible :is-open="panels.general" class="flex flex-col gap-1 max-h-[140px] overflow-y-auto mt-2 p-1">
+          <div class="flex items-center justify-between ml-1 mr-1">
+            Theme :
+            <select v-model="themeMode" class="ml-10">
+              <option value="auto">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <div class="flex items-center justify-between ml-1 mr-1">
+            Notifications :
+            <select v-model="settings.notification.enabled" class="w-18 ml-2">
+              <option :value=true>On</option>
+              <option :value=false>Off</option>
+            </select>
+          </div>
+          <div v-if="settings.notification.enabled" class="flex-1 min-h-0 overflow-y-auto ml-4 mb-1">
+            <Checkbox v-model="settings.notification.anyLocation">
+              Any location found
+            </Checkbox>
+            <Checkbox v-model="settings.notification.onePolygonComplete">
+              One polygon completed
+            </Checkbox>
+            <Checkbox v-model="settings.notification.allPolygonsComplete">
+              All polygons completed
+            </Checkbox>
+          </div>
+        </Collapsible>
+      </div>
+    </div>
+    <div class="flex-1 min-h-0 flex flex-col gap-1">
+      <div v-if="!state.started" class="container flex flex-col">
         <div class="relative cursor-pointer" @click="panels.layer = !panels.layer">
           <h2>Layers</h2>
           <ChevronDownIcon class="collapsible-indicator absolute top-0 right-0" />
@@ -165,12 +201,33 @@
         </div>
 
         <Collapsible :is-open="panels.generatorSettings" class="mt-1 p-1 pr-2">
+          <div class="flex items-center justify-between ml-1 mr-1">
+            Provider :
+            <select v-model="settings.provider" @change="toggleMap(settings.provider)">
+              <option value="google">Google</option>
+              <option value="apple">Apple</option>
+              <option value="bing">Bing</option>
+              <option value="yandex">Yandex</option>
+              <option value="tencent">Tencent</option>
+              <option value="baidu">Baidu</option>
+              <option value="kakao">Kakao</option>
+            </select>
+          </div>
           <div class="flex justify-between">
             Generators :
-            <div class="flex items-center gap-2">
-              {{ settings.numOfGenerators }}
-              <input type="range" v-model.number="settings.numOfGenerators" min="1" max="10" />
+            <div class="flex items-center gap-4">
+              <input type="number" v-model.number="settings.numOfGenerators" min="1" max="10"
+                class="w-10 h-5 px-2 py-1 border rounded text-right" />
+              <Slider v-model="settings.numOfGenerators" :min="1" :max="10" :step="1" :tooltips="false" class="w-32" />
             </div>
+          </div>
+
+          <div class="flex justify-between">
+            Speed:
+            <span>
+              <input type="number" v-model.number="settings.speed" min="1" max="1000" @change="handleSpeedInput" />
+              attemps
+            </span>
           </div>
 
           <div class="flex items-center justify-between">
@@ -230,7 +287,12 @@
                 Reject locations without description
               </Checkbox>
 
+              <Checkbox v-if="settings.provider === 'google'" v-model="settings.ignoreBadcam">Ignore BadCam</Checkbox>
               <Checkbox v-model="settings.rejectDescription">Find trekker coverage</Checkbox>
+
+              <Checkbox v-model="settings.findNightCoverage" v-if="settings.provider === 'tencent'">
+                Find night coverage
+              </Checkbox>
 
               <Checkbox
                 v-model="settings.onlyOneInTimeframe"
@@ -248,11 +310,30 @@
                 </div>
               </div>
 
-              <Checkbox v-model="settings.findByGeneration.enabled">Find by generation</Checkbox>
-              <div v-if="settings.findByGeneration.enabled" class="ml-6">
-                <Checkbox v-model="settings.findByGeneration.generation[1]">Gen 1</Checkbox>
-                <Checkbox v-model="settings.findByGeneration.generation[23]">Gen 2 & 3</Checkbox>
-                <Checkbox v-model="settings.findByGeneration.generation[4]">Gen 4</Checkbox>
+              <Checkbox v-model="settings.findByGeneration.enabled"
+                v-if="['google', 'apple', 'bing', 'yandex'].includes(settings.provider)">Find by
+                generation</Checkbox>
+              <div v-if="settings.findByGeneration.enabled && settings.provider === 'google'" class="ml-6">
+                <Checkbox v-model="settings.findByGeneration.google[1]">Gen 1</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.google[2]">Gen 2</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.google[3]">Gen 3</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.google[23]">Gen 2 & 3</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.google[4]">Gen 4</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.google.badcam">BadCam</Checkbox>
+              </div>
+              <div v-if="settings.findByGeneration.enabled && settings.provider === 'apple'" class="ml-6">
+                <Checkbox v-model="settings.findByGeneration.apple.bigcam">Big Camera</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.apple.smallcam">Small Camera</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.apple.backpack">Backpack</Checkbox>
+              </div>
+              <div v-if="settings.findByGeneration.enabled && settings.provider === 'bing'" class="ml-6">
+                <Checkbox v-model="settings.findByGeneration.bing[3]">TomTom</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.bing[4]">Bing</Checkbox>
+              </div>
+              <div v-if="settings.findByGeneration.enabled && settings.provider === 'yandex'" class="ml-6">
+                <Checkbox v-model="settings.findByGeneration.yandex[1]">Gen 1</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.yandex[2]">Gen 2</Checkbox>
+                <Checkbox v-model="settings.findByGeneration.yandex.trekker">Trekker</Checkbox>
               </div>
             </div>
 
@@ -309,6 +390,23 @@
                   <input type="number" v-model.number="settings.toYear" min="2007" />
                 </div>
               </div>
+            </div>
+
+            <div v-if="settings.provider != 'google'" class="flex items-center">
+              <Checkbox v-model="settings.filterByMinutes.enabled">Filter by minutes</Checkbox>
+              <Slider v-if="settings.filterByMinutes.enabled" v-model="settings.filterByMinutes.range" :min="0"
+                :max="1439" :step="5" :showTooltip="'focus'" :range="true" class="w-48 ml-2" :format="val => {
+                  const h = Math.floor(val / 60).toString().padStart(2, '0')
+                  const m = Math.floor(val % 60).toString().padStart(2, '0')
+                  return `${h}:${m}`
+                }" />
+              <span v-if="settings.filterByMinutes.enabled" class="ml-2">
+                {{ Math.floor(settings.filterByMinutes.range[0] / 60).toString().padStart(2, '0') }}:{{
+                  (settings.filterByMinutes.range[0] % 60).toString().padStart(2, '0') }}
+                -
+                {{ Math.floor(settings.filterByMinutes.range[1] / 60).toString().padStart(2, '0') }}:{{
+                  (settings.filterByMinutes.range[1] % 60).toString().padStart(2, '0') }}
+              </span>
             </div>
 
             <Checkbox v-model="settings.checkAllDates">Check all dates</Checkbox>
@@ -475,6 +573,20 @@
               </label>
             </div>
 
+            <Checkbox v-if="['apple', 'bing', 'baidu', 'google'].includes(settings.provider)"
+              v-model="settings.filterByAltitude.enabled">
+              Filter by altitude</Checkbox>
+            <div v-if="settings.filterByAltitude.enabled" class="ml-6">
+              <label class="flex items-center justify-between">
+                <div class="flex items-center gap-1 relative">
+                  Meters
+                </div>
+                <Slider v-if="settings.filterByAltitude.enabled" v-model="settings.filterByAltitude.range" :min="-200"
+                  :max="8848" :step="10" :showTooltip="'always'" :range="true" :format="val => `${Math.round(val)}m`"
+                  tooltipPosition="bottom" class="w-40 pr-2" />
+              </label>
+            </div>
+
             <Checkbox v-model="settings.getCurve"> Find curve locations </Checkbox>
 
             <label v-if="settings.getCurve" class="ml-6 flex items-center justify-between">
@@ -561,13 +673,16 @@
           <Checkbox v-model="settings.markers.newRoad" v-on:change="updateMarkerLayers('newRoad')">
             <span class="h-3 w-3 bg-[#CA283F] rounded-full"></span>New Road
           </Checkbox>
-          <Checkbox v-model="settings.markers.gen4" v-on:change="updateMarkerLayers('gen4')">
-            <span class="h-3 w-3 bg-[#2880CA] rounded-full"></span>Gen 4 Update
+          <Checkbox v-model="settings.markers.gen4" @change="updateMarkerLayers('gen4')">
+            <span class="h-3 w-3 bg-[#2880CA] rounded-full"></span>
+            {{ settings.provider !== 'google' ? 'Update' : 'Gen 4 Update' }}
           </Checkbox>
-          <Checkbox v-model="settings.markers.gen2Or3" v-on:change="updateMarkerLayers('gen2Or3')">
+          <Checkbox v-model="settings.markers.gen2Or3" v-if="settings.provider == 'google'"
+            v-on:change="updateMarkerLayers('gen2Or3')">
             <span class="h-3 w-3 bg-[#9A28CA] rounded-full"></span>Gen 2 or 3 Update
           </Checkbox>
-          <Checkbox v-model="settings.markers.gen1" v-on:change="updateMarkerLayers('gen1')">
+          <Checkbox v-model="settings.markers.gen1" v-if="settings.provider == 'google'"
+            v-on:change="updateMarkerLayers('gen1')">
             <span class="h-3 w-3 bg-[#24AC20] rounded-full"></span>Gen 1 Update
           </Checkbox>
           <Checkbox
@@ -604,7 +719,7 @@
 <script setup lang="ts">
 // @ts-nocheck
 import { onMounted, watch, computed } from 'vue'
-import { useStorage } from '@vueuse/core'
+import { useStorage, useColorMode } from '@vueuse/core'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import { llToPX } from 'web-merc-projection'
 
@@ -630,6 +745,7 @@ import { settings } from '@/settings'
 import {
   L,
   initMap,
+  toggleMap,
   selectLayer,
   deselectLayer,
   toggleLayer,
@@ -648,6 +764,7 @@ import {
 import { blueLineDetector } from '@/composables/blueLineDetector'
 import { getTileUrl, getTileColorPresence } from '@/composables/tileColorDetector'
 import {
+  sendNotification,
   randomPointInPoly,
   isOfficial,
   isPhotosphere,
@@ -658,27 +775,48 @@ import {
   searchInDescription,
   getCurrentDate,
   parseDate,
+  extractDateFromPanoId,
   isDate,
   randomInRange,
   distanceBetween,
   readFileAsText,
   getPolygonName,
   changePolygonName,
+  tencentToGcj02
 } from '@/composables/utils.ts'
+import StreetViewProviders from './providers'
 const { currentDate } = getCurrentDate()
+const themeMode = useColorMode()
 
-const SV = new google.maps.StreetViewService()
-
-watch(
+/*watch(
   () => settings.rejectOfficial,
   (newVal) => {
     if (newVal) {
       settings.rejectUnofficial = false
     }
   },
+)*/
+
+watch(
+  () => settings.notification.enabled,
+  async (enabled) => {
+    if (enabled === true && Notification.permission === 'default') {
+      try {
+        const permission = await Notification.requestPermission()
+        if (permission !== 'granted') {
+          settings.notification.enabled = false
+          alert('Notification permission denied.')
+        }
+      } catch (err) {
+        console.warn('Notification request failed:', err)
+        settings.notification.enabled = false
+      }
+    }
+  }
 )
 
-const panels = useStorage('map_generator__panels', {
+const panels = useStorage('map_generator__panels_v1', {
+  general: true,
   layer: true,
   generatorSettings: true,
   coverageSettings: true,
@@ -765,7 +903,7 @@ async function generate(polygon: Polygon) {
     polygon.isProcessing = true
 
     const randomCoords = []
-    const n = Math.min(polygon.nbNeeded * 100, 1000)
+    const n = Math.min(polygon.nbNeeded * 100, settings.speed)
 
     while (randomCoords.length < n) {
       const point = randomPointInPoly(polygon)
@@ -798,8 +936,48 @@ function getPanoramaRequest(
   }
 }
 
+async function getNonBadcamRes(pano: string): Promise<StreetViewPanoramaData | null> {
+  const initialRes = await new Promise<StreetViewPanoramaData | null>((resolve) => {
+    StreetViewProviders.getPanorama('google', { pano }, (_res, _status) => {
+      if (_status === google.maps.StreetViewStatus.OK && _res) {
+        resolve(_res)
+      } else {
+        resolve(null)
+      }
+    })
+  })
+
+  if (!initialRes) return null
+
+  const gen = getCameraGeneration(initialRes)
+
+  if (gen != 'badcam') return initialRes
+
+  const candidates = (initialRes.time ?? [])
+    .filter((loc) => loc.pano !== initialRes.location.pano)
+    .reverse()
+
+  for (const loc of candidates) {
+    const fallbackRes = await new Promise<StreetViewPanoramaData | null>((resolve) => {
+      StreetViewProviders.getPanorama('google', { pano: loc.pano }, (__res, __status) => {
+        if (__status === google.maps.StreetViewStatus.OK && __res) {
+          resolve(__res)
+        } else {
+          resolve(null)
+        }
+      })
+    })
+
+    if (fallbackRes && getCameraGeneration(fallbackRes) != 'badcam') {
+      return fallbackRes
+    }
+  }
+
+  return null
+}
+
 async function getLoc(loc: LatLng, polygon: Polygon) {
-  return SV.getPanorama(getPanoramaRequest(loc, settings.rejectUnofficial), (res, status) => {
+  return StreetViewProviders.getPanorama(settings.provider, getPanoramaRequest(loc, settings.rejectUnofficial), async (res, status) => {
     if (status != google.maps.StreetViewStatus.OK || !res || !res.location) return false
 
     if (settings.searchInDescription.enabled) {
@@ -820,7 +998,29 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
         return false
 
       // Find trekkers
-      if (settings.rejectDescription && hasAnyDescription(res.location)) return false
+      if (settings.rejectDescription) {
+        if (settings.provider === 'apple') {
+          if (res.location.description != 'backpack') return false
+        }
+        else {
+          if (hasAnyDescription(res.location)) return false
+        }
+      }
+
+      // Exclude Yandex Unofficial
+      if (settings.provider === 'yandex' && !res.copyright?.includes('Yandex')) return false
+
+      // Ignore Google BadCam
+      if (settings.ignoreBadcam && settings.provider === 'google') {
+        if (res.imageDate >= '2019-01' && res.tiles?.worldSize?.height === 6656) {
+          const validRes = await getNonBadcamRes(res.location.pano);
+          if (validRes) {
+            res = validRes;
+          } else {
+            return false;
+          }
+        }
+      }
     }
 
     if (settings.findRegions) {
@@ -835,18 +1035,39 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
     }
 
     if (settings.rejectOfficial) {
-      if (isOfficial(res.location.pano)) return false
+      if (isOfficial(res.location.pano, settings.provider)) return false
       if (settings.findPhotospheres && !isPhotosphere(res)) return false
       if (settings.findDrones && !isDrone(res)) return false
     }
 
+    if (settings.findNightCoverage && settings.provider === 'tencent') {
+      if (!res.location.shortDescription) return false
+      return getPano(res.location.shortDescription, polygon)
+    }
+
     if (
-      settings.findByGeneration.enabled &&
-      ((!settings.rejectOfficial && !settings.checkAllDates) || settings.selectMonths)
+      settings.filterByMinutes.enabled && settings.provider != 'google'
     ) {
-      const gen = getCameraGeneration(res)
-      if (gen === 0) return false
-      if (!settings.findByGeneration.generation[gen]) return false
+      var panoMinutes
+      switch (settings.provider) {
+        case 'baidu':
+          panoMinutes = Number(res.location.pano.slice(16, 18)) * 60 + Number(res.location.pano.slice(18, 20))
+          break
+        case 'tencent':
+          panoMinutes = Number(res.location.pano.slice(14, 16)) * 60 + Number(res.location.pano.slice(16, 18))
+          if (
+            res.location.shortDescription &&
+            res.location.pano == res.location.shortDescription) panoMinutes += 1200
+          break
+        case 'apple':
+        case 'bing':
+        case 'yandex':
+        case 'kakao':
+          panoMinutes = Number(res.imageDate.slice(11, 13)) * 60 + Number(res.imageDate.slice(14, 16))
+          break
+      }
+
+      if (panoMinutes < settings.filterByMinutes.range[0] || panoMinutes > settings.filterByMinutes.range[1]) return false
     }
 
     if (settings.randomInTimeline && res.time) {
@@ -874,7 +1095,7 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
       const toDate = Date.parse(settings.toDate)
       let dateWithin = false
       for (const loc of res.time) {
-        if (settings.rejectUnofficial && !isOfficial(loc.pano)) continue
+        if (settings.rejectUnofficial && !isOfficial(loc.pano, settings.provider)) continue
 
         const date = Object.values(loc).find((val) => val instanceof Date)
         const iDate = parseDate(date)
@@ -905,7 +1126,7 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
 
 async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
   if (settings.rejectUnofficial && !settings.rejectOfficial) {
-    if (!pano.location || !isOfficial(pano.location.pano)) return false
+    if (!pano.location || !isOfficial(pano.location.pano, settings.provider)) return false
     // Reject trekkers
     if (
       settings.rejectNoDescription &&
@@ -924,6 +1145,26 @@ async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
         links.length > settings.filterByLinksLength.range[1]
       )
         return
+    }
+
+    // Find Generation
+    if (
+      ['google', 'apple', 'yandex', 'bing'].includes(settings.provider) &&
+      settings.findByGeneration.enabled &&
+      ((!settings.rejectOfficial && !settings.checkAllDates) || settings.selectMonths)
+    ) {
+      const gen = getCameraGeneration(pano, settings.provider)
+      if (gen === 0) return false
+      if (!settings.findByGeneration[settings.provider][gen]) return false
+    }
+
+    if (settings.filterByAltitude.enabled) {
+
+      if (
+        pano.location.altitude < settings.filterByAltitude.range[0] ||
+        pano.location.altitude > settings.filterByAltitude.range[1]
+      )
+        return false
     }
 
     if (settings.getCurve) {
@@ -968,7 +1209,7 @@ async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
   if (settings.onlyOneInTimeframe) {
     if (!pano.time?.length) return false
     for (const loc of pano.time) {
-      if (settings.rejectUnofficial && !isOfficial(loc.pano)) continue
+      if (settings.rejectUnofficial && !isOfficial(loc.pano, settings.provider)) continue
       if (loc.pano == pano.location?.pano) continue
       const date = Object.values(loc).find((val) => val instanceof Date)
       const iDate = parseDate(date)
@@ -979,15 +1220,18 @@ async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
   if (settings.checkAllDates && !settings.selectMonths && !settings.rejectOfficial) {
     if (!pano.time?.length) return false
 
-    if (settings.findByGeneration.enabled) {
-      const gen = getCameraGeneration(pano)
+    if (
+      settings.findByGeneration.enabled &&
+      ['google', 'apple', 'yandex', 'bing'].includes(settings.provider)
+    ) {
+      const gen = getCameraGeneration(pano, settings.provider)
       if (gen === 0) return false
-      if (!settings.findByGeneration.generation[gen]) return false
+      if (!settings.findByGeneration[settings.provider][gen]) return false
     }
 
     let dateWithin = false
     for (let i = 0; i < pano.time.length; i++) {
-      if (settings.rejectUnofficial && !isOfficial(pano.time[i].pano)) continue
+      if (settings.rejectUnofficial && !isOfficial(pano.time[i].pano, settings.provider)) continue
 
       const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val))
       const iDate = parseDate(timeframeDate)
@@ -1006,7 +1250,7 @@ async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
 
     if (settings.checkAllDates) {
       for (let i = 0; i < pano.time.length; i++) {
-        if (settings.rejectUnofficial && !isOfficial(pano.time[i].pano)) continue
+        if (settings.rejectUnofficial && !isOfficial(pano.time[i].pano, settings.provider)) continue
 
         const timeframeDate = Object.values(pano.time[i]).find((val) => isDate(val))
         const iDateMonth = timeframeDate.getMonth() + 1
@@ -1056,7 +1300,7 @@ function getPanoDeep(id: string, polygon: Polygon, depth: number) {
   if (polygon.checkedPanos.has(id)) return
   else polygon.checkedPanos.add(id)
 
-  SV.getPanorama({ pano: id }, async (pano, status) => {
+  StreetViewProviders.getPanorama(settings.provider, { pano: id }, async (pano, status) => {
     if (status == google.maps.StreetViewStatus.UNKNOWN_ERROR) {
       polygon.checkedPanos.delete(id)
       return getPanoDeep(id, polygon, depth)
@@ -1073,7 +1317,7 @@ function getPanoDeep(id: string, polygon: Polygon, depth: number) {
       const toDate = Date.parse(settings.toDate)
 
       for (const loc of pano.time) {
-        if (settings.rejectUnofficial && !isOfficial(loc.pano)) continue
+        if (settings.rejectUnofficial && !isOfficial(loc.pano, settings.provider)) continue
 
         const date = Object.values(loc).find((val) => val instanceof Date)
         const iDate = parseDate(date)
@@ -1157,21 +1401,23 @@ function addLoc(pano: google.maps.StreetViewPanoramaData, polygon: Polygon) {
 
   // Remove ari
   const time = settings.rejectUnofficial
-    ? pano.time.filter((entry) => isOfficial(entry.pano))
+    ? pano.time.filter((entry) => isOfficial(entry.pano, settings.provider))
     : pano.time
   const previousPano = time[time.length - 2]?.pano
 
   // New road
   if (!previousPano) {
     checkHasBlueLine(pano.location.latLng.toJSON()).then((hasBlueLine) => {
-      addLocation(location, polygon, hasBlueLine ? icons.newLoc : icons.noBlueLine)
+      addLocation(location, polygon,
+        settings.provider != 'google' ? icons.newLoc : (hasBlueLine ? icons.newLoc : icons.noBlueLine))
     })
   } else {
-    SV.getPanorama({ pano: previousPano }, (previousPano) => {
-      if (previousPano.tiles.worldSize.height === 1664) {
+    StreetViewProviders.getPanorama(settings.provider, { pano: previousPano }, (previousPano) => {
+      if (settings.provider != 'google') return addLocation(location, polygon, icons.gen4)
+      if (previousPano?.tiles?.worldSize.height === 1664) {
         // Gen 1
         return addLocation(location, polygon, icons.gen1)
-      } else if (previousPano.tiles.worldSize.height === 6656) {
+      } else if (previousPano?.tiles?.worldSize.height === 6656) {
         // Gen 2 or 3
         return addLocation(location, polygon, icons.gen2Or3)
       } else {
@@ -1214,14 +1460,60 @@ function addLocation(
 
   if (polygon.found.length < polygon.nbNeeded) {
     polygon.found.push(location)
+    if (settings.notification.anyLocation && polygon.found.length === 1) {
+      sendNotification('Location Found',
+        `Found first location in ${getPolygonName(polygon.feature.properties)}`
+      )
+    }
 
+    if (settings.notification.onePolygonComplete && polygon.found.length >= polygon.nbNeeded) {
+      sendNotification('Polygon Completed',
+        `${getPolygonName(polygon.feature.properties)} has reached target count`)
+    }
+
+    if (settings.notification.allPolygonsComplete) {
+      const allComplete = selected.value.every(p => p.found.length >= p.nbNeeded)
+      if (allComplete) {
+        sendNotification('Generation Completed',
+          'All polygons have reached their target counts'
+        )
+      }
+    }
     if (addMarker) {
       const marker = L.marker([location.lat, location.lng], { icon: iconType, forceZIndex: zIndex })
         .on('click', () => {
-          window.open(
-            `https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}${location.heading ? '&heading=' + location.heading : ''}${location.pitch ? '&pitch=' + location.pitch : ''}${location.zoom ? '&fov=' + String(180 / 2 ** location.zoom) : ''}`,
-            '_blank',
-          )
+          const heading = location.heading ?? 0
+          const pitch = location.pitch ?? 0
+          const zoom = location.zoom ?? 0
+          let url = ''
+
+          switch (settings.provider) {
+            case 'google':
+              url = `https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}&heading=${heading}&pitch=${pitch}&fov=${180 / 2 ** zoom}`
+              break
+            case 'yandex':
+              url = `https://yandex.com/maps/?l=stv%2Csta&ll=${location.lng},${location.lat}&panorama%5Bdirection%5D=${heading},0&panorama%5Bfull%5D=true&panorama%5Bid%5D=${location.panoId}&panorama%5Bpoint%5D=${location.lng},${location.lat}`
+              break
+            case 'tencent':
+              url = `https://qq-map.netlify.app/#base=roadmap&zoom=18&center=${location.lat},${location.lng}&pano=${location.panoId}&heading=${heading}&pitch=${pitch}&svz=0`
+              break
+            case 'baidu':
+              url = `https://map.baidu.com/?newmap=1&shareurl=1&panotype=street&l=21&tn=B_NORMAL_MAP&sc=0&panoid=${location.panoId}&heading=${heading}&pitch=${pitch}&pid=${location.panoId}`
+              break
+            case 'apple':
+              url = `https://lookmap.eu.pythonanywhere.com/#c=18/${location.lat}/${location.lng}&p=${location.lat}/${location.lng}&a=${heading}/${pitch}`
+              break
+            case 'bing':
+              url = `https://www.bing.com/maps/?style=x&lvl=18&id=${location.panoId}&cp=${location.lat}%7E${location.lng}&dir=${heading || 0}&pi=${pitch || 0}`
+              break
+            case 'kakao':
+              url = `https://map.kakao.com/?map_type=TYPE_MAP&map_attribute=ROADVIEW&panoid=${location.panoId}&pan=${heading}&tilt=${pitch}`
+              break
+            default:
+              url = `https://www.google.com/maps/@?api=1&map_action=pano&pano=${location.panoId}&heading=${heading}&pitch=${pitch}&fov=${180 / 2 ** zoom}`
+          }
+
+          window.open(url, '_blank')
         })
         .setZIndexOffset(zIndex)
         .addTo(markerLayer)
@@ -1248,7 +1540,7 @@ async function checkHasBlueLine(latLng: LatLng) {
   })
   blueLineCanvas.width = 256
   blueLineCanvas.height = 256
-  const ctx = blueLineCanvas.getContext('2d')
+  const ctx = blueLineCanvas.getContext('2d', { willReadFrequently: true })
   ctx!.drawImage(image, 0, 0)
   // Check the pixel where the pano is
   const imageData = ctx!.getImageData(pixelX - tileX * tileSize, pixelY - tileY * tileSize, 1, 1)
@@ -1302,6 +1594,13 @@ async function changeLocationsCap() {
   }
 }
 
+function handleSpeedInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  const value = parseInt(target.value)
+  if (!value || value < 1) settings.speed = 1
+  else if (value > 1000) settings.speed = 1000
+}
+
 function handleRadiusInput(e: Event) {
   const target = e.target as HTMLInputElement
   const value = parseInt(target.value)
@@ -1347,7 +1646,55 @@ Array.prototype.chunk = function (n) {
 @import '@vueform/slider/themes/default.css';
 :root {
   --slider-connect-bg: var(--color-primary);
+  --bg-color: white;
+  --text-color: black;
+  --container-bg: rgba(255, 255, 255, 0.7);
+  --leaflet-bg: #f0f0f0;
+  --leaflet-control-bg: rgba(255, 255, 255, 0.6);
+  --leaflet-control-color: black;
 }
+
+html.dark {
+  --bg-color: #121212;
+  --text-color: #eee;
+  --container-bg: rgba(0, 0, 0, 0.7);
+  --leaflet-bg: #2c2c2c;
+  --leaflet-control-bg: rgba(0, 0, 0, 0.6);
+  --leaflet-control-color: white;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.container {
+  background: var(--container-bg);
+  color: var(--text-color);
+}
+
+.logo {
+  color: var(--text-color);
+  background-color: var(--container-bg);
+}
+
+input,
+select,
+option {
+  color: var(--text-color);
+  background-color: var(--container-bg) !important;
+}
+
+.leaflet-container {
+  background-color: var(--leaflet-bg);
+}
+
+.leaflet-control-layers {
+  background-color: var(--leaflet-control-bg);
+  font-size: 10px;
+  color: var(--text-color);
+}
+
 .slider-connects {
   background-color: rgba(0, 0, 0, 0.8);
 }
@@ -1364,16 +1711,6 @@ Array.prototype.chunk = function (n) {
   height: 100vh;
 }
 
-.container {
-  padding: 0.25rem;
-  border-radius: 5px;
-  background: rgba(0, 0, 0, 0.7);
-}
-
-.leaflet-container {
-  background-color: #2c2c2c;
-}
-
 /* Leaflet Controls */
 #leaflet-ui {
   z-index: 99;
@@ -1382,10 +1719,5 @@ Array.prototype.chunk = function (n) {
 .leaflet-bottom .leaflet-control {
   margin-left: 4px;
   margin-bottom: 4px;
-}
-.leaflet-control-layers {
-  background-color: rgb(0, 0, 0, 0.6);
-  font-size: 10px;
-  color: white;
 }
 </style>
