@@ -1,125 +1,10 @@
 import { extractDateFromPanoId, formatTimeStr } from '@/composables/utils'
 import { getClosestPanoAtCoords } from "@/apple/tile";
 import { AppleLookAroundPano } from "@/apple/types";
-import { createPayload } from '@/composables/utils';
 import gcoord from 'gcoord'
 
-let svService: google.maps.StreetViewService | null = null
+const SV = new google.maps.StreetViewService()
 const applePanoCache = new Map<string, google.maps.StreetViewPanoramaData>()
-
-function getStreetViewService() {
-    if (!svService) {
-        svService = new google.maps.StreetViewService()
-    }
-    return svService
-}
-
-function parseGoogle(data: any): google.maps.StreetViewPanoramaData {
-    try {
-        let roadName = null;
-        let country = null;
-        let desc_raw = null;
-        let shortDesc_raw = null;
-
-        const panoId = data[1][0][1][1];
-        const lat = data[1][0][5][0][1][0][2];
-        const lng = data[1][0][5][0][1][0][3];
-        const heading = data[1][0][5][0][1][2][0];
-        const worldsize = data[1][0][2][2];
-
-        const imageYear = data[1][0][6][7][0];
-        const imageMonth = data[1][0][6][7][1];
-        const imageDate = `${imageYear}-${String(imageMonth).padStart(2, '0')}`;
-
-        const historyRaw = data[1][0][5][0][8];
-        const linksRaw = data[1][0][5][0][6];
-        const nodes = data[1][0][5][0][3][0];
-
-        const altitude = data[1][0][5][0][1][1][0]
-
-        try {
-            country = data[1][0][5][0][1][4];
-            if (['TW', 'HK', 'MO'].includes(country)) {
-                country = 'CN';
-            }
-        } catch (e) { }
-        try {
-            roadName = data[1][0][5][0][12][0][0][0][2][0];
-        } catch (e) { }
-        try {
-            desc_raw = data[1][0][3][2][1][0]
-        } catch (e) {
-            try { desc_raw = data[1][0][3][0][0] } catch (error) { }
-        }
-        try {
-            shortDesc_raw = data[1][0][3][2][0][0]
-        } catch (e) { try { shortDesc_raw = data[1][0][3][0][0] } catch (error) { } }
-
-        const history = historyRaw ? (historyRaw.map((node: any) => ({
-            pano: nodes[node[0]][0][1],
-            date: new Date(`${node[1][0]}-${String(node[1][1]).padStart(2, '0')}`),
-        })))
-            : [];
-        const panorama: google.maps.StreetViewPanoramaData = {
-            location: {
-                pano: panoId,
-                latLng: new google.maps.LatLng(lat, lng),
-                description: !desc_raw && !shortDesc_raw ? null : `${shortDesc_raw}, ${desc_raw}`,
-                shortDescription: shortDesc_raw,
-                altitude,
-                country
-            },
-            links: linksRaw.map((link: any) => ({
-                pano: nodes[link[0]][0][1],
-                heading: link[1][3] ?? 0,
-            })) ?? [],
-            tiles: {
-                centerHeading: heading,
-                tileSize: new google.maps.Size(512, 512),
-                worldSize: new google.maps.Size(worldsize[1], worldsize[0]),
-                getTileUrl: () => '',
-            },
-            imageDate,
-            copyright: '© Google',
-            time: [...history, { pano: panoId, date: new Date(imageDate) }]
-                .sort((a, b) => a.date.getTime() - b.date.getTime()),
-        };
-
-        return panorama;
-    } catch (error: any) {
-        console.error('Failed to parse panorama data:', error.message);
-        throw new Error('Invalid panorama data format');
-    }
-}
-
-async function getMetadata(
-    pano: string,
-): Promise<any> {
-    try {
-        const endpoint = `https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/GetMetadata`;
-        const payload = createPayload(pano);
-
-        const response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-                "content-type": "application/json+protobuf",
-                "x-user-agent": "grpc-web-javascript/0.1"
-            },
-            body: payload,
-            mode: "cors",
-            credentials: "omit"
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error: any) {
-        throw new Error(`Error fetching Google panorama: ${error.message}`);
-    }
-}
-
 
 // Google
 async function getFromGoogle(
@@ -129,25 +14,8 @@ async function getFromGoogle(
         status: google.maps.StreetViewStatus,
     ) => void,
 ) {
-    const sv = getStreetViewService()
-    if ('pano' in request && typeof request.pano === 'string' && request.pano.length == 22) {
-        try {
-            const result = await getMetadata(request.pano)
-            if (result.length > 1) onCompleted(parseGoogle(result), google.maps.StreetViewStatus.OK)
-            else onCompleted(null, google.maps.StreetViewStatus.ZERO_RESULTS)
-        }
-        catch (error) {
-            console.error('Error fetching Google panorama:', error)
-            onCompleted(null, google.maps.StreetViewStatus.UNKNOWN_ERROR)
-        }
-    }
-    else {
-        await sv.getPanorama(request, onCompleted)
-    }
-
+    return SV.getPanorama(request, onCompleted)
 }
-
-
 
 // Apple Look Around
 async function getFromApple(
