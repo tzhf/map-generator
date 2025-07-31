@@ -4,7 +4,7 @@
   <div class="absolute bottom-1 left-1/2 -translate-x-1/2 font-bold text-xs text-black">
     Zoom : {{ currentZoom }}
   </div>
-  <div class="absolute top-1 left-1 w-100 max-h-[calc(100vh-178px)] flex flex-col gap-1">
+  <div class="absolute top-1 left-1 w-100 max-h-[calc(100vh-50px)] flex flex-col gap-1">
     <Logo />
     <div class="flex-1 min-h-0 flex flex-col gap-1">
       <div v-if="!state.started" class="container flex flex-col">
@@ -28,17 +28,15 @@
               <option :value=false>Off</option>
             </select>
           </div>
-          <div v-if="settings.notification.enabled" class="flex-1 min-h-0 overflow-y-auto ml-4 mb-1">
-            <Checkbox v-model="settings.notification.anyLocation">
-              Any location found
-            </Checkbox>
-            <Checkbox v-model="settings.notification.onePolygonComplete">
-              One polygon completed
-            </Checkbox>
-            <Checkbox v-model="settings.notification.allPolygonsComplete">
-              All polygons completed
-            </Checkbox>
-          </div>
+          <Checkbox v-if="settings.notification.enabled" v-model="settings.notification.anyLocation">
+            Any location found
+          </Checkbox>
+          <Checkbox v-if="settings.notification.enabled" v-model="settings.notification.onePolygonComplete">
+            One polygon completed
+          </Checkbox>
+          <Checkbox v-if="settings.notification.enabled" v-model="settings.notification.allPolygonsComplete">
+            All polygons completed
+          </Checkbox>
         </Collapsible>
       </div>
     </div>
@@ -201,7 +199,7 @@
         </div>
 
         <Collapsible :is-open="panels.generatorSettings" class="mt-1 p-1 pr-2">
-          <div class="flex items-center justify-between ml-1 mr-1">
+          <div class="flex items-center justify-between">
             Provider :
             <select v-model="settings.provider" @change="toggleMap(settings.provider)">
               <option value="google">Google</option>
@@ -287,7 +285,8 @@
                 Reject locations without description
               </Checkbox>
 
-              <Checkbox v-if="settings.provider === 'google'" v-model="settings.ignoreBadcam">Ignore BadCam</Checkbox>
+              <!--<Checkbox v-if="settings.provider === 'google'" v-model="settings.ignoreBadcam">
+                Ignore BadCam</Checkbox><AnotherComponent />-->
               <Checkbox v-model="settings.rejectDescription">Find trekker coverage</Checkbox>
 
               <Checkbox v-model="settings.findNightCoverage" v-if="settings.provider === 'tencent'">
@@ -315,11 +314,11 @@
                 generation</Checkbox>
               <div v-if="settings.findByGeneration.enabled && settings.provider === 'google'" class="ml-6">
                 <Checkbox v-model="settings.findByGeneration.google[1]">Gen 1</Checkbox>
-                <Checkbox v-model="settings.findByGeneration.google[2]">Gen 2</Checkbox>
-                <Checkbox v-model="settings.findByGeneration.google[3]">Gen 3</Checkbox>
+                <!--Checkbox v-model="settings.findByGeneration.google[2]">Gen 2</Checkbox-->
+                <!--Checkbox v-model="settings.findByGeneration.google[3]">Gen 3</Checkbox-->
                 <Checkbox v-model="settings.findByGeneration.google[23]">Gen 2 & 3</Checkbox>
                 <Checkbox v-model="settings.findByGeneration.google[4]">Gen 4</Checkbox>
-                <Checkbox v-model="settings.findByGeneration.google.badcam">BadCam</Checkbox>
+                <!--Checkbox v-model="settings.findByGeneration.google.badcam">BadCam</Checkbox-->
               </div>
               <div v-if="settings.findByGeneration.enabled && settings.provider === 'apple'" class="ml-6">
                 <Checkbox v-model="settings.findByGeneration.apple.bigcam">Big Camera</Checkbox>
@@ -573,7 +572,7 @@
               </label>
             </div>
 
-            <Checkbox v-if="['apple', 'bing', 'baidu', 'google'].includes(settings.provider)"
+            <Checkbox v-if="['apple', 'bing', 'baidu'].includes(settings.provider)"
               v-model="settings.filterByAltitude.enabled">
               Filter by altitude</Checkbox>
             <div v-if="settings.filterByAltitude.enabled" class="ml-6">
@@ -718,7 +717,7 @@
 
 <script setup lang="ts">
 // @ts-nocheck
-import { onMounted, watch, computed } from 'vue'
+import { onMounted, watch, computed, ref } from 'vue'
 import { useStorage, useColorMode } from '@vueuse/core'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import { llToPX } from 'web-merc-projection'
@@ -826,6 +825,7 @@ const panels = useStorage('map_generator__panels_v1', {
 
 const { selected, select, state } = useStore()
 const allFoundPanoIds = new Set<string>()
+const generationStartTime = ref<number>(0)
 
 const canBeStarted = computed(() =>
   selected.value.some((country) => country.found.length < country.nbNeeded),
@@ -871,6 +871,9 @@ document.onkeydown = (event) => {
 
 const handleClickStart = () => {
   state.started = !state.started
+  if (state.started) {
+    generationStartTime.value = Date.now()
+  }
   start()
 }
 
@@ -1011,7 +1014,7 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
       if (settings.provider === 'yandex' && !res.copyright?.includes('Yandex')) return false
 
       // Ignore Google BadCam
-      if (settings.ignoreBadcam && settings.provider === 'google') {
+      /*if (settings.ignoreBadcam && settings.provider === 'google') {
         if (res.imageDate >= '2019-01' && res.tiles?.worldSize?.height === 6656) {
           const validRes = await getNonBadcamRes(res.location.pano);
           if (validRes) {
@@ -1020,7 +1023,7 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
             return false;
           }
         }
-      }
+      }*/
     }
 
     if (settings.findRegions) {
@@ -1043,6 +1046,17 @@ async function getLoc(loc: LatLng, polygon: Polygon) {
     if (settings.findNightCoverage && settings.provider === 'tencent') {
       if (!res.location.shortDescription) return false
       return getPano(res.location.shortDescription, polygon)
+    }
+
+    // Find Generation
+    if (
+      ['google', 'apple', 'yandex', 'bing'].includes(settings.provider) &&
+      settings.findByGeneration.enabled &&
+      ((!settings.rejectOfficial && !settings.checkAllDates) || settings.selectMonths)
+    ) {
+      const gen = getCameraGeneration(res, settings.provider)
+      if (gen === 0) return false
+      if (!settings.findByGeneration[settings.provider][gen]) return false
     }
 
     if (
@@ -1147,19 +1161,7 @@ async function isPanoGood(pano: google.maps.StreetViewPanoramaData) {
         return
     }
 
-    // Find Generation
-    if (
-      ['google', 'apple', 'yandex', 'bing'].includes(settings.provider) &&
-      settings.findByGeneration.enabled &&
-      ((!settings.rejectOfficial && !settings.checkAllDates) || settings.selectMonths)
-    ) {
-      const gen = getCameraGeneration(pano, settings.provider)
-      if (gen === 0) return false
-      if (!settings.findByGeneration[settings.provider][gen]) return false
-    }
-
     if (settings.filterByAltitude.enabled) {
-
       if (
         pano.location.altitude < settings.filterByAltitude.range[0] ||
         pano.location.altitude > settings.filterByAltitude.range[1]
@@ -1461,21 +1463,25 @@ function addLocation(
   if (polygon.found.length < polygon.nbNeeded) {
     polygon.found.push(location)
     if (settings.notification.anyLocation && polygon.found.length === 1) {
+      const elapsedTime = ((Date.now() - generationStartTime.value) / 1000).toFixed(1)
       sendNotification('Location Found',
-        `Found first location in ${getPolygonName(polygon.feature.properties)}`
+        `Found first location in ${getPolygonName(polygon.feature.properties)} (${elapsedTime}s)`
       )
     }
 
     if (settings.notification.onePolygonComplete && polygon.found.length >= polygon.nbNeeded) {
+      const elapsedTime = ((Date.now() - generationStartTime.value) / 1000).toFixed(1)
       sendNotification('Polygon Completed',
-        `${getPolygonName(polygon.feature.properties)} has reached target count`)
+        `${getPolygonName(polygon.feature.properties)} has reached target count (${elapsedTime}s)`
+      )
     }
 
     if (settings.notification.allPolygonsComplete) {
       const allComplete = selected.value.every(p => p.found.length >= p.nbNeeded)
       if (allComplete) {
+        const elapsedTime = ((Date.now() - generationStartTime.value) / 1000).toFixed(1)
         sendNotification('Generation Completed',
-          'All polygons have reached their target counts'
+          `All polygons have reached their target counts (${elapsedTime}s)`
         )
       }
     }
